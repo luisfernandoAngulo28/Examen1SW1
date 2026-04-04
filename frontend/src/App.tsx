@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
@@ -10,10 +11,11 @@ import CaseDetailPage from './pages/CaseDetailPage';
 import MonitorPage from './pages/MonitorPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children, withLayout = true }: { children: React.ReactNode; withLayout?: boolean }) {
   const { user, isLoading } = useAuth();
-  if (isLoading) return <div>Cargando...</div>;
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Cargando...</div>;
+  if (!user) return <Navigate to="/login" />;
+  return withLayout ? <Layout>{children}</Layout> : <>{children}</>;
 }
 
 function App() {
@@ -23,7 +25,7 @@ function App() {
       <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
       <Route path="/departments" element={<PrivateRoute><DepartmentsPage /></PrivateRoute>} />
       <Route path="/policies/new" element={<PrivateRoute><NewPolicyPage /></PrivateRoute>} />
-      <Route path="/policies/:id/editor" element={<PrivateRoute><PolicyEditorPage /></PrivateRoute>} />
+      <Route path="/policies/:id/editor" element={<PrivateRoute withLayout={false}><PolicyEditorPage /></PrivateRoute>} />
       <Route path="/policies/:policyId/cases" element={<PrivateRoute><CasesPage /></PrivateRoute>} />
       <Route path="/cases/:id" element={<PrivateRoute><CaseDetailPage /></PrivateRoute>} />
       <Route path="/monitor" element={<PrivateRoute><MonitorPage /></PrivateRoute>} />

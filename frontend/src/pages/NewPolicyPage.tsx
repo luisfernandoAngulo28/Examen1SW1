@@ -13,23 +13,29 @@ export default function NewPolicyPage() {
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 480, margin: '0 auto' }}>
-      <h1>Nueva Política de Negocio</h1>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 16 }}>
-          <label>Nombre de la política</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="Ej: Instalación de medidor CRE"
-            style={{ width: '100%', padding: 8, marginTop: 4, borderRadius: 4, border: '1px solid #ccc' }}
-          />
+    <>
+      <div className="page-header">
+        <h1>📝 Nueva Política de Negocio</h1>
+      </div>
+      <div className="page-body fade-in">
+        <div className="card" style={{ maxWidth: 480, padding: 32 }}>
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', marginBottom: 6, fontWeight: 600, fontSize: 14 }}>Nombre de la política</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Ej: Instalación de medidor CRE"
+                className="form-input"
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
+              Crear y abrir editor
+            </button>
+          </form>
         </div>
-        <button type="submit" style={{ padding: '10px 20px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-          Crear y abrir editor
-        </button>
-      </form>
-    </div>
+      </div>
+    </>
   );
 }

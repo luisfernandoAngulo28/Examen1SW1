@@ -91,56 +91,54 @@ export default function CaseDetailPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Link to={`/policies/${caseData.policy.id}/cases`} style={{ color: '#1677ff', textDecoration: 'none' }}>&larr; Volver a trámites</Link>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-        <h1 style={{ margin: '8px 0' }}>Trámite: {caseData.policy.name}</h1>
+    <>
+      <div className="page-header">
         <div>
-          <span style={{ color: caseStatusColor[caseData.status], fontWeight: 700, fontSize: 18, marginRight: 16 }}>
+          <Link to={`/policies/${caseData.policy.id}/cases`} style={{ fontSize: 13 }}>&larr; Volver a trámites</Link>
+          <h1 style={{ marginTop: 4 }}>Trámite: {caseData.policy.name}</h1>
+          <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0', fontSize: 13 }}>
+            ID: <code>{caseData.id}</code> · Iniciado: {new Date(caseData.startedAt).toLocaleString()}
+            {caseData.finishedAt && <> · Finalizado: {new Date(caseData.finishedAt).toLocaleString()}</>}
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className={`badge ${caseData.status === 'IN_PROGRESS' ? 'badge-orange' : caseData.status === 'COMPLETED' ? 'badge-green' : caseData.status === 'CANCELLED' ? 'badge-red' : 'badge-blue'}`} style={{ fontSize: 14, padding: '6px 14px' }}>
             {caseData.status}
           </span>
           {caseData.status !== 'COMPLETED' && caseData.status !== 'CANCELLED' && (
-            <button onClick={handleCancel} style={{ padding: '6px 16px', background: '#ff4d4f', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+            <button onClick={handleCancel} className="btn btn-danger">
               Cancelar trámite
             </button>
           )}
         </div>
       </div>
-      <p style={{ color: '#666', margin: '4px 0 24px' }}>
-        ID: <code>{caseData.id}</code> &middot; Iniciado: {new Date(caseData.startedAt).toLocaleString()}
-        {caseData.finishedAt && <> &middot; Finalizado: {new Date(caseData.finishedAt).toLocaleString()}</>}
-      </p>
+      <div className="page-body fade-in">
 
       {/* Tasks */}
-      <h2>Tareas del flujo</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Tareas del flujo</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {caseData.tasks.map((task) => (
-          <div key={task.id} style={{
-            background: '#fff',
-            border: '1px solid #eee',
-            borderLeft: `4px solid ${statusColor[task.status]}`,
-            borderRadius: 6,
-            padding: 16,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div key={task.id} className="task-card" style={{ borderLeftColor: statusColor[task.status] }}>
+            <div className="task-card-header">
               <div>
-                <strong style={{ fontSize: 16 }}>{task.node.title}</strong>
-                <span style={{ marginLeft: 12, color: '#888', fontSize: 13 }}>
+                <strong style={{ fontSize: 15 }}>{task.node.title}</strong>
+                <span style={{ marginLeft: 12, color: 'var(--text-secondary)', fontSize: 13 }}>
                   [{task.node.department?.name || 'Sin depto'}]
                 </span>
               </div>
-              <span style={{ color: statusColor[task.status], fontWeight: 600 }}>{task.status}</span>
+              <span className={`badge ${task.status === 'DONE' ? 'badge-green' : task.status === 'IN_PROGRESS' ? 'badge-orange' : 'badge-gray'}`}>{task.status}</span>
             </div>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="task-card-actions">
               {/* Assign */}
               {task.status !== 'DONE' && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <label style={{ fontSize: 13, color: '#666' }}>Asignar a:</label>
+                  <label style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Asignar a:</label>
                   <select
                     value={task.assignedUser?.id || ''}
                     onChange={(e) => handleAssign(task.id, e.target.value)}
-                    style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc' }}
+                    className="form-input"
+                    style={{ width: 'auto', padding: '4px 8px' }}
                   >
                     <option value="">Sin asignar</option>
                     {users.map((u) => (
@@ -152,22 +150,19 @@ export default function CaseDetailPage() {
 
               {/* Complete button */}
               {task.status !== 'DONE' && (
-                <button
-                  onClick={() => handleComplete(task.id)}
-                  style={{ padding: '6px 16px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-                >
+                <button onClick={() => handleComplete(task.id)} className="btn btn-success btn-sm">
                   Completar
                 </button>
               )}
 
               {task.assignedUser && (
-                <span style={{ fontSize: 13, color: '#666' }}>
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
                   Asignado a: <strong>{task.assignedUser.name}</strong>
                 </span>
               )}
 
               {task.finishedAt && (
-                <span style={{ fontSize: 13, color: '#52c41a' }}>
+                <span style={{ fontSize: 13, color: 'var(--success)' }}>
                   Completada: {new Date(task.finishedAt).toLocaleString()}
                 </span>
               )}
@@ -177,27 +172,30 @@ export default function CaseDetailPage() {
       </div>
 
       {/* Event Log */}
-      <h2 style={{ marginTop: 32 }}>Historial de eventos</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <h2 style={{ marginTop: 32, fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Historial de eventos</h2>
+      <div className="card">
+      <table className="table">
         <thead>
-          <tr style={{ background: '#fafafa' }}>
-            <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Evento</th>
-            <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Datos</th>
-            <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Hora</th>
+          <tr>
+            <th>Evento</th>
+            <th>Datos</th>
+            <th>Hora</th>
           </tr>
         </thead>
         <tbody>
           {caseData.eventLogs.map((log) => (
             <tr key={log.id}>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee', fontWeight: 600 }}>{log.type}</td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee', fontFamily: 'monospace', fontSize: 12 }}>
+              <td><span className="badge badge-blue">{log.type}</span></td>
+              <td style={{ fontFamily: 'monospace', fontSize: 12 }}>
                 {log.payloadJson ? JSON.stringify(log.payloadJson) : '—'}
               </td>
-              <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{new Date(log.createdAt).toLocaleString()}</td>
+              <td>{new Date(log.createdAt).toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+      </div>
+    </>
   );
 }

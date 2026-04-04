@@ -82,31 +82,28 @@ export default function MonitorPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <div>
-          <Link to="/" style={{ color: '#1677ff', textDecoration: 'none' }}>&larr; Dashboard</Link>
-          <h1 style={{ margin: '8px 0' }}>Monitor en Tiempo Real</h1>
-        </div>
-        <div style={{ background: '#f0f5ff', padding: '8px 16px', borderRadius: 8 }}>
-          <strong>{onlineUsers.length}</strong> usuario(s) conectado(s)
-          <span style={{ display: 'inline-block', width: 10, height: 10, background: '#52c41a', borderRadius: '50%', marginLeft: 8 }} />
+    <>
+      <div className="page-header">
+        <h1>📡 Monitor en Tiempo Real</h1>
+        <div className="badge badge-green" style={{ fontSize: 14, padding: '6px 14px' }}>
+          <span style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', marginRight: 8 }} />
+          {onlineUsers.length} conectado(s)
         </div>
       </div>
-
+      <div className="page-body fade-in">
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 24 }}>
         {/* Left: Active cases & tasks */}
         <div>
-          <h2>Trámites Activos ({activeCases.length})</h2>
-          {activeCases.length === 0 && <p style={{ color: '#999' }}>No hay trámites activos.</p>}
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Trámites Activos ({activeCases.length})</h2>
+          {activeCases.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No hay trámites activos.</p>}
           {activeCases.map((c) => (
-            <div key={c.id} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 12 }}>
+            <div key={c.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <strong style={{ fontSize: 16 }}>{c.policy.name}</strong>
                   <span style={{ marginLeft: 12, color: '#fa8c16', fontWeight: 600 }}>{c.status}</span>
                 </div>
-                <Link to={`/cases/${c.id}`} style={{ color: '#1677ff', fontSize: 13 }}>Ver detalle</Link>
+                <Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link>
               </div>
               <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {c.tasks.map((t) => (
@@ -130,19 +127,20 @@ export default function MonitorPage() {
 
         {/* Right: Live event feed */}
         <div>
-          <h2>Eventos en Vivo</h2>
-          <div style={{ background: '#1a1a2e', borderRadius: 8, padding: 16, maxHeight: 500, overflowY: 'auto' }}>
-            {eventFeed.length === 0 && <p style={{ color: '#666', textAlign: 'center' }}>Esperando eventos...</p>}
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Eventos en Vivo</h2>
+          <div className="event-feed">
+            {eventFeed.length === 0 && <p style={{ color: '#64748b', textAlign: 'center', padding: 16 }}>Esperando eventos...</p>}
             {eventFeed.map((ev, i) => (
-              <div key={i} style={{ marginBottom: 8, padding: '6px 10px', borderRadius: 4, background: '#16213e' }}>
-                <span style={{ color: '#888', fontSize: 12 }}>{ev.time}</span>
-                <span style={{ color: eventColor[ev.type] || '#fff', marginLeft: 8, fontWeight: 600, fontSize: 13 }}>{ev.type}</span>
-                <span style={{ color: '#ccc', marginLeft: 8, fontSize: 13 }}>{ev.detail}</span>
+              <div key={i} className="event-item">
+                <span className="event-time">{ev.time}</span>
+                <span className="event-type" style={{ color: eventColor[ev.type] || '#fff' }}>{ev.type}</span>
+                <span className="event-detail">{ev.detail}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

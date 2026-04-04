@@ -56,55 +56,46 @@ export default function CasesPage() {
   if (loading) return <div style={{ padding: 24 }}>Cargando...</div>;
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <>
+      <div className="page-header">
         <div>
-          <Link to="/" style={{ color: '#1677ff', textDecoration: 'none' }}>&larr; Dashboard</Link>
-          <h1 style={{ margin: '8px 0' }}>Trámites: {policyName}</h1>
+          <Link to="/" style={{ fontSize: 13 }}>&larr; Dashboard</Link>
+          <h1 style={{ marginTop: 4 }}>Trámites: {policyName}</h1>
         </div>
-        <button
-          onClick={handleStartCase}
-          style={{ padding: '10px 20px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 15 }}
-        >
+        <button onClick={handleStartCase} className="btn btn-primary">
           + Iniciar Trámite
         </button>
       </div>
+      <div className="page-body fade-in">
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="card">
+      <table className="table">
         <thead>
-          <tr style={{ background: '#fafafa' }}>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>ID</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Estado</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Tareas</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Iniciado</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Acciones</th>
+          <tr>
+            <th>ID</th>
+            <th>Estado</th>
+            <th>Tareas</th>
+            <th>Iniciado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {cases.map((c) => (
             <tr key={c.id}>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee', fontFamily: 'monospace', fontSize: 13 }}>
-                {c.id.slice(0, 8)}...
-              </td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                <span style={{ color: statusColor[c.status] || '#333', fontWeight: 600 }}>{c.status}</span>
-              </td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                {c.tasks.filter((t) => t.status === 'DONE').length}/{c.tasks.length} completadas
-              </td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                {new Date(c.startedAt).toLocaleString()}
-              </td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                <Link to={`/cases/${c.id}`} style={{ color: '#1677ff' }}>Ver detalle</Link>
-              </td>
+              <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{c.id.slice(0, 8)}...</td>
+              <td><span className={`badge ${c.status === 'IN_PROGRESS' ? 'badge-orange' : c.status === 'COMPLETED' ? 'badge-green' : 'badge-gray'}`}>{c.status}</span></td>
+              <td>{c.tasks.filter((t) => t.status === 'DONE').length}/{c.tasks.length} completadas</td>
+              <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{new Date(c.startedAt).toLocaleString()}</td>
+              <td><Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link></td>
             </tr>
           ))}
           {cases.length === 0 && (
-            <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: '#999' }}>No hay trámites. Inicia uno con el botón de arriba.</td></tr>
+            <tr><td colSpan={5} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay trámites. Inicia uno con el botón de arriba.</td></tr>
           )}
         </tbody>
       </table>
-    </div>
+      </div>
+      </div>
+    </>
   );
 }

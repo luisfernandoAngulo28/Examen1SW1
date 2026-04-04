@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api';
 
 interface DashboardStats {
@@ -60,27 +59,29 @@ export default function AnalyticsPage() {
   if (!stats) return <div style={{ padding: 24 }}>Cargando...</div>;
 
   return (
-    <div style={{ padding: 24 }}>
-      <Link to="/" style={{ color: '#1677ff', textDecoration: 'none' }}>&larr; Dashboard</Link>
-      <h1 style={{ margin: '8px 0 24px' }}>Analytics & Cuellos de Botella</h1>
+    <>
+      <div className="page-header">
+        <h1>📊 Analytics & Cuellos de Botella</h1>
+      </div>
+      <div className="page-body fade-in">
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
-        <KpiCard label="Total Trámites" value={stats.totalCases} color="#1677ff" />
-        <KpiCard label="Activos" value={stats.activeCases} color="#fa8c16" />
-        <KpiCard label="Completados" value={stats.completedCases} color="#52c41a" />
-        <KpiCard label="Tareas Pendientes" value={stats.pendingTasks} color="#ff4d4f" />
+      <div className="kpi-grid">
+        <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--primary)' }}>{stats.totalCases}</div><div className="kpi-label">Total Trámites</div></div>
+        <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--warning)' }}>{stats.activeCases}</div><div className="kpi-label">Activos</div></div>
+        <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--success)' }}>{stats.completedCases}</div><div className="kpi-label">Completados</div></div>
+        <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--danger)' }}>{stats.pendingTasks}</div><div className="kpi-label">Tareas Pendientes</div></div>
       </div>
 
       {/* Tasks per department */}
       {stats.tasksPerDepartment.length > 0 && (
         <div style={{ marginBottom: 32 }}>
-          <h2>Tareas pendientes por departamento</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Tareas pendientes por departamento</h2>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {stats.tasksPerDepartment.map((d) => (
-              <div key={d.name} style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: '12px 20px', minWidth: 150 }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: d.count >= 3 ? '#ff4d4f' : '#333' }}>{d.count}</div>
-                <div style={{ color: '#666' }}>{d.name}</div>
+              <div key={d.name} className="kpi-card" style={{ minWidth: 150, padding: '12px 20px' }}>
+                <div className="kpi-value" style={{ fontSize: 24, color: d.count >= 3 ? 'var(--danger)' : 'var(--text-primary)' }}>{d.count}</div>
+                <div className="kpi-label">{d.name}</div>
               </div>
             ))}
           </div>
@@ -88,11 +89,12 @@ export default function AnalyticsPage() {
       )}
 
       {/* Per-policy analysis */}
-      <h2>Análisis por Política</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Análisis por Política</h2>
       <select
         value={selectedPolicy}
         onChange={(e) => loadPolicyAnalytics(e.target.value)}
-        style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', marginBottom: 16, fontSize: 15 }}
+        className="form-input"
+        style={{ maxWidth: 400, marginBottom: 16 }}
       >
         <option value="">Seleccionar política...</option>
         {policies.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -100,67 +102,61 @@ export default function AnalyticsPage() {
 
       {policyAnalytics && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-            <KpiCard label="Trámites" value={policyAnalytics.totalCases} color="#1677ff" />
-            <KpiCard label="Completados" value={policyAnalytics.completedCases} color="#52c41a" />
-            <KpiCard label="Duración Prom. (min)" value={policyAnalytics.avgCaseDurationMinutes} color="#722ed1" />
+          <div className="kpi-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 24 }}>
+            <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--primary)' }}>{policyAnalytics.totalCases}</div><div className="kpi-label">Trámites</div></div>
+            <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--success)' }}>{policyAnalytics.completedCases}</div><div className="kpi-label">Completados</div></div>
+            <div className="kpi-card"><div className="kpi-value" style={{ color: '#722ed1' }}>{policyAnalytics.avgCaseDurationMinutes}</div><div className="kpi-label">Duración Prom. (min)</div></div>
           </div>
 
           {/* Bottleneck alert */}
           {policyAnalytics.bottlenecks.length > 0 && (
-            <div style={{ background: '#fff2e8', border: '1px solid #ffbb96', borderRadius: 8, padding: 16, marginBottom: 24 }}>
-              <h3 style={{ color: '#d4380d', margin: '0 0 8px' }}>Cuellos de Botella Detectados</h3>
+            <div className="card" style={{ background: '#fff2e8', border: '1px solid #ffbb96', padding: 16, marginBottom: 24 }}>
+              <h3 style={{ color: '#d4380d', margin: '0 0 8px' }}>⚠️ Cuellos de Botella Detectados</h3>
               {policyAnalytics.bottlenecks.map((b) => (
                 <div key={b.nodeId} style={{ marginBottom: 6 }}>
                   <strong>{b.nodeTitle}</strong> ({b.departmentName})
                   — Duración prom: <strong>{b.avgDurationMinutes} min</strong>
-                  — Pendientes: <strong style={{ color: '#ff4d4f' }}>{b.pendingTasks}</strong>
+                  — Pendientes: <strong style={{ color: 'var(--danger)' }}>{b.pendingTasks}</strong>
                 </div>
               ))}
             </div>
           )}
 
           {/* Node stats table */}
-          <h3>Estadísticas por actividad</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Estadísticas por actividad</h3>
+          <div className="card">
+          <table className="table">
             <thead>
-              <tr style={{ background: '#fafafa' }}>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Actividad</th>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Departamento</th>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Total Tareas</th>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Pendientes</th>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Duración Prom.</th>
-                <th style={{ padding: 10, textAlign: 'left', borderBottom: '1px solid #eee' }}>Estado</th>
+              <tr>
+                <th>Actividad</th>
+                <th>Departamento</th>
+                <th>Total Tareas</th>
+                <th>Pendientes</th>
+                <th>Duración Prom.</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {policyAnalytics.nodeStats.map((n) => (
                 <tr key={n.nodeId} style={{ background: n.isBottleneck ? '#fff2e8' : 'transparent' }}>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee', fontWeight: n.isBottleneck ? 700 : 400 }}>{n.nodeTitle}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{n.departmentName}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{n.totalTasks}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee', color: n.pendingTasks >= 3 ? '#ff4d4f' : '#333' }}>{n.pendingTasks}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>{n.avgDurationMinutes} min</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #eee' }}>
+                  <td style={{ fontWeight: n.isBottleneck ? 700 : 400 }}>{n.nodeTitle}</td>
+                  <td>{n.departmentName}</td>
+                  <td>{n.totalTasks}</td>
+                  <td style={{ color: n.pendingTasks >= 3 ? 'var(--danger)' : 'inherit' }}>{n.pendingTasks}</td>
+                  <td>{n.avgDurationMinutes} min</td>
+                  <td>
                     {n.isBottleneck
-                      ? <span style={{ color: '#d4380d', fontWeight: 700 }}>CUELLO DE BOTELLA</span>
-                      : <span style={{ color: '#52c41a' }}>Normal</span>}
+                      ? <span className="badge badge-orange">CUELLO DE BOTELLA</span>
+                      : <span className="badge badge-green">Normal</span>}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function KpiCard({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 20, textAlign: 'center' }}>
-      <div style={{ fontSize: 32, fontWeight: 700, color }}>{value}</div>
-      <div style={{ color: '#666', marginTop: 4 }}>{label}</div>
-    </div>
+      </div>
+    </>
   );
 }

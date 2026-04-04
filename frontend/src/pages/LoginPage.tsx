@@ -21,31 +21,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f0f2f5' }}>
-      <form onSubmit={handleSubmit} style={{ background: '#fff', padding: 32, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', width: 360 }}>
-        <h2 style={{ textAlign: 'center', marginBottom: 24 }}>Workflow SW1</h2>
-        {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
-        <div style={{ marginBottom: 16 }}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: 8, marginTop: 4, borderRadius: 4, border: '1px solid #ccc' }}
-          />
+    <div className="login-page">
+      <form onSubmit={handleSubmit} className="login-card fade-in">
+        <div className="login-brand">
+          <h1>⚡ Workflow<span>SW1</span></h1>
+          <p>Sistema de Gestión de Políticas de Negocio</p>
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label>Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: '100%', padding: 8, marginTop: 4, borderRadius: 4, border: '1px solid #ccc' }}
-          />
+        {error && <p style={{ color: 'var(--danger)', textAlign: 'center', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>{error}</p>}
+        <div style={{ marginBottom: 20 }}>
+          <label className="form-label">Email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="form-input" placeholder="admin@test.com" />
         </div>
-        <button type="submit" style={{ width: '100%', padding: 10, background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 16 }}>
+        <div style={{ marginBottom: 24 }}>
+          <label className="form-label">Contraseña</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="form-input" placeholder="••••••" />
+        </div>
+        <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
           Iniciar sesión
         </button>
       </form>

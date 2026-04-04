@@ -1,4 +1,3 @@
-import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../api';
@@ -10,72 +9,88 @@ interface Policy {
   createdAt: string;
 }
 
+interface Stats {
+  totalCases: number;
+  activeCases: number;
+  completedCases: number;
+  pendingTasks: number;
+}
+
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
   const [policies, setPolicies] = useState<Policy[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     api.get('/policies').then((res) => setPolicies(res.data));
+    api.get('/analytics/dashboard').then((res) => setStats(res.data)).catch(() => {});
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+    <>
+      <div className="page-header">
         <h1>Dashboard</h1>
-        <div>
-          <span style={{ marginRight: 16 }}>
-            {user?.name} ({user?.role})
-          </span>
-          <button onClick={logout} style={{ padding: '6px 12px', cursor: 'pointer' }}>Cerrar sesión</button>
+      </div>
+      <div className="page-body fade-in">
+        {/* KPI Cards */}
+        {stats && (
+          <div className="kpi-grid" style={{ marginBottom: 24 }}>
+            <div className="kpi-card blue">
+              <div className="kpi-value" style={{ color: 'var(--primary)' }}>{stats.totalCases}</div>
+              <div className="kpi-label">Total Trámites</div>
+            </div>
+            <div className="kpi-card orange">
+              <div className="kpi-value" style={{ color: 'var(--warning)' }}>{stats.activeCases}</div>
+              <div className="kpi-label">En Progreso</div>
+            </div>
+            <div className="kpi-card green">
+              <div className="kpi-value" style={{ color: 'var(--success)' }}>{stats.completedCases}</div>
+              <div className="kpi-label">Completados</div>
+            </div>
+            <div className="kpi-card red">
+              <div className="kpi-value" style={{ color: 'var(--danger)' }}>{stats.pendingTasks}</div>
+              <div className="kpi-label">Tareas Pendientes</div>
+            </div>
+          </div>
+        )}
+
+        {/* Policies Table */}
+        <div className="card">
+          <div className="card-body" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700 }}>Políticas de Negocio</h2>
+            <Link to="/policies/new" className="btn btn-primary btn-sm">+ Nueva Política</Link>
+          </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Creada</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((p) => (
+                <tr key={p.id}>
+                  <td style={{ fontWeight: 600 }}>{p.name}</td>
+                  <td>
+                    <span className={`badge ${p.status === 'ACTIVE' ? 'badge-green' : 'badge-gray'}`}>{p.status}</span>
+                  </td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Link to={`/policies/${p.id}/editor`} className="btn btn-ghost btn-sm">Editar</Link>
+                      <Link to={`/policies/${p.id}/cases`} className="btn btn-warning btn-sm" style={{ color: '#fff' }}>Trámites</Link>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {policies.length === 0 && (
+                <tr><td colSpan={4} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay políticas creadas</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-        {user?.role === 'DESIGNER' && (
-          <>
-            <Link to="/policies/new" style={{ padding: '10px 20px', background: '#1677ff', color: '#fff', borderRadius: 4, textDecoration: 'none' }}>
-              Nueva Política
-            </Link>
-            <Link to="/departments" style={{ padding: '10px 20px', background: '#52c41a', color: '#fff', borderRadius: 4, textDecoration: 'none' }}>
-              Departamentos
-            </Link>
-            <Link to="/monitor" style={{ padding: '10px 20px', background: '#722ed1', color: '#fff', borderRadius: 4, textDecoration: 'none' }}>
-              Monitor en Vivo
-            </Link>
-            <Link to="/analytics" style={{ padding: '10px 20px', background: '#fa8c16', color: '#fff', borderRadius: 4, textDecoration: 'none' }}>
-              Analytics
-            </Link>
-          </>
-        )}
-      </div>
-
-      <h2>Políticas de Negocio</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ background: '#fafafa' }}>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Nombre</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Estado</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {policies.map((p) => (
-            <tr key={p.id}>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>{p.name}</td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                <span style={{ color: p.status === 'ACTIVE' ? '#52c41a' : '#999' }}>{p.status}</span>
-              </td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                <Link to={`/policies/${p.id}/editor`} style={{ marginRight: 8, color: '#1677ff' }}>Editar diagrama</Link>
-                <Link to={`/policies/${p.id}/cases`} style={{ color: '#fa8c16' }}>Ver trámites</Link>
-              </td>
-            </tr>
-          ))}
-          {policies.length === 0 && (
-            <tr><td colSpan={3} style={{ padding: 24, textAlign: 'center', color: '#999' }}>No hay políticas creadas</td></tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+    </>
   );
 }

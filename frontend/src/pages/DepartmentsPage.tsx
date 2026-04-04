@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
-import { Link } from 'react-router-dom';
 
 interface Dept {
   id: string;
@@ -29,42 +28,51 @@ export default function DepartmentsPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Link to="/" style={{ color: '#1677ff', marginBottom: 16, display: 'inline-block' }}>← Volver al dashboard</Link>
-      <h1>Departamentos</h1>
+    <>
+      <div className="page-header">
+        <h1>🏢 Departamentos</h1>
+      </div>
+      <div className="page-body fade-in">
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Nombre del departamento"
-          style={{ padding: 8, borderRadius: 4, border: '1px solid #ccc', flex: 1 }}
+          className="form-input"
+          style={{ flex: 1 }}
         />
-        <button onClick={handleCreate} style={{ padding: '8px 16px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+        <button onClick={handleCreate} className="btn btn-primary">
           Crear
         </button>
       </div>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="card">
+      <table className="table">
         <thead>
-          <tr style={{ background: '#fafafa' }}>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Nombre</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Funcionarios</th>
-            <th style={{ padding: 12, textAlign: 'left', borderBottom: '1px solid #eee' }}>Acciones</th>
+          <tr>
+            <th>Nombre</th>
+            <th>Funcionarios</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           {departments.map((d) => (
             <tr key={d.id}>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>{d.name}</td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>{d.users.map((u) => u.name).join(', ') || '-'}</td>
-              <td style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-                <button onClick={() => handleDelete(d.id)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>Eliminar</button>
+              <td style={{ fontWeight: 600 }}>{d.name}</td>
+              <td>{d.users.map((u) => u.name).join(', ') || <span style={{ color: 'var(--text-secondary)' }}>—</span>}</td>
+              <td>
+                <button onClick={() => handleDelete(d.id)} className="btn btn-danger btn-sm">Eliminar</button>
               </td>
             </tr>
           ))}
+          {departments.length === 0 && (
+            <tr><td colSpan={3} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay departamentos creados.</td></tr>
+          )}
         </tbody>
       </table>
-    </div>
+      </div>
+      </div>
+    </>
   );
 }
