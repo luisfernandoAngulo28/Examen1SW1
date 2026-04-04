@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DESIGNER
+  OFFICER
+}
+
+enum PolicyStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum FlowType {
+  SEQUENTIAL
+  CONDITIONAL
+  ITERATIVE
+  PARALLEL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InputMode {
+  MANUAL
+  VOICE
+  AI
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  name         String
+  passwordHash String     @map("password_hash")
+  role         Role
+  departmentId String?    @map("department_id")
+  department   Department? @relation(fields: [departmentId], references: [id])
+  tasks        Task[]
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Department {
+  id    String @id @default(uuid())
+  name  String @unique
+  users User[]
+  nodes PolicyNode[]
+
+  @@map("departments")
+}
+
+model Policy {
+  id        String       @id @default(uuid())
+  name      String
+  status    PolicyStatus @default(ACTIVE)
+  createdBy String       @map("created_by")
+  nodes     PolicyNode[]
+  edges     PolicyEdge[]
+  cases     Case[]
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@map("policies")
+}
+
+model PolicyNode {
+  id             String      @id @default(uuid())
+  policyId       String      @map("policy_id")
+  policy         Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  departmentId   String      @map("department_id")
+  department     Department  @relation(fields: [departmentId], references: [id])
+  title          String
+  description    String?
+  positionX      Float       @default(0) @map("position_x")
+  positionY      Float       @default(0) @map("position_y")
+  formTemplate   FormTemplate?
+  edgesFrom      PolicyEdge[] @relation("EdgeFrom")
+  edgesTo        PolicyEdge[] @relation("EdgeTo")
+  tasks          Task[]
+
+  @@map("policy_nodes")
+}
+
+model PolicyEdge {
+  id            String   @id @default(uuid())
+  policyId      String   @map("policy_id")
+  policy        Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  fromNodeId    String   @map("from_node_id")
+  fromNode      PolicyNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNodeId      String   @map("to_node_id")
+  toNode        PolicyNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  flowType      FlowType @default(SEQUENTIAL) @map("flow_type")
+  conditionJson Json?    @map("condition_json")
+
+  @@map("policy_edges")
+}
+
+model Case {
+  id            String     @id @default(uuid())
+  policyId      String     @map("policy_id")
+  policy        Policy     @relation(fields: [policyId], references: [id])
+  currentNodeId String?    @map("current_node_id")
+  status        CaseStatus @default(OPEN)
+  tasks         Task[]
+  eventLogs     EventLog[]
+  startedAt     DateTime   @default(now()) @map("started_at")
+  finishedAt    DateTime?  @map("finished_at")
+
+  @@map("cases")
+}
+
+model Task {
+  id             String     @id @default(uuid())
+  caseId         String     @map("case_id")
+  case           Case       @relation(fields: [caseId], references: [id])
+  nodeId         String     @map("node_id")
+  node           PolicyNode @relation(fields: [nodeId], references: [id])
+  assignedUserId String?    @map("assigned_user_id")
+  assignedUser   User?      @relation(fields: [assignedUserId], references: [id])
+  status         TaskStatus @default(PENDING)
+  formSubmission FormSubmission?
+  startedAt      DateTime   @default(now()) @map("started_at")
+  finishedAt     DateTime?  @map("finished_at")
+  dueAt          DateTime?  @map("due_at")
+
+  @@map("tasks")
+}
+
+model FormTemplate {
+  id         String     @id @default(uuid())
+  nodeId     String     @unique @map("node_id")
+  node       PolicyNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  schemaJson Json       @map("schema_json")
+
+  @@map("form_templates")
+}
+
+model FormSubmission {
+  id          String    @id @default(uuid())
+  taskId      String    @unique @map("task_id")
+  task        Task      @relation(fields: [taskId], references: [id])
+  payloadJson Json      @map("payload_json")
+  inputMode   InputMode @default(MANUAL) @map("input_mode")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("form_submissions")
+}
+
+model EventLog {
+  id          String   @id @default(uuid())
+  caseId      String   @map("case_id")
+  case        Case     @relation(fields: [caseId], references: [id])
+  type        String
+  payloadJson Json?    @map("payload_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("event_logs")
+}
