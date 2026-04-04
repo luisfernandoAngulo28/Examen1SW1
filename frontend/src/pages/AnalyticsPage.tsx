@@ -56,7 +56,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  if (!stats) return <div style={{ padding: 24 }}>Cargando...</div>;
+  if (!stats) return <div className="loading-page"><div className="spinner" /><span>Cargando analytics...</span></div>;
 
   return (
     <>

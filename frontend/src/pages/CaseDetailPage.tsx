@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
+import DynamicForm from '../components/DynamicForm';
+import { useToast } from '../components/Toast';
 
 interface Department {
   id: string;
@@ -45,36 +47,80 @@ interface UserOption {
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { toast } = useToast();
   const [caseData, setCaseData] = useState<CaseDetail | null>(null);
   const [users, setUsers] = useState<UserOption[]>([]);
+  const [formTemplates, setFormTemplates] = useState<Record<string, any>>({});
+  const [formSubmissions, setFormSubmissions] = useState<Record<string, any>>({});
+  const [submittingForm, setSubmittingForm] = useState<string | null>(null);
+  const [expandedForms, setExpandedForms] = useState<Set<string>>(new Set());
 
   const load = () => {
-    api.get(`/cases/${id}`).then((res) => setCaseData(res.data));
+    api.get(`/cases/${id}`).then((res) => {
+      setCaseData(res.data);
+      // Load form templates and submissions for each task
+      res.data.tasks.forEach((task: Task) => {
+        api.get(`/forms/template/${task.node.id}`).then((r) => {
+          if (r.data) setFormTemplates((prev) => ({ ...prev, [task.node.id]: r.data.schemaJson }));
+        }).catch(() => {});
+        api.get(`/forms/submission/${task.id}`).then((r) => {
+          if (r.data) setFormSubmissions((prev) => ({ ...prev, [task.id]: r.data.payloadJson }));
+        }).catch(() => {});
+      });
+    });
   };
 
   useEffect(() => {
     load();
-    // Load officers for assignment
     api.get('/auth/users').then((res) => setUsers(res.data)).catch(() => {});
   }, [id]);
 
   const handleComplete = async (taskId: string) => {
-    await api.post(`/cases/tasks/${taskId}/complete`);
-    load();
+    try {
+      await api.post(`/cases/tasks/${taskId}/complete`);
+      toast('Tarea completada', 'success');
+      load();
+    } catch { toast('Error al completar tarea', 'error'); }
   };
 
   const handleAssign = async (taskId: string, userId: string) => {
-    await api.patch(`/cases/tasks/${taskId}/assign`, { userId });
-    load();
+    try {
+      await api.patch(`/cases/tasks/${taskId}/assign`, { userId });
+      toast('Funcionario asignado', 'success');
+      load();
+    } catch { toast('Error al asignar', 'error'); }
   };
 
   const handleCancel = async () => {
     if (!confirm('¿Cancelar este trámite?')) return;
-    await api.patch(`/cases/${id}/cancel`);
-    load();
+    try {
+      await api.patch(`/cases/${id}/cancel`);
+      toast('Trámite cancelado', 'info');
+      load();
+    } catch { toast('Error al cancelar', 'error'); }
   };
 
-  if (!caseData) return <div style={{ padding: 24 }}>Cargando...</div>;
+  const handleFormSubmit = async (taskId: string, data: Record<string, any>) => {
+    setSubmittingForm(taskId);
+    try {
+      await api.post(`/forms/submit/${taskId}`, { payloadJson: data, inputMode: 'MANUAL' });
+      setFormSubmissions((prev) => ({ ...prev, [taskId]: data }));
+      toast('Formulario guardado', 'success');
+    } catch (err) {
+      toast('Error al guardar formulario', 'error');
+    }
+    setSubmittingForm(null);
+  };
+
+  const toggleForm = (taskId: string) => {
+    setExpandedForms((prev) => {
+      const next = new Set(prev);
+      next.has(taskId) ? next.delete(taskId) : next.add(taskId);
+      return next;
+    });
+  };
+
+  if (!caseData) return <div className="loading-page"><div className="spinner" /><span>Cargando trámite...</span></div>;
 
   const statusColor: Record<string, string> = {
     PENDING: '#999',
@@ -167,6 +213,30 @@ export default function CaseDetailPage() {
                 </span>
               )}
             </div>
+
+            {/* Dynamic Form */}
+            {formTemplates[task.node.id] && (
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => toggleForm(task.id)}
+                  style={{ marginBottom: 8 }}
+                >
+                  {expandedForms.has(task.id) ? '▾' : '▸'} Formulario
+                  {formSubmissions[task.id] && <span className="badge badge-green" style={{ marginLeft: 8 }}>Completado</span>}
+                </button>
+                {expandedForms.has(task.id) && (
+                  <DynamicForm
+                    schema={formTemplates[task.node.id]}
+                    initialData={formSubmissions[task.id] || null}
+                    readOnly={task.status === 'DONE' || !!formSubmissions[task.id]}
+                    onSubmit={!formSubmissions[task.id] && task.status !== 'DONE' ? (data) => handleFormSubmit(task.id, data) : undefined}
+                    submitting={submittingForm === task.id}
+                  />
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

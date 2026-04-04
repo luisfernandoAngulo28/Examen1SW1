@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { useToast } from '../components/Toast';
 
 interface Dept {
   id: string;
@@ -10,6 +11,7 @@ interface Dept {
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Dept[]>([]);
   const [newName, setNewName] = useState('');
+  const { toast } = useToast();
 
   const load = () => api.get('/departments').then((res) => setDepartments(res.data));
 
@@ -17,14 +19,20 @@ export default function DepartmentsPage() {
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
-    await api.post('/departments', { name: newName });
-    setNewName('');
-    load();
+    try {
+      await api.post('/departments', { name: newName });
+      toast('Departamento creado', 'success');
+      setNewName('');
+      load();
+    } catch { toast('Error al crear departamento', 'error'); }
   };
 
   const handleDelete = async (id: string) => {
-    await api.delete(`/departments/${id}`);
-    load();
+    try {
+      await api.delete(`/departments/${id}`);
+      toast('Departamento eliminado', 'info');
+      load();
+    } catch { toast('Error al eliminar', 'error'); }
   };
 
   return (

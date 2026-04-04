@@ -33,6 +33,10 @@ export default function PolicyEditorPage() {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [formFields, setFormFields] = useState<{ name: string; label: string; type: string; required: boolean; options?: string[] }[]>([]);
+  const [showFormPanel, setShowFormPanel] = useState(false);
+  const [savingForm, setSavingForm] = useState(false);
 
   useEffect(() => {
     api.get('/departments').then((res) => {
@@ -208,6 +212,45 @@ export default function PolicyEditorPage() {
     recognition.start();
   };
 
+  const onNodeClick = useCallback((_: any, node: Node) => {
+    setSelectedNode(node);
+    setShowFormPanel(true);
+    // Load existing form template
+    api.get(`/forms/template/${node.id}`).then((res) => {
+      if (res.data?.schemaJson?.fields) {
+        setFormFields(res.data.schemaJson.fields);
+      } else {
+        setFormFields([]);
+      }
+    }).catch(() => setFormFields([]));
+  }, []);
+
+  const addFormField = () => {
+    setFormFields((prev) => [...prev, { name: `campo_${prev.length + 1}`, label: '', type: 'text', required: false }]);
+  };
+
+  const updateFormField = (index: number, key: string, value: any) => {
+    setFormFields((prev) => prev.map((f, i) => i === index ? { ...f, [key]: value } : f));
+  };
+
+  const removeFormField = (index: number) => {
+    setFormFields((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const saveFormTemplate = async () => {
+    if (!selectedNode) return;
+    setSavingForm(true);
+    try {
+      await api.put(`/forms/template/${selectedNode.id}`, {
+        schemaJson: { fields: formFields },
+      });
+      alert('Formulario guardado');
+    } catch {
+      alert('Error al guardar formulario');
+    }
+    setSavingForm(false);
+  };
+
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '12px 24px', background: '#fff', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -240,6 +283,7 @@ export default function PolicyEditorPage() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeClick={onNodeClick}
             fitView
           >
             <Controls />
@@ -247,6 +291,83 @@ export default function PolicyEditorPage() {
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
           </ReactFlow>
         </div>
+
+        {/* Form Template Panel */}
+        {showFormPanel && selectedNode && (
+          <div style={{ width: 300, background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>📋 Formulario</span>
+              <button onClick={() => setShowFormPanel(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>×</button>
+            </div>
+            <div style={{ padding: 12, fontSize: 13, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>
+              Nodo: <strong style={{ color: '#1e293b' }}>{(selectedNode.data as any).title || String(selectedNode.data.label).split('\n')[0]}</strong>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+              {formFields.length === 0 && (
+                <p style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', padding: 16 }}>
+                  Sin campos. Agrega campos al formulario de esta actividad.
+                </p>
+              )}
+              {formFields.map((field, i) => (
+                <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>Campo {i + 1}</span>
+                    <button onClick={() => removeFormField(i)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 13 }}>✕</button>
+                  </div>
+                  <input
+                    value={field.label}
+                    onChange={(e) => updateFormField(i, 'label', e.target.value)}
+                    placeholder="Etiqueta"
+                    className="form-input"
+                    style={{ marginBottom: 6, padding: '6px 10px', fontSize: 13 }}
+                  />
+                  <input
+                    value={field.name}
+                    onChange={(e) => updateFormField(i, 'name', e.target.value)}
+                    placeholder="nombre_campo"
+                    className="form-input"
+                    style={{ marginBottom: 6, padding: '6px 10px', fontSize: 13 }}
+                  />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <select
+                      value={field.type}
+                      onChange={(e) => updateFormField(i, 'type', e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1, padding: '6px 10px', fontSize: 13 }}
+                    >
+                      <option value="text">Texto</option>
+                      <option value="number">Número</option>
+                      <option value="email">Email</option>
+                      <option value="date">Fecha</option>
+                      <option value="textarea">Área de texto</option>
+                      <option value="select">Selección</option>
+                      <option value="checkbox">Checkbox</option>
+                    </select>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>
+                      <input type="checkbox" checked={field.required} onChange={(e) => updateFormField(i, 'required', e.target.checked)} />
+                      Req.
+                    </label>
+                  </div>
+                  {field.type === 'select' && (
+                    <input
+                      value={field.options?.join(', ') || ''}
+                      onChange={(e) => updateFormField(i, 'options', e.target.value.split(',').map(s => s.trim()))}
+                      placeholder="Opciones (separadas por coma)"
+                      className="form-input"
+                      style={{ marginTop: 6, padding: '6px 10px', fontSize: 13 }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: 12, borderTop: '1px solid #e2e8f0', display: 'flex', gap: 6 }}>
+              <button onClick={addFormField} className="btn btn-ghost btn-sm" style={{ flex: 1 }}>+ Campo</button>
+              <button onClick={saveFormTemplate} disabled={savingForm} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+                {savingForm ? '...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* AI Assistant Panel */}
         <div style={{ width: 320, background: '#1a1a2e', color: '#fff', display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333' }}>

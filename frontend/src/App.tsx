@@ -13,7 +13,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 
 function PrivateRoute({ children, withLayout = true }: { children: React.ReactNode; withLayout?: boolean }) {
   const { user, isLoading } = useAuth();
-  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>Cargando...</div>;
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}><div className="spinner" style={{ width: 48, height: 48 }} /></div>;
   if (!user) return <Navigate to="/login" />;
   return withLayout ? <Layout>{children}</Layout> : <>{children}</>;
 }

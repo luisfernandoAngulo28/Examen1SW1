@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
+import { useToast } from '../components/Toast';
 
 interface Task {
   id: string;
@@ -22,6 +23,7 @@ interface Case {
 
 export default function CasesPage() {
   const { policyId } = useParams<{ policyId: string }>();
+  const { toast } = useToast();
   const [cases, setCases] = useState<Case[]>([]);
   const [policyName, setPolicyName] = useState('');
   const [loading, setLoading] = useState(true);
@@ -42,8 +44,11 @@ export default function CasesPage() {
   }, [policyId]);
 
   const handleStartCase = async () => {
-    await api.post('/cases', { policyId });
-    loadCases();
+    try {
+      await api.post('/cases', { policyId });
+      toast('Trámite iniciado', 'success');
+      loadCases();
+    } catch { toast('Error al iniciar trámite', 'error'); }
   };
 
   const statusColor: Record<string, string> = {
@@ -53,7 +58,7 @@ export default function CasesPage() {
     CANCELLED: '#ff4d4f',
   };
 
-  if (loading) return <div style={{ padding: 24 }}>Cargando...</div>;
+  if (loading) return <div className="loading-page"><div className="spinner" /><span>Cargando trámites...</span></div>;
 
   return (
     <>
