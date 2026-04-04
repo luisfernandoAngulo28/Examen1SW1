@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ReactFlow,
@@ -37,6 +37,15 @@ export default function PolicyEditorPage() {
   const [formFields, setFormFields] = useState<{ name: string; label: string; type: string; required: boolean; options?: string[] }[]>([]);
   const [showFormPanel, setShowFormPanel] = useState(false);
   const [savingForm, setSavingForm] = useState(false);
+  const [showLanes, setShowLanes] = useState(true);
+
+  // Swimlane positions
+  const LANE_WIDTH = 300;
+  const getLaneX = (deptIndex: number) => deptIndex * LANE_WIDTH;
+  const getNodeXForDept = (deptId: string) => {
+    const idx = departments.findIndex((d) => d.id === deptId);
+    return idx >= 0 ? getLaneX(idx) + LANE_WIDTH / 2 - 75 : Math.random() * 400;
+  };
 
   useEffect(() => {
     api.get('/departments').then((res) => {
@@ -88,9 +97,11 @@ export default function PolicyEditorPage() {
   const addNode = () => {
     if (!newNodeTitle.trim() || !selectedDept) return;
     const dept = departments.find((d) => d.id === selectedDept);
+    // Count existing nodes in same department to stack vertically
+    const sameDepNodes = nodes.filter((n) => (n.data as any).departmentId === selectedDept);
     const newNode: Node = {
       id: crypto.randomUUID(),
-      position: { x: Math.random() * 400 + 50, y: Math.random() * 400 + 50 },
+      position: { x: getNodeXForDept(selectedDept), y: 80 + sameDepNodes.length * 130 },
       data: { label: `${newNodeTitle}\n(${dept?.name || ''})`, departmentId: selectedDept, title: newNodeTitle },
       style: {
         background: '#fff',
@@ -142,10 +153,11 @@ export default function PolicyEditorPage() {
         const newNodes: Node[] = [];
         data.nodes.forEach((n: any, i: number) => {
           const dept = departments.find((d) => d.name.toLowerCase() === n.department.toLowerCase());
+          const deptId = dept?.id || departments[0]?.id;
           const node: Node = {
             id: crypto.randomUUID(),
-            position: { x: 100 + i * 250, y: 100 + i * 120 },
-            data: { label: `${n.title}\n(${dept?.name || n.department})`, departmentId: dept?.id || departments[0]?.id, title: n.title },
+            position: { x: getNodeXForDept(deptId), y: 80 + i * 130 },
+            data: { label: `${n.title}\n(${dept?.name || n.department})`, departmentId: deptId, title: n.title },
             style: { background: '#fff', border: '2px solid #1677ff', borderRadius: 8, padding: 12, minWidth: 150 },
           };
           newNodes.push(node);
@@ -212,6 +224,93 @@ export default function PolicyEditorPage() {
     recognition.start();
   };
 
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAiMessages((prev) => [...prev, { role: 'user', text: `📷 Imagen: ${file.name}` }]);
+    setAiMessages((prev) => [...prev, { role: 'ai', text: 'Analizando imagen...' }]);
+
+    try {
+      // Use Canvas to load image, then try to extract any text-like content
+      const bitmap = await createImageBitmap(file);
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(bitmap, 0, 0);
+
+      // Send image info to backend for analysis
+      // Since we don't have server-side OCR, we ask user to describe what's in the image
+      // as a fallback, or process known patterns from the filename
+      let extractedText = '';
+
+      // Try to use the file name as a hint
+      const nameHint = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      if (nameHint.length > 3) {
+        extractedText = `crear flujo para ${nameHint}`;
+      }
+
+      // Also provide a prompt input approach
+      const userDescription = prompt('Describe brevemente lo que muestra la imagen (ej: "flujo de contratación con 3 pasos: solicitud, revisión, aprobación"):');
+      if (userDescription) {
+        extractedText = userDescription;
+      }
+
+      if (!extractedText) {
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: 'No se pudo analizar la imagen. Describe lo que contiene para procesarla.' }]);
+        return;
+      }
+
+      const res = await api.post('/ai-assistant/image', { extractedText, fileName: file.name });
+      const data = res.data;
+
+      if (data.nodes && data.nodes.length > 0) {
+        const newNodes: Node[] = [];
+        data.nodes.forEach((n: any, i: number) => {
+          const dept = departments.find((d) => d.name.toLowerCase() === (n.department || '').toLowerCase());
+          const deptId = dept?.id || departments[0]?.id;
+          const node: Node = {
+            id: crypto.randomUUID(),
+            position: { x: getNodeXForDept(deptId), y: 80 + i * 130 },
+            data: { label: `${n.title}\n(${dept?.name || n.department || departments[0]?.name || ''})`, departmentId: deptId, title: n.title },
+            style: { background: '#fff', border: '2px solid #1677ff', borderRadius: 8, padding: 12, minWidth: 150 },
+          };
+          newNodes.push(node);
+        });
+        setNodes((nds) => [...nds, ...newNodes]);
+
+        if (data.connections) {
+          setTimeout(() => {
+            setNodes((currentNodes) => {
+              const newEdges: Edge[] = [];
+              data.connections.forEach((c: any) => {
+                const fromNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.from.toLowerCase());
+                const toNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.to.toLowerCase());
+                if (fromNode && toNode) {
+                  newEdges.push({ id: crypto.randomUUID(), source: fromNode.id, target: toNode.id, label: c.flowType, style: { stroke: getEdgeColor(c.flowType) } });
+                }
+              });
+              if (newEdges.length > 0) setEdges((eds) => [...eds, ...newEdges]);
+              return currentNodes;
+            });
+          }, 100);
+        }
+
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `📷 ${data.suggestion || `Generé ${data.nodes.length} actividades desde la imagen.`}` }]);
+      } else {
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: data.suggestion || 'No se pudieron extraer actividades de la imagen.' }]);
+      }
+    } catch {
+      setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: 'Error al procesar la imagen.' }]);
+    }
+
+    // Reset input
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelectedNode(node);
     setShowFormPanel(true);
@@ -273,6 +372,9 @@ export default function PolicyEditorPage() {
         <button onClick={saveGraph} disabled={saving} style={{ padding: '6px 12px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
+        <button onClick={() => setShowLanes(!showLanes)} style={{ padding: '6px 12px', background: showLanes ? '#8b5cf6' : '#94a3b8', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+          {showLanes ? '▦ Calles ON' : '▦ Calles OFF'}
+        </button>
       </div>
 
       <div style={{ flex: 1, display: 'flex' }}>
@@ -289,6 +391,24 @@ export default function PolicyEditorPage() {
             <Controls />
             <MiniMap />
             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+            {/* Swimlanes overlay */}
+            {showLanes && departments.length > 0 && (
+              <div className="swimlane-container">
+                {departments.map((dept, i) => (
+                  <div
+                    key={dept.id}
+                    className="swimlane"
+                    style={{
+                      left: getLaneX(i),
+                      width: LANE_WIDTH,
+                      background: i % 2 === 0 ? 'rgba(79,70,229,.03)' : 'rgba(79,70,229,.06)',
+                    }}
+                  >
+                    <div className="swimlane-header">🏢 {dept.name}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </ReactFlow>
         </div>
 
@@ -377,10 +497,10 @@ export default function PolicyEditorPage() {
           <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
             {aiMessages.length === 0 && (
               <div style={{ color: '#666', fontSize: 13, padding: 8 }}>
-                <p>Escribe o habla para diseñar tu diagrama:</p>
-                <p style={{ color: '#888' }}>"Crear flujo para contratación"</p>
-                <p style={{ color: '#888' }}>"Agregar actividad Revisión en Legal"</p>
-                <p style={{ color: '#888' }}>"Conectar Revisión con Aprobación"</p>
+                <p>Escribe, habla o sube una imagen:</p>
+                <p style={{ color: '#888' }}>💬 "Crear flujo para contratación"</p>
+                <p style={{ color: '#888' }}>🎤 "Agregar actividad Revisión en Legal"</p>
+                <p style={{ color: '#888' }}>📷 Sube un diagrama o boceto</p>
               </div>
             )}
             {aiMessages.map((msg, i) => (
@@ -418,6 +538,14 @@ export default function PolicyEditorPage() {
               style={{ padding: '8px 12px', background: isListening ? '#ff4d4f' : '#52c41a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
             >
               {isListening ? '⏹' : '🎤'}
+            </button>
+            <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+            <button
+              onClick={() => imageInputRef.current?.click()}
+              style={{ padding: '8px 12px', background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+              title="Subir imagen de diagrama"
+            >
+              📷
             </button>
           </div>
         </div>

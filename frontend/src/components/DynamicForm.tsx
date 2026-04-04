@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef } from 'react';
 
 interface FormField {
   name: string;
@@ -23,6 +23,7 @@ interface Props {
 
 export default function DynamicForm({ schema, initialData, readOnly, onSubmit, submitting }: Props) {
   const [formData, setFormData] = useState<Record<string, any>>(initialData || {});
+  const [listeningField, setListeningField] = useState<string | null>(null);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -31,6 +32,23 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit?.(formData);
+  };
+
+  const startVoiceForField = (fieldName: string) => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) { alert('Tu navegador no soporta reconocimiento de voz'); return; }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    setListeningField(fieldName);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setListeningField(null);
+      handleChange(fieldName, transcript);
+    };
+    recognition.onerror = () => setListeningField(null);
+    recognition.onend = () => setListeningField(null);
+    recognition.start();
   };
 
   if (!schema?.fields?.length) return null;
@@ -46,16 +64,26 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
             </label>
 
             {field.type === 'textarea' ? (
-              <textarea
-                className="form-input"
-                value={formData[field.name] || ''}
-                onChange={(e) => handleChange(field.name, e.target.value)}
-                required={field.required}
-                disabled={readOnly}
-                placeholder={field.placeholder}
-                rows={3}
-                style={{ resize: 'vertical' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  className="form-input"
+                  value={formData[field.name] || ''}
+                  onChange={(e) => handleChange(field.name, e.target.value)}
+                  required={field.required}
+                  disabled={readOnly}
+                  placeholder={field.placeholder}
+                  rows={3}
+                  style={{ resize: 'vertical', paddingRight: readOnly ? undefined : 40 }}
+                />
+                {!readOnly && (
+                  <button type="button" onClick={() => startVoiceForField(field.name)}
+                    className={`voice-btn ${listeningField === field.name ? 'listening' : ''}`}
+                    title="Dictar por voz"
+                  >
+                    {listeningField === field.name ? '⏹' : '🎤'}
+                  </button>
+                )}
+              </div>
             ) : field.type === 'select' ? (
               <select
                 className="form-input"
@@ -81,15 +109,26 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
                 <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{field.placeholder || 'Sí'}</span>
               </label>
             ) : (
-              <input
-                type={field.type}
-                className="form-input"
-                value={formData[field.name] || ''}
-                onChange={(e) => handleChange(field.name, field.type === 'number' ? Number(e.target.value) : e.target.value)}
-                required={field.required}
-                disabled={readOnly}
-                placeholder={field.placeholder}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={field.type}
+                  className="form-input"
+                  value={formData[field.name] || ''}
+                  onChange={(e) => handleChange(field.name, field.type === 'number' ? Number(e.target.value) : e.target.value)}
+                  required={field.required}
+                  disabled={readOnly}
+                  placeholder={field.placeholder}
+                  style={!readOnly && (field.type === 'text' || field.type === 'email') ? { paddingRight: 40 } : undefined}
+                />
+                {!readOnly && (field.type === 'text' || field.type === 'email') && (
+                  <button type="button" onClick={() => startVoiceForField(field.name)}
+                    className={`voice-btn ${listeningField === field.name ? 'listening' : ''}`}
+                    title="Dictar por voz"
+                  >
+                    {listeningField === field.name ? '⏹' : '🎤'}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         ))}

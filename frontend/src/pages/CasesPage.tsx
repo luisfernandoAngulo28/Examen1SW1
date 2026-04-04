@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import { useToast } from '../components/Toast';
+import TrafficLight from '../components/TrafficLight';
 
 interface Task {
   id: string;
@@ -88,7 +89,7 @@ export default function CasesPage() {
           {cases.map((c) => (
             <tr key={c.id}>
               <td style={{ fontFamily: 'monospace', fontSize: 13 }}>{c.id.slice(0, 8)}...</td>
-              <td><span className={`badge ${c.status === 'IN_PROGRESS' ? 'badge-orange' : c.status === 'COMPLETED' ? 'badge-green' : 'badge-gray'}`}>{c.status}</span></td>
+              <td style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrafficLight status={c.status} size={12} /><span className={`badge ${c.status === 'IN_PROGRESS' ? 'badge-orange' : c.status === 'COMPLETED' ? 'badge-green' : 'badge-gray'}`}>{c.status}</span></td>
               <td>{c.tasks.filter((t) => t.status === 'DONE').length}/{c.tasks.length} completadas</td>
               <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{new Date(c.startedAt).toLocaleString()}</td>
               <td><Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link></td>

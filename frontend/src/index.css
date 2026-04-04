@@ -224,3 +224,45 @@ a:hover { color: var(--primary-hover); }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Traffic Light / Semáforo */
+.traffic-light {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.traffic-dot {
+  display: inline-block; border-radius: 50%; flex-shrink: 0;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.traffic-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .7; }
+}
+
+/* Swimlanes */
+.swimlane-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0; }
+.swimlane {
+  position: absolute; top: 0; bottom: 0; border-right: 2px dashed #cbd5e1;
+  display: flex; flex-direction: column; align-items: center;
+}
+.swimlane-header {
+  position: sticky; top: 0; z-index: 2; padding: 8px 16px;
+  background: rgba(79,70,229,.08); border-bottom: 2px solid var(--primary);
+  font-size: 13px; font-weight: 700; color: var(--primary);
+  text-transform: uppercase; letter-spacing: .5px; width: 100%; text-align: center;
+  pointer-events: auto;
+}
+
+/* Voice button */
+.voice-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: var(--primary-light); color: var(--primary);
+  font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .2s, color .2s;
+}
+.voice-btn:hover { background: var(--primary); color: #fff; }
+.voice-btn.listening {
+  background: var(--danger); color: #fff;
+  animation: pulse-glow 1s infinite;
+}

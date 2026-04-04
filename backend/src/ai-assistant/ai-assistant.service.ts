@@ -75,4 +75,64 @@ export class AiAssistantService {
   private capitalize(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
+
+  /**
+   * Parse text extracted from an uploaded image.
+   * Lines are interpreted as activity names; arrow-like patterns as connections.
+   */
+  parseImageText(extractedText: string, fileName?: string): DiagramAction {
+    if (!extractedText || !extractedText.trim()) {
+      return {
+        action: 'suggest_flow',
+        suggestion: 'No se pudo extraer texto de la imagen. Intenta con una imagen más clara o escribe el comando.',
+        nodes: [],
+        connections: [],
+      };
+    }
+
+    const lines = extractedText.split('\n').map(l => l.trim()).filter(l => l.length > 2);
+
+    // Check if any line looks like a prompt command — delegate to parsePrompt
+    for (const line of lines) {
+      const lower = line.toLowerCase();
+      if (lower.match(/agregar|conectar|crear flujo|eliminar|generar/)) {
+        return this.parsePrompt(line);
+      }
+    }
+
+    // Otherwise treat lines as a list of activities, extract arrows (→, ->, -->, ==>)
+    const activityLines: string[] = [];
+    const connections: { from: string; to: string; flowType: string }[] = [];
+
+    for (const line of lines) {
+      const arrowMatch = line.match(/^(.+?)\s*(?:→|->|-->|==>|>>)\s*(.+)$/);
+      if (arrowMatch) {
+        const from = this.capitalize(arrowMatch[1].trim());
+        const to = this.capitalize(arrowMatch[2].trim());
+        activityLines.push(from);
+        activityLines.push(to);
+        connections.push({ from, to, flowType: 'SEQUENTIAL' });
+      } else {
+        activityLines.push(this.capitalize(line));
+      }
+    }
+
+    // Deduplicate
+    const uniqueActivities = [...new Set(activityLines)];
+    const nodes = uniqueActivities.map((title) => ({ title, department: '' }));
+
+    // If no explicit connections, create sequential chain
+    if (connections.length === 0 && nodes.length > 1) {
+      for (let i = 0; i < nodes.length - 1; i++) {
+        connections.push({ from: nodes[i].title, to: nodes[i + 1].title, flowType: 'SEQUENTIAL' });
+      }
+    }
+
+    return {
+      action: 'suggest_flow',
+      suggestion: `Flujo extraído de imagen: ${nodes.length} actividades, ${connections.length} conexiones`,
+      nodes,
+      connections,
+    };
+  }
 }

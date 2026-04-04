@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
+import TrafficLight from '../components/TrafficLight';
 
 interface Task {
   id: string;
@@ -99,9 +100,10 @@ export default function MonitorPage() {
           {activeCases.map((c) => (
             <div key={c.id} className="card" style={{ padding: 16, marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <TrafficLight status={c.status} size={16} />
                   <strong style={{ fontSize: 16 }}>{c.policy.name}</strong>
-                  <span style={{ marginLeft: 12, color: '#fa8c16', fontWeight: 600 }}>{c.status}</span>
+                  <span className="badge badge-orange" style={{ fontSize: 11 }}>{c.status}</span>
                 </div>
                 <Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link>
               </div>
@@ -114,9 +116,10 @@ export default function MonitorPage() {
                     background: t.status === 'DONE' ? '#f6ffed' : t.status === 'IN_PROGRESS' ? '#fff7e6' : '#fafafa',
                     fontSize: 13,
                   }}>
+                    <TrafficLight status={t.status} size={10} />
                     <strong>{t.node.title}</strong>
                     <span style={{ color: '#888', marginLeft: 6 }}>[{t.node.department?.name}]</span>
-                    <span style={{ color: statusColor[t.status], marginLeft: 8, fontWeight: 600 }}>{t.status}</span>
+                    <span style={{ color: statusColor[t.status], marginLeft: 4, fontWeight: 600 }}>{t.status}</span>
                     {t.assignedUser && <span style={{ marginLeft: 6, color: '#666' }}>→ {t.assignedUser.name}</span>}
                   </div>
                 ))}

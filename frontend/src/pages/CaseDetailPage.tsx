@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import DynamicForm from '../components/DynamicForm';
 import { useToast } from '../components/Toast';
+import TrafficLight from '../components/TrafficLight';
 
 interface Department {
   id: string;
@@ -148,6 +149,7 @@ export default function CaseDetailPage() {
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <TrafficLight status={caseData.status} size={18} showLabel />
           <span className={`badge ${caseData.status === 'IN_PROGRESS' ? 'badge-orange' : caseData.status === 'COMPLETED' ? 'badge-green' : caseData.status === 'CANCELLED' ? 'badge-red' : 'badge-blue'}`} style={{ fontSize: 14, padding: '6px 14px' }}>
             {caseData.status}
           </span>
@@ -172,7 +174,10 @@ export default function CaseDetailPage() {
                   [{task.node.department?.name || 'Sin depto'}]
                 </span>
               </div>
-              <span className={`badge ${task.status === 'DONE' ? 'badge-green' : task.status === 'IN_PROGRESS' ? 'badge-orange' : 'badge-gray'}`}>{task.status}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <TrafficLight status={task.status} size={12} />
+                <span className={`badge ${task.status === 'DONE' ? 'badge-green' : task.status === 'IN_PROGRESS' ? 'badge-orange' : 'badge-gray'}`}>{task.status}</span>
+              </div>
             </div>
 
             <div className="task-card-actions">
