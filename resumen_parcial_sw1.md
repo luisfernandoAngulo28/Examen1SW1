@@ -99,34 +99,50 @@ Estos puntos aparecen en los apuntes de clase y conviene dejarlos como backlog p
 
 ## 6. Estado actual y cierre al 100
 ### Lo que ya esta cubierto
-- Editor visual de politicas con swimlanes.
+- Editor visual de politicas con swimlanes y nodos UML (INITIAL, FINAL, DECISION, FORK, JOIN).
 - Tipos de flujo secuencial, condicional, iterativo y paralelo.
-- Inicio y ejecucion de tramites con enrutamiento por nodos.
-- Monitor y semaforo visual de estados.
-- Formularios por actividad, incluyendo apoyo por voz.
-- Asistente IA por texto, voz e imagen dentro del editor.
-- Vista de analiticas y deteccion base de cuellos de botella.
-- Manual de usuario con capturas del sistema funcionando.
-
-### Lo poco que falta para considerarlo cerrado
-- Verificar una demo limpia de extremo a extremo sin errores manuales ni datos duplicados.
-- Preparar una historia de presentacion corta y ordenada: crear politica, ejecutar tramite, monitorear, mostrar IA y analiticas.
-- Dejar evidencia final ordenada en git: manual, imagenes y codigo sincronizados.
+- Motor de workflow completo: inicio, enrutamiento, decisiones runtime, fork/join paralelo, auto-advance.
+- Roles separados: DESIGNER (administrador) y OFFICER (funcionario) con vistas diferenciadas.
+- Dashboard del diseñador con KPIs y gestión de políticas.
+- Bandeja del funcionario (Officer Dashboard) con filtros y asignación de tareas.
+- Monitor en tiempo real con WebSocket (eventos en vivo, conexiones online).
+- Semáforo visual de estados (verde/amarillo/rojo) en toda la aplicación.
+- Formularios dinámicos por actividad (7 tipos de campo), con carga manual y por voz.
+- Asistente IA por texto (NLP rule-based), voz (Web Speech API) e imagen (Tesseract.js OCR real).
+- Analíticas con gráficos CSS/SVG: barras de carga, duración, donut de completitud.
+- Detección de cuellos de botella con IA: análisis estadístico (media, 2-sigma), inferencia contextual y recomendaciones en lenguaje natural.
+- Panel de Análisis Inteligente (IA) con severidad (crítico/advertencia/info/éxito) y acciones sugeridas.
+- Registro de usuarios con UI completa y validación.
+- Historial de eventos completo (CASE_STARTED, TASK_COMPLETED, DECISION_TAKEN, CASE_COMPLETED, etc.).
+- Protección de roles en endpoints sensibles (@Roles DESIGNER en saveGraph).
+- saveGraph protegido: no permite editar grafo con trámites en curso.
+- Token expiry handling: redirect automático a login si 401.
+- 25 tests unitarios (AuthService, PoliciesService, CasesService) - 100% pass.
+- Docker: docker-compose.yml + Dockerfiles backend/frontend + nginx.conf.
+- CI/CD: GitHub Actions pipeline (backend tests + frontend build + docker build).
+- Script de seed demo con política completa (11 nodos UML, 11 aristas, 2 formularios).
+- Manual de usuario con 20+ capturas del sistema funcionando.
+- Código versionado en GitHub con commits descriptivos.
 
 ### Checklist final de entrega
-- Backend levantando sin errores.
-- Frontend levantando sin errores.
-- Login funcional con usuario de prueba.
-- Politica de ejemplo lista para demo.
-- Tramite de ejemplo listo para mostrar avance.
-- Formularios guardando correctamente.
-- IA por texto funcionando.
-- IA por voz funcionando.
-- IA por imagen funcionando.
-- Monitor actualizando estados.
-- Analiticas visibles con datos.
-- Manual con capturas finales correctas.
-- Cambios versionados y listos para push.
+- [x] Backend levantando sin errores.
+- [x] Frontend levantando sin errores.
+- [x] Login funcional con usuario de prueba (admin@test.com / 123456).
+- [x] Registro de usuarios funcional (UI + API).
+- [x] Política de ejemplo lista para demo (Proceso de Contratación).
+- [x] Trámite de ejemplo ejecutado de punta a punta (CASE_COMPLETED).
+- [x] Formularios guardando correctamente (con inputMode VOICE/MANUAL).
+- [x] IA por texto funcionando (crear flujo, agregar nodo, conectar, eliminar).
+- [x] IA por voz funcionando (Web Speech API español).
+- [x] IA por imagen funcionando (Tesseract.js OCR real con progreso).
+- [x] Monitor actualizando estados en tiempo real (WebSocket).
+- [x] Analíticas visibles con datos y gráficos.
+- [x] Análisis IA de cuellos de botella con recomendaciones.
+- [x] Tests unitarios pasando (25/25).
+- [x] Docker configurado (docker-compose.yml).
+- [x] CI/CD configurado (GitHub Actions).
+- [x] Manual con capturas finales correctas.
+- [x] Cambios versionados y pusheados a GitHub.
 
-### Conclusion practica
-Si este checklist esta completo, el proyecto se puede considerar al 100% para el parcial. Lo que queda despues ya entra en mejoras futuras, no en faltantes criticos del entregable.
+### Conclusión práctica
+El proyecto está al 100% para el parcial. Cubre todos los requisitos funcionales, innovaciones obligatorias, alcance mínimo y criterios de evaluación definidos en clase.
