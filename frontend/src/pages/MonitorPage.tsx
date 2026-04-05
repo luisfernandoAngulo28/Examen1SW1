@@ -4,6 +4,7 @@ import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import TrafficLight from '../components/TrafficLight';
+import { Radio } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -85,7 +86,7 @@ export default function MonitorPage() {
   return (
     <>
       <div className="page-header">
-        <h1>📡 Monitor en Tiempo Real</h1>
+        <h1><Radio size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 8 }} />Monitor en Tiempo Real</h1>
         <div className="badge badge-green" style={{ fontSize: 14, padding: '6px 14px' }}>
           <span style={{ display: 'inline-block', width: 8, height: 8, background: 'var(--success)', borderRadius: '50%', marginRight: 8 }} />
           {onlineUsers.length} conectado(s)

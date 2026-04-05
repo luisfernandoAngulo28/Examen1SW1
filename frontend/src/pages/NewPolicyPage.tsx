@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { FileEdit } from 'lucide-react';
 
 export default function NewPolicyPage() {
   const [name, setName] = useState('');
@@ -15,7 +16,7 @@ export default function NewPolicyPage() {
   return (
     <>
       <div className="page-header">
-        <h1>📝 Nueva Política de Negocio</h1>
+        <h1><FileEdit size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 8 }} />Nueva Política de Negocio</h1>
       </div>
       <div className="page-body fade-in">
         <div className="card" style={{ maxWidth: 480, padding: 32 }}>

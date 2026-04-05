@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ export default function LoginPage() {
     <div className="login-page">
       <form onSubmit={handleSubmit} className="login-card fade-in">
         <div className="login-brand">
-          <h1>⚡ Workflow<span>SW1</span></h1>
+          <h1><Zap size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Workflow<span>SW1</span></h1>
           <p>Sistema de Gestión de Políticas de Negocio</p>
         </div>
         {error && <p style={{ color: 'var(--danger)', textAlign: 'center', marginBottom: 16, fontSize: 14, fontWeight: 600 }}>{error}</p>}

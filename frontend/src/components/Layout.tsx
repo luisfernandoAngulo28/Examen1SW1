@@ -1,17 +1,18 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { LayoutDashboard, Radio, BarChart3, Building2, ClipboardList, Plus, UserPlus, LogOut, Zap } from 'lucide-react';
 
 const designerNav = [
-  { to: '/', label: 'Dashboard', icon: '📊' },
-  { to: '/monitor', label: 'Monitor en Vivo', icon: '📡' },
-  { to: '/analytics', label: 'Analytics', icon: '📈' },
-  { to: '/departments', label: 'Departamentos', icon: '🏢' },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/monitor', label: 'Monitor en Vivo', icon: Radio },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/departments', label: 'Departamentos', icon: Building2 },
 ];
 
 const officerNav = [
-  { to: '/', label: 'Mi Bandeja', icon: '📋' },
-  { to: '/monitor', label: 'Monitor en Vivo', icon: '📡' },
-  { to: '/analytics', label: 'Analytics', icon: '📈' },
+  { to: '/', label: 'Mi Bandeja', icon: ClipboardList },
+  { to: '/monitor', label: 'Monitor en Vivo', icon: Radio },
+  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <span>⚡</span> Workflow<span>SW1</span>
+          <Zap size={20} color="#a78bfa" /> Workflow<span>SW1</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -39,7 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               end={item.to === '/'}
               className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
             >
-              <span>{item.icon}</span>
+              <item.icon size={18} />
               {item.label}
             </NavLink>
           ))}
@@ -48,10 +49,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <>
               <div className="sidebar-section">Gestión</div>
               <NavLink to="/policies/new" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <span>➕</span> Nueva Política
+                <Plus size={18} /> Nueva Política
               </NavLink>
               <NavLink to="/register" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-                <span>👤</span> Registrar Usuario
+                <UserPlus size={18} /> Registrar Usuario
               </NavLink>
             </>
           )}
@@ -67,9 +68,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={handleLogout}
-            style={{ marginTop: 12, width: '100%', padding: '8px', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
+            style={{ marginTop: 12, width: '100%', padding: '8px', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: 6, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
           >
-            Cerrar sesión
+            <LogOut size={14} /> Cerrar sesión
           </button>
         </div>
       </aside>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BarChart3, AlertTriangle, TrendingUp, Bot, Lightbulb, CircleDot } from 'lucide-react';
 import api from '../api';
 
 interface DashboardStats {
@@ -62,7 +63,7 @@ export default function AnalyticsPage() {
   return (
     <>
       <div className="page-header">
-        <h1>📊 Analytics & Cuellos de Botella</h1>
+        <h1><BarChart3 size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 8 }} />Analytics & Cuellos de Botella</h1>
       </div>
       <div className="page-body fade-in">
 
@@ -77,7 +78,7 @@ export default function AnalyticsPage() {
       {/* Tasks per department — BAR CHART */}
       {stats.tasksPerDepartment.length > 0 && (
         <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>📊 Carga por Departamento</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}><BarChart3 size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Carga por Departamento</h2>
           <div className="card" style={{ padding: 24 }}>
             {(() => {
               const max = Math.max(...stats.tasksPerDepartment.map((d) => d.count), 1);
@@ -127,7 +128,7 @@ export default function AnalyticsPage() {
           {/* Bottleneck alert */}
           {policyAnalytics.bottlenecks.length > 0 && (
             <div className="card" style={{ background: '#fff2e8', border: '1px solid #ffbb96', padding: 16, marginBottom: 24 }}>
-              <h3 style={{ color: '#d4380d', margin: '0 0 8px' }}>⚠️ Cuellos de Botella Detectados</h3>
+              <h3 style={{ color: '#d4380d', margin: '0 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={18} />Cuellos de Botella Detectados</h3>
               {policyAnalytics.bottlenecks.map((b) => (
                 <div key={b.nodeId} style={{ marginBottom: 6 }}>
                   <strong>{b.nodeTitle}</strong> ({b.departmentName})
@@ -141,14 +142,14 @@ export default function AnalyticsPage() {
           {/* Duration bar chart per activity */}
           {policyAnalytics.nodeStats.length > 0 && (
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📊 Duración Promedio por Actividad</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={16} />Duración Promedio por Actividad</h3>
               <div className="card" style={{ padding: 24 }}>
                 {(() => {
                   const max = Math.max(...policyAnalytics.nodeStats.map((n) => n.avgDurationMinutes), 1);
                   return policyAnalytics.nodeStats.map((n) => (
                     <div key={n.nodeId} style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
                       <span style={{ width: 140, fontSize: 12, fontWeight: 600, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {n.isBottleneck ? '🔴 ' : ''}{n.nodeTitle}
+                        {n.isBottleneck && <CircleDot size={12} color="#ef4444" style={{ marginRight: 4, flexShrink: 0 }} />}{n.nodeTitle}
                       </span>
                       <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 8, height: 24, overflow: 'hidden', position: 'relative' }}>
                         <div style={{
@@ -175,7 +176,7 @@ export default function AnalyticsPage() {
           {/* Completion rate donut */}
           {policyAnalytics.totalCases > 0 && (
             <div style={{ marginBottom: 24 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📈 Tasa de Completitud</h3>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><TrendingUp size={16} />Tasa de Completitud</h3>
               <div className="card" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 32 }}>
                 {(() => {
                   const pct = Math.round((policyAnalytics.completedCases / policyAnalytics.totalCases) * 100);
@@ -249,24 +250,24 @@ export default function AnalyticsPage() {
       {/* AI Insights Panel */}
       {policyAnalytics && policyAnalytics.aiInsights && policyAnalytics.aiInsights.length > 0 && (
         <div style={{ marginTop: 24 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>🤖 Análisis Inteligente (IA)</h2>
+          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Bot size={20} />Análisis Inteligente (IA)</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {policyAnalytics.aiInsights.map((insight, idx) => {
               const colors = {
-                critical: { bg: '#fef2f2', border: '#fca5a5', icon: '🔴', text: '#991b1b' },
-                warning: { bg: '#fffbeb', border: '#fcd34d', icon: '🟡', text: '#92400e' },
-                info: { bg: '#eff6ff', border: '#93c5fd', icon: '🔵', text: '#1e40af' },
-                success: { bg: '#f0fdf4', border: '#86efac', icon: '🟢', text: '#166534' },
+                critical: { bg: '#fef2f2', border: '#fca5a5', color: '#ef4444', text: '#991b1b' },
+                warning: { bg: '#fffbeb', border: '#fcd34d', color: '#f59e0b', text: '#92400e' },
+                info: { bg: '#eff6ff', border: '#93c5fd', color: '#3b82f6', text: '#1e40af' },
+                success: { bg: '#f0fdf4', border: '#86efac', color: '#22c55e', text: '#166534' },
               };
               const c = colors[insight.severity];
               return (
                 <div key={idx} className="card" style={{ background: c.bg, border: `1px solid ${c.border}`, padding: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                    <span style={{ fontSize: 20 }}>{c.icon}</span>
+                    <CircleDot size={20} color={c.color} style={{ flexShrink: 0, marginTop: 2 }} />
                     <div>
                       <p style={{ margin: 0, fontWeight: 700, color: c.text, fontSize: 14 }}>{insight.message}</p>
                       <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569' }}>
-                        <strong>💡 Recomendación:</strong> {insight.action}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Lightbulb size={13} color="#f59e0b" /><strong>Recomendación:</strong></span> {insight.action}
                       </p>
                     </div>
                   </div>

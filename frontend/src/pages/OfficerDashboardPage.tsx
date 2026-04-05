@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import TrafficLight from '../components/TrafficLight';
+import { Inbox } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -35,7 +36,7 @@ export default function OfficerDashboardPage() {
   return (
     <>
       <div className="page-header">
-        <h1>👤 Mi Bandeja de Trabajo</h1>
+        <h1><Inbox size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 8 }} />Mi Bandeja de Trabajo</h1>
         <span style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
           Bienvenido, <strong>{user?.name}</strong> — Funcionario
         </span>

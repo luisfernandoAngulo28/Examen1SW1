@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import { useToast } from '../components/Toast';
+import { Building2 } from 'lucide-react';
 
 interface Dept {
   id: string;
@@ -38,7 +39,7 @@ export default function DepartmentsPage() {
   return (
     <>
       <div className="page-header">
-        <h1>🏢 Departamentos</h1>
+        <h1><Building2 size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 8 }} />Departamentos</h1>
       </div>
       <div className="page-body fade-in">
 

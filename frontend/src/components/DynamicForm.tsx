@@ -1,4 +1,5 @@
 import { useState, FormEvent, useRef } from 'react';
+import { Mic, Square, Save } from 'lucide-react';
 
 interface FormField {
   name: string;
@@ -82,7 +83,7 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
                     className={`voice-btn ${listeningField === field.name ? 'listening' : ''}`}
                     title="Dictar por voz"
                   >
-                    {listeningField === field.name ? '⏹' : '🎤'}
+                    {listeningField === field.name ? <Square size={14} /> : <Mic size={14} />}
                   </button>
                 )}
               </div>
@@ -127,7 +128,7 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
                     className={`voice-btn ${listeningField === field.name ? 'listening' : ''}`}
                     title="Dictar por voz"
                   >
-                    {listeningField === field.name ? '⏹' : '🎤'}
+                    {listeningField === field.name ? <Square size={14} /> : <Mic size={14} />}
                   </button>
                 )}
               </div>
@@ -138,7 +139,7 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
 
       {!readOnly && onSubmit && (
         <button type="submit" className="btn btn-primary btn-sm" style={{ marginTop: 12 }} disabled={submitting}>
-          {submitting ? 'Guardando...' : '💾 Guardar formulario'}
+          {submitting ? 'Guardando...' : <><Save size={14} /> Guardar formulario</>}
         </button>
       )}
     </form>

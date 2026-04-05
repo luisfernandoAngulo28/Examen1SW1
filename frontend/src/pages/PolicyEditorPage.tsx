@@ -16,6 +16,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import api from '../api';
 import { InitialNode, FinalNode, DecisionNode, ForkJoinNode } from '../components/UmlNodes';
+import { Trash2, Building2, ClipboardList, Bot, MessageSquare, Mic, Square, Camera, Search } from 'lucide-react';
 
 interface Department {
   id: string;
@@ -292,8 +293,8 @@ export default function PolicyEditorPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setAiMessages((prev) => [...prev, { role: 'user', text: `📷 Imagen: ${file.name}` }]);
-    setAiMessages((prev) => [...prev, { role: 'ai', text: '🔍 Analizando imagen con OCR (Tesseract.js)...' }]);
+    setAiMessages((prev) => [...prev, { role: 'user', text: `Imagen: ${file.name}` }]);
+    setAiMessages((prev) => [...prev, { role: 'ai', text: 'Analizando imagen con OCR (Tesseract.js)...' }]);
 
     try {
       // Real OCR using Tesseract.js
@@ -302,7 +303,7 @@ export default function PolicyEditorPage() {
         logger: (m: any) => {
           if (m.status === 'recognizing text') {
             const pct = Math.round((m.progress || 0) * 100);
-            setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `🔍 OCR procesando... ${pct}%` }]);
+            setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `OCR procesando... ${pct}%` }]);
           }
         },
       });
@@ -319,7 +320,7 @@ export default function PolicyEditorPage() {
           return;
         }
       } else {
-        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `🔍 OCR detectó: "${extractedText.substring(0, 120)}${extractedText.length > 120 ? '...' : ''}"` }]);
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `OCR detectó: "${extractedText.substring(0, 120)}${extractedText.length > 120 ? '...' : ''}"` }]);
       }
 
       const res = await api.post('/ai-assistant/image', { extractedText, fileName: file.name });
@@ -357,7 +358,7 @@ export default function PolicyEditorPage() {
           }, 100);
         }
 
-        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `📷 ${data.suggestion || `Generé ${data.nodes.length} actividades desde la imagen.`}` }]);
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `${data.suggestion || `Generé ${data.nodes.length} actividades desde la imagen.`}` }]);
       } else {
         setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: data.suggestion || 'No se pudieron extraer actividades de la imagen.' }]);
       }
@@ -437,7 +438,7 @@ export default function PolicyEditorPage() {
         </button>
         {selectedNode && (
           <button onClick={() => { setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id)); setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id)); setSelectedNode(null); setShowFormPanel(false); }} style={{ padding: '6px 12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-            🗑️ Eliminar nodo
+            <Trash2 size={14} /> Eliminar nodo
           </button>
         )}
         <select value={selectedFlowType} onChange={(e) => setSelectedFlowType(e.target.value)} style={{ padding: 6, borderRadius: 4, fontSize: 12 }}>
@@ -484,7 +485,7 @@ export default function PolicyEditorPage() {
                       background: i % 2 === 0 ? 'rgba(79,70,229,.03)' : 'rgba(79,70,229,.06)',
                     }}
                   >
-                    <div className="swimlane-header">🏢 {dept.name}</div>
+                    <div className="swimlane-header"><Building2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />{dept.name}</div>
                   </div>
                 ))}
               </div>
@@ -496,7 +497,7 @@ export default function PolicyEditorPage() {
         {showFormPanel && selectedNode && (
           <div style={{ width: 300, background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 700, fontSize: 14 }}>📋 Formulario</span>
+              <span style={{ fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}><ClipboardList size={14} />Formulario</span>
               <button onClick={() => setShowFormPanel(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>×</button>
             </div>
             <div style={{ padding: 12, fontSize: 13, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>
@@ -572,15 +573,15 @@ export default function PolicyEditorPage() {
         {/* AI Assistant Panel */}
         <div style={{ width: 320, background: '#1a1a2e', color: '#fff', display: 'flex', flexDirection: 'column', borderLeft: '1px solid #333' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #333', fontWeight: 700, fontSize: 15 }}>
-            🤖 Asistente IA
+            <Bot size={16} style={{ marginRight: 6 }} />Asistente IA
           </div>
           <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
             {aiMessages.length === 0 && (
               <div style={{ color: '#666', fontSize: 13, padding: 8 }}>
                 <p>Escribe, habla o sube una imagen:</p>
-                <p style={{ color: '#888' }}>💬 "Crear flujo para contratación"</p>
-                <p style={{ color: '#888' }}>🎤 "Agregar actividad Revisión en Legal"</p>
-                <p style={{ color: '#888' }}>📷 Sube un diagrama o boceto</p>
+                <p style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}><MessageSquare size={12} />"Crear flujo para contratación"</p>
+                <p style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}><Mic size={12} />"Agregar actividad Revisión en Legal"</p>
+                <p style={{ color: '#888', display: 'flex', alignItems: 'center', gap: 4 }}><Camera size={12} />Sube un diagrama o boceto</p>
               </div>
             )}
             {aiMessages.map((msg, i) => (
@@ -617,7 +618,7 @@ export default function PolicyEditorPage() {
               onClick={startVoice}
               style={{ padding: '8px 12px', background: isListening ? '#ff4d4f' : '#52c41a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
             >
-              {isListening ? '⏹' : '🎤'}
+              {isListening ? <Square size={14} /> : <Mic size={14} />}
             </button>
             <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
             <button
@@ -625,7 +626,7 @@ export default function PolicyEditorPage() {
               style={{ padding: '8px 12px', background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer' }}
               title="Subir imagen de diagrama"
             >
-              📷
+              <Camera size={14} />
             </button>
           </div>
         </div>

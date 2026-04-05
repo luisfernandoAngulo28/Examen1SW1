@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { Check, X, Info } from 'lucide-react';
 
 interface Toast {
   id: number;
@@ -30,7 +31,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div key={t.id} className={`toast toast-${t.type}`}>
             <span className="toast-icon">
-              {t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}
+              {t.type === 'success' ? <Check size={14} /> : t.type === 'error' ? <X size={14} /> : <Info size={14} />}
             </span>
             {t.message}
           </div>

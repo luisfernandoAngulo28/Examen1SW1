@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import { useToast } from '../components/Toast';
+import { Zap } from 'lucide-react';
 
 interface Department {
   id: string;
@@ -52,7 +53,7 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
       <div className="card" style={{ width: '100%', maxWidth: 440, padding: 32 }}>
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800 }}>⚡ Workflow <span style={{ color: 'var(--accent)' }}>SW1</span></h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800 }}><Zap size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Workflow <span style={{ color: 'var(--accent)' }}>SW1</span></h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 8 }}>Crear nuevo usuario</p>
         </div>
 
