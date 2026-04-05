@@ -21,6 +21,24 @@ export class CasesService {
     });
   }
 
+  /** Get tasks assigned to or pending for a specific user */
+  findTasksByUser(userId: string) {
+    return this.prisma.task.findMany({
+      where: {
+        OR: [
+          { assignedUserId: userId },
+          { assignedUserId: null, status: 'PENDING' },
+        ],
+      },
+      include: {
+        node: { include: { department: true } },
+        case: { include: { policy: { select: { id: true, name: true } } } },
+        assignedUser: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { startedAt: 'desc' },
+    });
+  }
+
   /** Get a single case with full details */
   async findOne(id: string) {
     const c = await this.prisma.case.findUnique({
@@ -59,9 +77,12 @@ export class CasesService {
     if (policy.status !== 'ACTIVE') throw new BadRequestException('La política no está activa');
     if (policy.nodes.length === 0) throw new BadRequestException('La política no tiene nodos');
 
-    // Find start node(s): nodes with no incoming edges
+    // Find start node(s): INITIAL nodes first, then nodes with no incoming edges
     const nodesWithIncoming = new Set(policy.edges.map((e) => e.toNodeId));
-    const startNodes = policy.nodes.filter((n) => !nodesWithIncoming.has(n.id));
+    const initialNodes = policy.nodes.filter((n) => (n as any).nodeType === 'INITIAL');
+    const startNodes = initialNodes.length > 0
+      ? initialNodes
+      : policy.nodes.filter((n) => !nodesWithIncoming.has(n.id));
     if (startNodes.length === 0) throw new BadRequestException('No se encontró nodo de inicio');
 
     // Create the case
@@ -103,7 +124,7 @@ export class CasesService {
    * Finds the next node(s) via edges, creates new task(s), 
    * and if no outgoing edges, marks the case as completed.
    */
-  async completeTask(taskId: string, userId: string) {
+  async completeTask(taskId: string, userId: string, chosenEdgeLabel?: string) {
     const task = await this.prisma.task.findUnique({
       where: { id: taskId },
       include: { case: true, node: true },
@@ -132,8 +153,12 @@ export class CasesService {
       include: { toNode: true },
     });
 
-    if (outgoingEdges.length === 0) {
-      // No outgoing edges — check if all tasks in this case are done
+    // Get the completed node to check its type
+    const currentNode = await this.prisma.policyNode.findUnique({ where: { id: task.nodeId } });
+    const nodeType = (currentNode as any)?.nodeType || 'ACTION';
+
+    if (outgoingEdges.length === 0 || nodeType === 'FINAL') {
+      // FINAL node or no outgoing edges — check if all tasks in this case are done
       const pendingTasks = await this.prisma.task.count({
         where: { caseId: task.caseId, status: { not: 'DONE' } },
       });
@@ -151,25 +176,85 @@ export class CasesService {
         const completedCase = await this.findOne(task.caseId);
         this.events.emitCaseCompleted(completedCase);
       }
-    } else {
-      // Create tasks for the next node(s)
+    } else if (nodeType === 'DECISION') {
+      // DECISION node: evaluate guard conditions from chosenEdgeLabel
+      let edge = outgoingEdges[0]; // default fallback
+      if (chosenEdgeLabel && outgoingEdges.length > 1) {
+        const match = outgoingEdges.find((e) => e.conditionLabel === chosenEdgeLabel);
+        if (match) edge = match;
+      }
+      const alreadyExists = await this.prisma.task.findFirst({
+        where: { caseId: task.caseId, nodeId: edge.toNodeId },
+      });
+      if (!alreadyExists) {
+        await this.prisma.task.create({
+          data: { caseId: task.caseId, nodeId: edge.toNodeId, status: 'PENDING' },
+        });
+      }
+      await this.prisma.case.update({
+        where: { id: task.caseId },
+        data: { currentNodeId: edge.toNodeId },
+      });
+      // Log the decision path taken
+      await this.prisma.eventLog.create({
+        data: {
+          caseId: task.caseId,
+          type: 'DECISION_TAKEN',
+          payloadJson: { nodeId: task.nodeId, chosenLabel: edge.conditionLabel || 'default', nextNodeId: edge.toNodeId },
+        },
+      });
+    } else if (nodeType === 'FORK') {
+      // FORK node: create tasks for ALL outgoing edges in parallel
       for (const edge of outgoingEdges) {
-        // For CONDITIONAL edges, check condition (simplified: always advance for now)
         const alreadyExists = await this.prisma.task.findFirst({
           where: { caseId: task.caseId, nodeId: edge.toNodeId },
         });
         if (!alreadyExists) {
           await this.prisma.task.create({
-            data: {
-              caseId: task.caseId,
-              nodeId: edge.toNodeId,
-              status: 'PENDING',
-            },
+            data: { caseId: task.caseId, nodeId: edge.toNodeId, status: 'PENDING' },
           });
         }
       }
-
-      // Update current node in case
+    } else if (nodeType === 'JOIN') {
+      // JOIN node: only advance if ALL incoming edges' source tasks are DONE
+      const incomingEdges = await this.prisma.policyEdge.findMany({
+        where: { toNodeId: task.nodeId, policyId: task.case.policyId },
+      });
+      const sourceNodeIds = incomingEdges.map((e) => e.fromNodeId);
+      const pendingSourceTasks = await this.prisma.task.count({
+        where: { caseId: task.caseId, nodeId: { in: sourceNodeIds }, status: { not: 'DONE' } },
+      });
+      if (pendingSourceTasks === 0) {
+        // All incoming tasks done — advance to next node(s)
+        for (const edge of outgoingEdges) {
+          const alreadyExists = await this.prisma.task.findFirst({
+            where: { caseId: task.caseId, nodeId: edge.toNodeId },
+          });
+          if (!alreadyExists) {
+            await this.prisma.task.create({
+              data: { caseId: task.caseId, nodeId: edge.toNodeId, status: 'PENDING' },
+            });
+          }
+        }
+        if (outgoingEdges.length === 1) {
+          await this.prisma.case.update({
+            where: { id: task.caseId },
+            data: { currentNodeId: outgoingEdges[0].toNodeId },
+          });
+        }
+      }
+    } else {
+      // ACTION / INITIAL — standard: create tasks for next node(s)
+      for (const edge of outgoingEdges) {
+        const alreadyExists = await this.prisma.task.findFirst({
+          where: { caseId: task.caseId, nodeId: edge.toNodeId },
+        });
+        if (!alreadyExists) {
+          await this.prisma.task.create({
+            data: { caseId: task.caseId, nodeId: edge.toNodeId, status: 'PENDING' },
+          });
+        }
+      }
       if (outgoingEdges.length === 1) {
         await this.prisma.case.update({
           where: { id: task.caseId },

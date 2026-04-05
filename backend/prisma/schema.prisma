@@ -49,6 +49,15 @@ enum InputMode {
   AI
 }
 
+enum NodeType {
+  ACTION
+  INITIAL
+  FINAL
+  DECISION
+  FORK
+  JOIN
+}
+
 model User {
   id           String     @id @default(uuid())
   email        String     @unique
@@ -92,6 +101,7 @@ model PolicyNode {
   policy         Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
   departmentId   String      @map("department_id")
   department     Department  @relation(fields: [departmentId], references: [id])
+  nodeType       NodeType    @default(ACTION) @map("node_type")
   title          String
   description    String?
   positionX      Float       @default(0) @map("position_x")
@@ -112,8 +122,9 @@ model PolicyEdge {
   fromNode      PolicyNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
   toNodeId      String   @map("to_node_id")
   toNode        PolicyNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
-  flowType      FlowType @default(SEQUENTIAL) @map("flow_type")
-  conditionJson Json?    @map("condition_json")
+  flowType       FlowType @default(SEQUENTIAL) @map("flow_type")
+  conditionLabel String?  @map("condition_label")
+  conditionJson  Json?    @map("condition_json")
 
   @@map("policy_edges")
 }

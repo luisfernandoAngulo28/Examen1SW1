@@ -73,17 +73,32 @@ export default function AnalyticsPage() {
         <div className="kpi-card"><div className="kpi-value" style={{ color: 'var(--danger)' }}>{stats.pendingTasks}</div><div className="kpi-label">Tareas Pendientes</div></div>
       </div>
 
-      {/* Tasks per department */}
+      {/* Tasks per department — BAR CHART */}
       {stats.tasksPerDepartment.length > 0 && (
         <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Tareas pendientes por departamento</h2>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {stats.tasksPerDepartment.map((d) => (
-              <div key={d.name} className="kpi-card" style={{ minWidth: 150, padding: '12px 20px' }}>
-                <div className="kpi-value" style={{ fontSize: 24, color: d.count >= 3 ? 'var(--danger)' : 'var(--text-primary)' }}>{d.count}</div>
-                <div className="kpi-label">{d.name}</div>
-              </div>
-            ))}
+          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>📊 Carga por Departamento</h2>
+          <div className="card" style={{ padding: 24 }}>
+            {(() => {
+              const max = Math.max(...stats.tasksPerDepartment.map((d) => d.count), 1);
+              return stats.tasksPerDepartment.map((d) => (
+                <div key={d.name} style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ width: 120, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>{d.name}</span>
+                  <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 8, height: 28, overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                      width: `${(d.count / max) * 100}%`,
+                      height: '100%',
+                      background: d.count >= 3 ? 'linear-gradient(90deg, #ef4444, #dc2626)' : 'linear-gradient(90deg, #3b82f6, #2563eb)',
+                      borderRadius: 8,
+                      transition: 'width 0.6s ease',
+                      minWidth: d.count > 0 ? 24 : 0,
+                    }} />
+                    <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 12, fontWeight: 700, color: '#334155' }}>
+                      {d.count}
+                    </span>
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       )}
@@ -119,6 +134,79 @@ export default function AnalyticsPage() {
                   — Pendientes: <strong style={{ color: 'var(--danger)' }}>{b.pendingTasks}</strong>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Duration bar chart per activity */}
+          {policyAnalytics.nodeStats.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📊 Duración Promedio por Actividad</h3>
+              <div className="card" style={{ padding: 24 }}>
+                {(() => {
+                  const max = Math.max(...policyAnalytics.nodeStats.map((n) => n.avgDurationMinutes), 1);
+                  return policyAnalytics.nodeStats.map((n) => (
+                    <div key={n.nodeId} style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+                      <span style={{ width: 140, fontSize: 12, fontWeight: 600, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {n.isBottleneck ? '🔴 ' : ''}{n.nodeTitle}
+                      </span>
+                      <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 8, height: 24, overflow: 'hidden', position: 'relative' }}>
+                        <div style={{
+                          width: `${(n.avgDurationMinutes / max) * 100}%`,
+                          height: '100%',
+                          background: n.isBottleneck
+                            ? 'linear-gradient(90deg, #f97316, #ea580c)'
+                            : 'linear-gradient(90deg, #10b981, #059669)',
+                          borderRadius: 8,
+                          transition: 'width 0.6s ease',
+                          minWidth: n.avgDurationMinutes > 0 ? 20 : 0,
+                        }} />
+                        <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, fontWeight: 700, color: '#334155' }}>
+                          {n.avgDurationMinutes} min
+                        </span>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Completion rate donut */}
+          {policyAnalytics.totalCases > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📈 Tasa de Completitud</h3>
+              <div className="card" style={{ padding: 24, display: 'flex', alignItems: 'center', gap: 32 }}>
+                {(() => {
+                  const pct = Math.round((policyAnalytics.completedCases / policyAnalytics.totalCases) * 100);
+                  const size = 120;
+                  const stroke = 12;
+                  const radius = (size - stroke) / 2;
+                  const circumference = 2 * Math.PI * radius;
+                  const offset = circumference - (pct / 100) * circumference;
+                  return (
+                    <>
+                      <svg width={size} height={size} style={{ flexShrink: 0 }}>
+                        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e2e8f0" strokeWidth={stroke} />
+                        <circle cx={size / 2} cy={size / 2} r={radius} fill="none"
+                          stroke={pct >= 75 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444'}
+                          strokeWidth={stroke} strokeLinecap="round"
+                          strokeDasharray={circumference} strokeDashoffset={offset}
+                          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+                          style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+                        />
+                        <text x="50%" y="50%" textAnchor="middle" dy="0.35em" style={{ fontSize: 22, fontWeight: 800, fill: '#1e293b' }}>
+                          {pct}%
+                        </text>
+                      </svg>
+                      <div>
+                        <div style={{ fontSize: 24, fontWeight: 800, color: '#1e293b' }}>{policyAnalytics.completedCases} / {policyAnalytics.totalCases}</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>trámites completados</div>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: 13, marginTop: 4 }}>Duración promedio: <strong>{policyAnalytics.avgCaseDurationMinutes} min</strong></div>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           )}
 

@@ -41,12 +41,13 @@ export class PoliciesController {
     return this.policiesService.findOne(id);
   }
 
+  @Roles('DESIGNER')
   @Put(':id/graph')
   saveGraph(
     @Param('id') id: string,
     @Body() body: {
-      nodes: { id?: string; departmentId: string; title: string; description?: string; positionX: number; positionY: number }[];
-      edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionJson?: any }[];
+      nodes: { id?: string; departmentId: string; title: string; description?: string; nodeType?: string; positionX: number; positionY: number }[];
+      edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; conditionJson?: any }[];
     },
   ) {
     return this.policiesService.saveGraph(id, body.nodes, body.edges);

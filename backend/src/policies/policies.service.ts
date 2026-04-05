@@ -38,8 +38,8 @@ export class PoliciesService {
 
   async saveGraph(
     policyId: string,
-    nodes: { id?: string; departmentId: string; title: string; description?: string; positionX: number; positionY: number }[],
-    edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionJson?: any }[],
+    nodes: { id?: string; departmentId: string; title: string; description?: string; nodeType?: string; positionX: number; positionY: number }[],
+    edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; conditionJson?: any }[],
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Get existing node IDs to clean up related records
@@ -74,6 +74,7 @@ export class PoliciesService {
             departmentId: node.departmentId,
             title: node.title,
             description: node.description,
+            nodeType: (node.nodeType as any) || 'ACTION',
             positionX: node.positionX,
             positionY: node.positionY,
           },
@@ -89,6 +90,7 @@ export class PoliciesService {
             fromNodeId: edge.fromNodeId,
             toNodeId: edge.toNodeId,
             flowType: edge.flowType as any,
+            conditionLabel: edge.conditionLabel,
             conditionJson: edge.conditionJson,
           },
         });

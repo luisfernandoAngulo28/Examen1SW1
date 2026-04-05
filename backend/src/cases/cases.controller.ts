@@ -13,6 +13,12 @@ export class CasesController {
     return this.casesService.findAll(policyId);
   }
 
+  /** GET /cases/my-tasks — Get tasks assigned to the current user */
+  @Get('my-tasks')
+  myTasks(@Request() req: any) {
+    return this.casesService.findTasksByUser(req.user.id);
+  }
+
   /** GET /cases/:id — Get case detail with tasks and logs */
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -27,8 +33,8 @@ export class CasesController {
 
   /** POST /cases/tasks/:taskId/complete — Complete a task and advance workflow */
   @Post('tasks/:taskId/complete')
-  completeTask(@Param('taskId') taskId: string, @Request() req: any) {
-    return this.casesService.completeTask(taskId, req.user.id);
+  completeTask(@Param('taskId') taskId: string, @Body() body: { chosenEdgeLabel?: string }, @Request() req: any) {
+    return this.casesService.completeTask(taskId, req.user.id, body?.chosenEdgeLabel);
   }
 
   /** PATCH /cases/tasks/:taskId/assign — Assign a task to a user */

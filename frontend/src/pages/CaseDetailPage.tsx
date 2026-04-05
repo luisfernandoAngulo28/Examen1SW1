@@ -16,7 +16,7 @@ interface Task {
   status: string;
   startedAt: string;
   finishedAt: string | null;
-  node: { id: string; title: string; department: Department };
+  node: { id: string; title: string; nodeType?: string; department: Department };
   assignedUser: { id: string; name: string; email: string } | null;
   formSubmission: any;
 }
@@ -55,6 +55,7 @@ export default function CaseDetailPage() {
   const [formSubmissions, setFormSubmissions] = useState<Record<string, any>>({});
   const [submittingForm, setSubmittingForm] = useState<string | null>(null);
   const [expandedForms, setExpandedForms] = useState<Set<string>>(new Set());
+  const [decisionEdges, setDecisionEdges] = useState<Record<string, { conditionLabel: string; toNodeId: string }[]>>({});
 
   const load = () => {
     api.get(`/cases/${id}`).then((res) => {
@@ -68,6 +69,21 @@ export default function CaseDetailPage() {
           if (r.data) setFormSubmissions((prev) => ({ ...prev, [task.id]: r.data.payloadJson }));
         }).catch(() => {});
       });
+      // Load decision edges for DECISION nodes
+      if (res.data.policy?.id) {
+        api.get(`/policies/${res.data.policy.id}`).then((pRes) => {
+          const edges = pRes.data.edges || [];
+          const decNodes = (res.data.tasks as Task[]).filter((t) => t.node.nodeType === 'DECISION' && t.status !== 'DONE');
+          const map: Record<string, { conditionLabel: string; toNodeId: string }[]> = {};
+          decNodes.forEach((t) => {
+            const nodeEdges = edges.filter((e: any) => e.fromNodeId === t.node.id && e.conditionLabel);
+            if (nodeEdges.length > 0) {
+              map[t.id] = nodeEdges.map((e: any) => ({ conditionLabel: e.conditionLabel, toNodeId: e.toNodeId }));
+            }
+          });
+          setDecisionEdges(map);
+        }).catch(() => {});
+      }
     });
   };
 
@@ -76,9 +92,9 @@ export default function CaseDetailPage() {
     api.get('/auth/users').then((res) => setUsers(res.data)).catch(() => {});
   }, [id]);
 
-  const handleComplete = async (taskId: string) => {
+  const handleComplete = async (taskId: string, chosenEdgeLabel?: string) => {
     try {
-      await api.post(`/cases/tasks/${taskId}/complete`);
+      await api.post(`/cases/tasks/${taskId}/complete`, { chosenEdgeLabel });
       toast('Tarea completada', 'success');
       load();
     } catch { toast('Error al completar tarea', 'error'); }
@@ -199,11 +215,27 @@ export default function CaseDetailPage() {
                 </div>
               )}
 
-              {/* Complete button */}
+              {/* Complete button — with decision paths if applicable */}
               {task.status !== 'DONE' && (
-                <button onClick={() => handleComplete(task.id)} className="btn btn-success btn-sm">
-                  Completar
-                </button>
+                decisionEdges[task.id] && decisionEdges[task.id].length > 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600 }}>◇ Decidir:</span>
+                    {decisionEdges[task.id].map((de) => (
+                      <button
+                        key={de.conditionLabel}
+                        onClick={() => handleComplete(task.id, de.conditionLabel)}
+                        className="btn btn-warning btn-sm"
+                        style={{ color: '#fff' }}
+                      >
+                        {de.conditionLabel}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <button onClick={() => handleComplete(task.id)} className="btn btn-success btn-sm">
+                    Completar
+                  </button>
+                )
               )}
 
               {task.assignedUser && (

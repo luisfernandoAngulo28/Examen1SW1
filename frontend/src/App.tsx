@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import OfficerDashboardPage from './pages/OfficerDashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
 import NewPolicyPage from './pages/NewPolicyPage';
 import PolicyEditorPage from './pages/PolicyEditorPage';
@@ -18,11 +19,17 @@ function PrivateRoute({ children, withLayout = true }: { children: React.ReactNo
   return withLayout ? <Layout>{children}</Layout> : <>{children}</>;
 }
 
+function RoleBasedDashboard() {
+  const { user } = useAuth();
+  return user?.role === 'OFFICER' ? <OfficerDashboardPage /> : <DashboardPage />;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+      <Route path="/" element={<PrivateRoute><RoleBasedDashboard /></PrivateRoute>} />
+      <Route path="/my-tasks" element={<PrivateRoute><OfficerDashboardPage /></PrivateRoute>} />
       <Route path="/departments" element={<PrivateRoute><DepartmentsPage /></PrivateRoute>} />
       <Route path="/policies/new" element={<PrivateRoute><NewPolicyPage /></PrivateRoute>} />
       <Route path="/policies/:id/editor" element={<PrivateRoute withLayout={false}><PolicyEditorPage /></PrivateRoute>} />

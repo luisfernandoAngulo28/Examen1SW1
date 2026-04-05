@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ReactFlow,
@@ -15,6 +15,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import api from '../api';
+import { InitialNode, FinalNode, DecisionNode, ForkJoinNode } from '../components/UmlNodes';
 
 interface Department {
   id: string;
@@ -39,6 +40,15 @@ export default function PolicyEditorPage() {
   const [savingForm, setSavingForm] = useState(false);
   const [showLanes, setShowLanes] = useState(true);
   const [selectedFlowType, setSelectedFlowType] = useState('SEQUENTIAL');
+  const [selectedNodeType, setSelectedNodeType] = useState<string>('ACTION');
+
+  const nodeTypes = useMemo(() => ({
+    INITIAL: InitialNode,
+    FINAL: FinalNode,
+    DECISION: DecisionNode,
+    FORK: ForkJoinNode,
+    JOIN: ForkJoinNode,
+  }), []);
 
   // Swimlane positions
   const LANE_WIDTH = 300;
@@ -57,25 +67,33 @@ export default function PolicyEditorPage() {
     if (policyId) {
       api.get(`/policies/${policyId}`).then((res) => {
         setPolicyName(res.data.name);
-        const loadedNodes: Node[] = (res.data.nodes || []).map((n: any) => ({
-          id: n.id,
-          position: { x: n.positionX, y: n.positionY },
-          data: { label: `${n.title}\n(${n.department?.name || 'Sin depto'})`, departmentId: n.departmentId, title: n.title },
-          style: {
-            background: '#fff',
-            border: '2px solid #1677ff',
-            borderRadius: 8,
-            padding: 12,
-            minWidth: 150,
-          },
-        }));
+        const loadedNodes: Node[] = (res.data.nodes || []).map((n: any) => {
+          const nt = n.nodeType || 'ACTION';
+          const isSpecial = ['INITIAL', 'FINAL', 'DECISION', 'FORK', 'JOIN'].includes(nt);
+          return {
+            id: n.id,
+            type: isSpecial ? nt : undefined,
+            position: { x: n.positionX, y: n.positionY },
+            data: { label: `${n.title}\n(${n.department?.name || 'Sin depto'})`, departmentId: n.departmentId, title: n.title, nodeType: nt },
+            ...(isSpecial ? {} : {
+              style: {
+                background: '#fff',
+                border: '2px solid #1677ff',
+                borderRadius: 8,
+                padding: 12,
+                minWidth: 150,
+              },
+            }),
+          };
+        });
         const loadedEdges: Edge[] = (res.data.edges || []).map((e: any) => ({
           id: e.id,
           source: e.fromNodeId,
           target: e.toNodeId,
-          label: e.flowType,
+          label: e.conditionLabel || e.flowType,
           animated: e.flowType === 'PARALLEL',
           style: { stroke: getEdgeColor(e.flowType) },
+          data: { flowType: e.flowType, conditionLabel: e.conditionLabel },
         }));
         setNodes(loadedNodes);
         setEdges(loadedEdges);
@@ -98,33 +116,55 @@ export default function PolicyEditorPage() {
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
     const types = ['SEQUENTIAL', 'CONDITIONAL', 'PARALLEL', 'ITERATIVE'];
-    const currentIdx = types.indexOf(edge.label as string);
+    const flowType = (edge.data as any)?.flowType || (edge.label as string) || 'SEQUENTIAL';
+    const currentIdx = types.indexOf(flowType);
     const nextType = types[(currentIdx + 1) % types.length];
+
+    // If switching to CONDITIONAL, ask for guard condition label
+    let condLabel: string | undefined;
+    if (nextType === 'CONDITIONAL') {
+      const input = prompt('Condición de guarda (ej: [aprobado], [rechazado]):');
+      condLabel = input || undefined;
+    }
+
     setEdges((eds) =>
       eds.map((e) =>
         e.id === edge.id
-          ? { ...e, label: nextType, animated: nextType === 'PARALLEL', style: { stroke: getEdgeColor(nextType) } }
+          ? {
+              ...e,
+              label: condLabel || nextType,
+              animated: nextType === 'PARALLEL',
+              style: { stroke: getEdgeColor(nextType) },
+              data: { ...((e.data as any) || {}), flowType: nextType, conditionLabel: condLabel },
+            }
           : e,
       ),
     );
   }, [setEdges]);
 
   const addNode = () => {
-    if (!newNodeTitle.trim() || !selectedDept) return;
+    if (!selectedDept) return;
+    const isSpecial = ['INITIAL', 'FINAL', 'DECISION', 'FORK', 'JOIN'].includes(selectedNodeType);
+    // Auto-generate default names for special UML nodes
+    const defaultNames: Record<string, string> = { INITIAL: 'Inicio', FINAL: 'Fin', FORK: 'Fork', JOIN: 'Join', DECISION: '¿Decisión?' };
+    const title = newNodeTitle.trim() || (isSpecial ? defaultNames[selectedNodeType] || selectedNodeType : '');
+    if (!title) return; // Only ACTION requires a manual name
     const dept = departments.find((d) => d.id === selectedDept);
-    // Count existing nodes in same department to stack vertically
     const sameDepNodes = nodes.filter((n) => (n.data as any).departmentId === selectedDept);
     const newNode: Node = {
       id: crypto.randomUUID(),
+      type: isSpecial ? selectedNodeType : undefined,
       position: { x: getNodeXForDept(selectedDept), y: 80 + sameDepNodes.length * 130 },
-      data: { label: `${newNodeTitle}\n(${dept?.name || ''})`, departmentId: selectedDept, title: newNodeTitle },
-      style: {
-        background: '#fff',
-        border: '2px solid #1677ff',
-        borderRadius: 8,
-        padding: 12,
-        minWidth: 150,
-      },
+      data: { label: `${title}\n(${dept?.name || ''})`, departmentId: selectedDept, title, nodeType: selectedNodeType },
+      ...(isSpecial ? {} : {
+        style: {
+          background: '#fff',
+          border: '2px solid #1677ff',
+          borderRadius: 8,
+          padding: 12,
+          minWidth: 150,
+        },
+      }),
     };
     setNodes((nds) => [...nds, newNode]);
     setNewNodeTitle('');
@@ -137,13 +177,15 @@ export default function PolicyEditorPage() {
         id: n.id,
         departmentId: (n.data as any).departmentId || departments[0]?.id,
         title: (n.data as any).title || String(n.data.label).split('\n')[0],
+        nodeType: (n.data as any).nodeType || 'ACTION',
         positionX: n.position.x,
         positionY: n.position.y,
       }));
       const graphEdges = edges.map((e) => ({
         fromNodeId: e.source,
         toNodeId: e.target,
-        flowType: (e.label as string) || 'SEQUENTIAL',
+        flowType: (e.data as any)?.flowType || (e.label as string) || 'SEQUENTIAL',
+        conditionLabel: (e.data as any)?.conditionLabel || undefined,
       }));
       await api.put(`/policies/${policyId}/graph`, { nodes: graphNodes, edges: graphEdges });
       alert('Diagrama guardado');
@@ -386,6 +428,14 @@ export default function PolicyEditorPage() {
           placeholder="Nombre actividad"
           style={{ padding: 6, borderRadius: 4, border: '1px solid #ccc' }}
         />
+        <select value={selectedNodeType} onChange={(e) => setSelectedNodeType(e.target.value)} style={{ padding: 6, borderRadius: 4, fontSize: 12 }}>
+          <option value="ACTION">□ Acción</option>
+          <option value="INITIAL">● Inicio</option>
+          <option value="FINAL">◉ Fin</option>
+          <option value="DECISION">◇ Decisión</option>
+          <option value="FORK">═ Fork</option>
+          <option value="JOIN">═ Join</option>
+        </select>
         <button onClick={addNode} style={{ padding: '6px 12px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
           + Actividad
         </button>
@@ -413,6 +463,7 @@ export default function PolicyEditorPage() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
+            nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}

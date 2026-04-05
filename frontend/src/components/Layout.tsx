@@ -1,11 +1,17 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const navItems = [
+const designerNav = [
   { to: '/', label: 'Dashboard', icon: '📊' },
   { to: '/monitor', label: 'Monitor en Vivo', icon: '📡' },
   { to: '/analytics', label: 'Analytics', icon: '📈' },
   { to: '/departments', label: 'Departamentos', icon: '🏢' },
+];
+
+const officerNav = [
+  { to: '/', label: 'Mi Bandeja', icon: '📋' },
+  { to: '/monitor', label: 'Monitor en Vivo', icon: '📡' },
+  { to: '/analytics', label: 'Analytics', icon: '📈' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -26,7 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <nav className="sidebar-nav">
           <div className="sidebar-section">Principal</div>
-          {navItems.map((item) => (
+          {(user?.role === 'OFFICER' ? officerNav : designerNav).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -38,10 +44,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </NavLink>
           ))}
 
-          <div className="sidebar-section">Gestión</div>
-          <NavLink to="/policies/new" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
-            <span>➕</span> Nueva Política
-          </NavLink>
+          {user?.role === 'DESIGNER' && (
+            <>
+              <div className="sidebar-section">Gestión</div>
+              <NavLink to="/policies/new" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                <span>➕</span> Nueva Política
+              </NavLink>
+            </>
+          )}
         </nav>
 
         <div className="sidebar-footer">
