@@ -29,6 +29,7 @@ interface PolicyAnalytics {
   avgCaseDurationMinutes: number;
   nodeStats: NodeStat[];
   bottlenecks: NodeStat[];
+  aiInsights?: { severity: 'critical' | 'warning' | 'info' | 'success'; message: string; action: string }[];
 }
 
 interface Policy {
@@ -241,6 +242,37 @@ export default function AnalyticsPage() {
               ))}
             </tbody>
           </table>
+          </div>
+        </div>
+      )}
+
+      {/* AI Insights Panel */}
+      {policyAnalytics && policyAnalytics.aiInsights && policyAnalytics.aiInsights.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>🤖 Análisis Inteligente (IA)</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {policyAnalytics.aiInsights.map((insight, idx) => {
+              const colors = {
+                critical: { bg: '#fef2f2', border: '#fca5a5', icon: '🔴', text: '#991b1b' },
+                warning: { bg: '#fffbeb', border: '#fcd34d', icon: '🟡', text: '#92400e' },
+                info: { bg: '#eff6ff', border: '#93c5fd', icon: '🔵', text: '#1e40af' },
+                success: { bg: '#f0fdf4', border: '#86efac', icon: '🟢', text: '#166534' },
+              };
+              const c = colors[insight.severity];
+              return (
+                <div key={idx} className="card" style={{ background: c.bg, border: `1px solid ${c.border}`, padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ fontSize: 20 }}>{c.icon}</span>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 700, color: c.text, fontSize: 14 }}>{insight.message}</p>
+                      <p style={{ margin: '6px 0 0', fontSize: 13, color: '#475569' }}>
+                        <strong>💡 Recomendación:</strong> {insight.action}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

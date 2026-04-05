@@ -99,7 +99,117 @@ export class AnalyticsService {
       avgCaseDurationMinutes,
       nodeStats,
       bottlenecks,
+      aiInsights: this.generateAiInsights(nodeStats, bottlenecks, cases.length, completedCases.length, avgCaseDurationMinutes),
     };
+  }
+
+  /**
+   * AI-powered bottleneck analysis engine.
+   * Uses contextual rule inference + statistical analysis to generate
+   * natural-language recommendations in Spanish.
+   */
+  private generateAiInsights(
+    nodeStats: NodeStats[],
+    bottlenecks: NodeStats[],
+    totalCases: number,
+    completedCases: number,
+    avgCaseDurationMinutes: number,
+  ): { severity: 'critical' | 'warning' | 'info' | 'success'; message: string; action: string }[] {
+    const insights: { severity: 'critical' | 'warning' | 'info' | 'success'; message: string; action: string }[] = [];
+
+    if (totalCases === 0) {
+      insights.push({ severity: 'info', message: 'No hay trámites registrados aún.', action: 'Inicie un trámite para generar datos de análisis.' });
+      return insights;
+    }
+
+    // Completion rate analysis
+    const completionRate = totalCases > 0 ? (completedCases / totalCases) * 100 : 0;
+    if (completionRate < 30) {
+      insights.push({
+        severity: 'critical',
+        message: `Tasa de completitud crítica: ${completionRate.toFixed(0)}%. La mayoría de trámites no se completan.`,
+        action: 'Revisar los nodos con más tareas pendientes y considerar redistribuir la carga entre departamentos.',
+      });
+    } else if (completionRate < 60) {
+      insights.push({
+        severity: 'warning',
+        message: `Tasa de completitud baja: ${completionRate.toFixed(0)}%.`,
+        action: 'Identificar las etapas donde se estancan los trámites y asignar más recursos.',
+      });
+    } else {
+      insights.push({
+        severity: 'success',
+        message: `Tasa de completitud saludable: ${completionRate.toFixed(0)}%.`,
+        action: 'Mantener el ritmo actual de gestión.',
+      });
+    }
+
+    // Bottleneck-specific analysis
+    if (bottlenecks.length > 0) {
+      const worstNode = bottlenecks.reduce((a, b) => a.avgDurationMinutes > b.avgDurationMinutes ? a : b);
+      insights.push({
+        severity: 'critical',
+        message: `Cuello de botella principal: "${worstNode.nodeTitle}" (${worstNode.departmentName}) con ${worstNode.avgDurationMinutes} min promedio y ${worstNode.pendingTasks} tareas pendientes.`,
+        action: `Considerar asignar más funcionarios al departamento ${worstNode.departmentName} o simplificar la actividad "${worstNode.nodeTitle}".`,
+      });
+
+      // Department overload detection
+      const deptLoad = new Map<string, number>();
+      bottlenecks.forEach((b) => {
+        deptLoad.set(b.departmentName, (deptLoad.get(b.departmentName) || 0) + b.pendingTasks);
+      });
+      deptLoad.forEach((count, dept) => {
+        if (count >= 5) {
+          insights.push({
+            severity: 'critical',
+            message: `El departamento "${dept}" tiene ${count} tareas pendientes acumuladas en actividades cuello de botella.`,
+            action: `Redistribuir carga del departamento "${dept}" o priorizar las tareas más antiguas.`,
+          });
+        }
+      });
+
+      // Pattern: multiple bottlenecks in sequence
+      if (bottlenecks.length >= 2) {
+        insights.push({
+          severity: 'warning',
+          message: `Se detectaron ${bottlenecks.length} cuellos de botella en el flujo. Esto indica un problema sistémico.`,
+          action: 'Evaluar si el diseño del flujo tiene actividades redundantes que podrían fusionarse o paralelizarse.',
+        });
+      }
+    } else {
+      insights.push({
+        severity: 'success',
+        message: 'No se detectan cuellos de botella activos.',
+        action: 'El flujo opera con normalidad. Monitorear periódicamente.',
+      });
+    }
+
+    // High pending tasks globally
+    const totalPending = nodeStats.reduce((sum, n) => sum + n.pendingTasks, 0);
+    if (totalPending > 10) {
+      insights.push({
+        severity: 'warning',
+        message: `Hay ${totalPending} tareas pendientes en total. La cola de trabajo está creciendo.`,
+        action: 'Aumentar la capacidad de procesamiento o priorizar los trámites más antiguos.',
+      });
+    }
+
+    // Duration anomaly detection
+    const avgDurations = nodeStats.filter((n) => n.avgDurationMinutes > 0).map((n) => n.avgDurationMinutes);
+    if (avgDurations.length >= 2) {
+      const mean = avgDurations.reduce((a, b) => a + b, 0) / avgDurations.length;
+      const stdDev = Math.sqrt(avgDurations.reduce((sum, d) => sum + (d - mean) ** 2, 0) / avgDurations.length);
+      const outliers = nodeStats.filter((n) => n.avgDurationMinutes > mean + 2 * stdDev);
+      outliers.forEach((o) => {
+        insights.push({
+          severity: 'warning',
+          message: `Anomalía de duración en "${o.nodeTitle}": ${o.avgDurationMinutes} min (promedio general: ${mean.toFixed(0)} min, desviación: ${stdDev.toFixed(0)} min).`,
+          action: `Investigar por qué "${o.nodeTitle}" tarda significativamente más que el resto.`,
+        });
+      });
+    }
+
+    return insights;
   }
 
   /** Get a global dashboard summary */
