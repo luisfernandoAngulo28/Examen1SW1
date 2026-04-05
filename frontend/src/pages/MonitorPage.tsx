@@ -37,7 +37,7 @@ export default function MonitorPage() {
   useEffect(() => {
     loadCases();
 
-    const socket: Socket = io('http://localhost:3000', {
+    const socket: Socket = io(import.meta.env.VITE_API_URL || 'http://localhost:3000', {
       query: { userId: user?.id },
     });
 

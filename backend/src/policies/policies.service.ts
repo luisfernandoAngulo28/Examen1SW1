@@ -41,40 +41,60 @@ export class PoliciesService {
     nodes: { id?: string; departmentId: string; title: string; description?: string; positionX: number; positionY: number }[],
     edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionJson?: any }[],
   ) {
-    // Delete existing nodes and edges
-    await this.prisma.policyEdge.deleteMany({ where: { policyId } });
-    await this.prisma.policyNode.deleteMany({ where: { policyId } });
-
-    // Create new nodes
-    const createdNodes: any[] = [];
-    for (const node of nodes) {
-      const created = await this.prisma.policyNode.create({
-        data: {
-          id: node.id,
-          policyId,
-          departmentId: node.departmentId,
-          title: node.title,
-          description: node.description,
-          positionX: node.positionX,
-          positionY: node.positionY,
-        },
+    return this.prisma.$transaction(async (tx) => {
+      // Get existing node IDs to clean up related records
+      const existingNodes = await tx.policyNode.findMany({
+        where: { policyId },
+        select: { id: true },
       });
-      createdNodes.push(created);
-    }
+      const nodeIds = existingNodes.map((n) => n.id);
 
-    // Create new edges
-    for (const edge of edges) {
-      await this.prisma.policyEdge.create({
-        data: {
-          policyId,
-          fromNodeId: edge.fromNodeId,
-          toNodeId: edge.toNodeId,
-          flowType: edge.flowType as any,
-          conditionJson: edge.conditionJson,
-        },
-      });
-    }
+      // Delete in order respecting foreign keys
+      if (nodeIds.length > 0) {
+        await tx.formSubmission.deleteMany({
+          where: { task: { nodeId: { in: nodeIds } } },
+        });
+        await tx.task.deleteMany({
+          where: { nodeId: { in: nodeIds } },
+        });
+        await tx.formTemplate.deleteMany({
+          where: { nodeId: { in: nodeIds } },
+        });
+      }
+      await tx.policyEdge.deleteMany({ where: { policyId } });
+      await tx.policyNode.deleteMany({ where: { policyId } });
 
-    return this.findOne(policyId);
+      // Create new nodes
+      const createdNodes: any[] = [];
+      for (const node of nodes) {
+        const created = await tx.policyNode.create({
+          data: {
+            id: node.id,
+            policyId,
+            departmentId: node.departmentId,
+            title: node.title,
+            description: node.description,
+            positionX: node.positionX,
+            positionY: node.positionY,
+          },
+        });
+        createdNodes.push(created);
+      }
+
+      // Create new edges
+      for (const edge of edges) {
+        await tx.policyEdge.create({
+          data: {
+            policyId,
+            fromNodeId: edge.fromNodeId,
+            toNodeId: edge.toNodeId,
+            flowType: edge.flowType as any,
+            conditionJson: edge.conditionJson,
+          },
+        });
+      }
+
+      return this.findOne(policyId);
+    });
   }
 }

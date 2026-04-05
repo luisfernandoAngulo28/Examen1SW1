@@ -67,3 +67,66 @@ Fecha del parcial: 28 de abril.
 - Evidenciar actualizacion automatica del progreso sin hacer clic manual.
 - Mostrar semaforo visual de estados (verde/amarillo/rojo).
 - Mostrar trazabilidad del tramite y deteccion de cuellos de botella.
+
+## 5. Pendientes y mejoras futuras
+Estos puntos aparecen en los apuntes de clase y conviene dejarlos como backlog para siguientes iteraciones:
+
+### Funcionalidades de producto pendientes
+- Portal o bot de ayuda para que el cliente consulte el estado de su tramite sin depender de un funcionario.
+- Sistema de notificaciones cuando llega una nueva actividad o cuando un tramite cambia de estado.
+- Opcion para dar de baja, desactivar o versionar politicas de negocio sin perder historial.
+- Restriccion formal para impedir edicion de una politica que ya este en ejecucion.
+- Historial completo del tramite: por que areas paso, quien lo atendio, cuanto duro cada etapa y cual fue el resultado.
+
+### Mejoras del editor de politicas
+- Edicion colaborativa en tiempo real entre varios disenadores sobre la misma politica.
+- Asistente IA mas completo para mover, eliminar, resaltar y reconectar nodos mediante lenguaje natural.
+- Soporte para generar diagramas mas grandes a partir de descripciones guiadas por IA.
+- Mejor soporte para combinaciones de flujo: secuencial + condicional + iterativo + paralelo en una misma politica.
+
+### Mejoras para ejecucion operativa
+- Formularios mas ricos por actividad: adjuntos, imagenes, observaciones, validaciones y evidencia estructurada.
+- Registro por voz mas robusto para funcionarios, con transcripcion y autocompletado del formulario.
+- Bandeja del funcionario con prioridad, urgencia, atrasos y recomendaciones de siguiente accion.
+
+### Analitica e inteligencia pendientes
+- Definir KPIs formales para cuellos de botella: tiempo promedio por etapa, tiempo total del tramite, tareas rebotadas, carga por funcionario y retrasos por departamento.
+- Identificar funcionarios o areas con menor rendimiento sin perder trazabilidad ni contexto del caso.
+- Sugerencias de optimizacion generadas por IA sobre la politica: pasos redundantes, actividades lentas o rutas alternativas.
+
+### Idea de innovacion fuerte para futuro
+- Convertir el sistema en un asistente de productividad: no solo dibuja o ejecuta el workflow, tambien orienta al usuario segun su rol, recomienda acciones y ayuda a resolver bloqueos.
+
+## 6. Estado actual y cierre al 100
+### Lo que ya esta cubierto
+- Editor visual de politicas con swimlanes.
+- Tipos de flujo secuencial, condicional, iterativo y paralelo.
+- Inicio y ejecucion de tramites con enrutamiento por nodos.
+- Monitor y semaforo visual de estados.
+- Formularios por actividad, incluyendo apoyo por voz.
+- Asistente IA por texto, voz e imagen dentro del editor.
+- Vista de analiticas y deteccion base de cuellos de botella.
+- Manual de usuario con capturas del sistema funcionando.
+
+### Lo poco que falta para considerarlo cerrado
+- Verificar una demo limpia de extremo a extremo sin errores manuales ni datos duplicados.
+- Preparar una historia de presentacion corta y ordenada: crear politica, ejecutar tramite, monitorear, mostrar IA y analiticas.
+- Dejar evidencia final ordenada en git: manual, imagenes y codigo sincronizados.
+
+### Checklist final de entrega
+- Backend levantando sin errores.
+- Frontend levantando sin errores.
+- Login funcional con usuario de prueba.
+- Politica de ejemplo lista para demo.
+- Tramite de ejemplo listo para mostrar avance.
+- Formularios guardando correctamente.
+- IA por texto funcionando.
+- IA por voz funcionando.
+- IA por imagen funcionando.
+- Monitor actualizando estados.
+- Analiticas visibles con datos.
+- Manual con capturas finales correctas.
+- Cambios versionados y listos para push.
+
+### Conclusion practica
+Si este checklist esta completo, el proyecto se puede considerar al 100% para el parcial. Lo que queda despues ya entra en mejoras futuras, no en faltantes criticos del entregable.

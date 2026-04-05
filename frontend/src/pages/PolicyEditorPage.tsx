@@ -38,6 +38,7 @@ export default function PolicyEditorPage() {
   const [showFormPanel, setShowFormPanel] = useState(false);
   const [savingForm, setSavingForm] = useState(false);
   const [showLanes, setShowLanes] = useState(true);
+  const [selectedFlowType, setSelectedFlowType] = useState('SEQUENTIAL');
 
   // Swimlane positions
   const LANE_WIDTH = 300;
@@ -59,7 +60,7 @@ export default function PolicyEditorPage() {
         const loadedNodes: Node[] = (res.data.nodes || []).map((n: any) => ({
           id: n.id,
           position: { x: n.positionX, y: n.positionY },
-          data: { label: `${n.title}\n(${n.department?.name || 'Sin depto'})` },
+          data: { label: `${n.title}\n(${n.department?.name || 'Sin depto'})`, departmentId: n.departmentId, title: n.title },
           style: {
             background: '#fff',
             border: '2px solid #1677ff',
@@ -86,13 +87,27 @@ export default function PolicyEditorPage() {
     (params: Connection) => {
       const newEdge = {
         ...params,
-        label: 'SEQUENTIAL',
-        style: { stroke: '#1677ff' },
+        label: selectedFlowType,
+        animated: selectedFlowType === 'PARALLEL',
+        style: { stroke: getEdgeColor(selectedFlowType) },
       };
       setEdges((eds) => addEdge(newEdge, eds));
     },
-    [setEdges],
+    [setEdges, selectedFlowType],
   );
+
+  const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
+    const types = ['SEQUENTIAL', 'CONDITIONAL', 'PARALLEL', 'ITERATIVE'];
+    const currentIdx = types.indexOf(edge.label as string);
+    const nextType = types[(currentIdx + 1) % types.length];
+    setEdges((eds) =>
+      eds.map((e) =>
+        e.id === edge.id
+          ? { ...e, label: nextType, animated: nextType === 'PARALLEL', style: { stroke: getEdgeColor(nextType) } }
+          : e,
+      ),
+    );
+  }, [setEdges]);
 
   const addNode = () => {
     if (!newNodeTitle.trim() || !selectedDept) return;
@@ -117,21 +132,26 @@ export default function PolicyEditorPage() {
 
   const saveGraph = async () => {
     setSaving(true);
-    const graphNodes = nodes.map((n) => ({
-      id: n.id,
-      departmentId: (n.data as any).departmentId || departments[0]?.id,
-      title: (n.data as any).title || String(n.data.label).split('\n')[0],
-      positionX: n.position.x,
-      positionY: n.position.y,
-    }));
-    const graphEdges = edges.map((e) => ({
-      fromNodeId: e.source,
-      toNodeId: e.target,
-      flowType: (e.label as string) || 'SEQUENTIAL',
-    }));
-    await api.put(`/policies/${policyId}/graph`, { nodes: graphNodes, edges: graphEdges });
-    setSaving(false);
-    alert('Diagrama guardado');
+    try {
+      const graphNodes = nodes.map((n) => ({
+        id: n.id,
+        departmentId: (n.data as any).departmentId || departments[0]?.id,
+        title: (n.data as any).title || String(n.data.label).split('\n')[0],
+        positionX: n.position.x,
+        positionY: n.position.y,
+      }));
+      const graphEdges = edges.map((e) => ({
+        fromNodeId: e.source,
+        toNodeId: e.target,
+        flowType: (e.label as string) || 'SEQUENTIAL',
+      }));
+      await api.put(`/policies/${policyId}/graph`, { nodes: graphNodes, edges: graphEdges });
+      alert('Diagrama guardado');
+    } catch (err) {
+      alert('Error al guardar el diagrama. Intente nuevamente.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAiPrompt = async (text: string) => {
@@ -369,6 +389,17 @@ export default function PolicyEditorPage() {
         <button onClick={addNode} style={{ padding: '6px 12px', background: '#52c41a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
           + Actividad
         </button>
+        {selectedNode && (
+          <button onClick={() => { setNodes((nds) => nds.filter((n) => n.id !== selectedNode.id)); setEdges((eds) => eds.filter((e) => e.source !== selectedNode.id && e.target !== selectedNode.id)); setSelectedNode(null); setShowFormPanel(false); }} style={{ padding: '6px 12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+            🗑️ Eliminar nodo
+          </button>
+        )}
+        <select value={selectedFlowType} onChange={(e) => setSelectedFlowType(e.target.value)} style={{ padding: 6, borderRadius: 4, fontSize: 12 }}>
+          <option value="SEQUENTIAL">→ Secuencial</option>
+          <option value="CONDITIONAL">◇ Condicional</option>
+          <option value="PARALLEL">═ Paralelo</option>
+          <option value="ITERATIVE">↻ Iterativo</option>
+        </select>
         <button onClick={saveGraph} disabled={saving} style={{ padding: '6px 12px', background: '#1677ff', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
@@ -386,6 +417,8 @@ export default function PolicyEditorPage() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onNodeClick={onNodeClick}
+            onEdgeClick={onEdgeClick}
+            deleteKeyCode={['Backspace', 'Delete']}
             fitView
           >
             <Controls />

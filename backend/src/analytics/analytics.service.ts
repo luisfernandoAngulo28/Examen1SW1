@@ -104,10 +104,11 @@ export class AnalyticsService {
 
   /** Get a global dashboard summary */
   async getDashboardStats() {
-    const [totalCases, activeCases, completedCases, totalTasks, pendingTasks] = await Promise.all([
+    const [totalCases, activeCases, completedCases, cancelledCases, totalTasks, pendingTasks] = await Promise.all([
       this.prisma.case.count(),
       this.prisma.case.count({ where: { status: 'IN_PROGRESS' } }),
       this.prisma.case.count({ where: { status: 'COMPLETED' } }),
+      this.prisma.case.count({ where: { status: 'CANCELLED' } }),
       this.prisma.task.count(),
       this.prisma.task.count({ where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } }),
     ]);
@@ -142,7 +143,7 @@ export class AnalyticsService {
       totalCases,
       activeCases,
       completedCases,
-      cancelledCases: totalCases - activeCases - completedCases,
+      cancelledCases,
       totalTasks,
       pendingTasks,
       tasksPerDepartment: Array.from(deptMap.values()).sort((a, b) => b.count - a.count),

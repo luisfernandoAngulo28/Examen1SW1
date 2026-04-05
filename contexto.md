@@ -399,6 +399,109 @@ Profesor: 31... hoy es miércoles... no, martes... martes. 28. Anoten: 28 de abr
 
 (El profesor anota la fecha).
 
+---
+
+Primer examen parcial
+Contexto
+Gestion de politica de negocio!
+hablamos de solicitud, ahi quisieramos saber cual es el estado
+de su trasmite ( en este caso ponemos una empresa "cre" )
+herramientas que tenga la posibilidad de gestionar politica de
+negocio! -> workflow
+desarrollar una aplicacion que tenga la capacidad de gestionar
+politica de negocio ( todo el proceso desde crear editar dar
+de baja etc. monitorear )
+Cual diagrama tiene el proposito de modelar politica de
+negocio = Diagrama de Actividades organizado en carriles
+(Swimlanes)
+Para modelar y reptresentar politica de negocios
+politica de negocio -> elemento =
+actividades
+responsables ( que departeamentes es responsable de x
+actividad )
+flujo ( cual es el orden cual va primero ) etc, exite
+(estrucuta de control de programacion ) 4 posible
+variaciones 1- flujo lineal "secuencial" 2- flujo
+alternativo 3- flujo interactivo 4- procesos en paralelo
+Primer examen parcial 1
+¿Que va ser el software?
+1- tiene que ver un editor
+un diseñador visual = (nada de formulario)
+2- un motor
+gestione el flujo automaticamente de cada
+3- tener un panel
+donde pueda visualizar todo lo que tenga que ver con el
+tomando en cuneta 3 etapas
+1 actividades que le compota hacer
+2 activades que ya ejecuto , amarillo en proceso rojo que
+llegaron recien en verde que ya acabo
+( el panel el monitor se actualiza en linea si f5 se
+actualiza cada rato! )
+tener elemento de notificacion para que llego la
+actividad
+Suposicion
+departamente de atencion de cliente
+el crear una nueva atencion al cliente basada en el nuevo
+medidor. el carga la informacion que exige la politica de
+negocio. luego lo deriva al departamento que corresponde
+luego la otra persona hara el trabajo donde este vera
+sera todo en linea
+una ves lo termina ( sale como terminado ) luego el
+software lo deriva a otro departamento.- el software se
+encarga de enrutar derivar a donde va
+cuando hacemos la politica de negocio definimos a donde
+va cada informacion
+Primer examen parcial 2
+si el cliente viene y pregunta que pasa con su trasmite
+el solo ve en que proceso esta y el deberia donde esta (
+identificar que funcionario rinde menos identificar falla
+)
+tiempo de atencion de clinete ( informacion de tipo
+analitica )
+Cuando el funcionario haga su trabajo registra lo que
+esta haciendo. por lo tanto el software igual tendra algo
+similar
+cada nodo ( es un departamento etc )
+cuando haga su trabajo el software debe permetir crear un
+formulario = que informacion se soluciotar rellenar la
+informacion de cada departamento
+capas carguen imagenes etc
+Novedad
+cuando dev el software:- no tenemos la idea de cuanta
+politica de negocio van a ver
+o que flujo se van a dar en la politica de negocio
+se diseña para funcionar bajo cualquier funcion
+los usuario no sabremos cuantos abran
+anticipar algunos roles
+1+ usuarios para diseñar la politica de negio ( una
+politica de negocio que esta en ejecucion no se puede
+Primer examen parcial 3
+editar )
+habra un rol donde varios usuairo tengan la responsabilidad
+de crear editar la politica de negocio
+luego nuevo rol par alos funcionario que no tiene nada que
+ve con la p. n, solo hacen su traabajo utilizando el
+software
+Añadiendo al software
+Ideas para implementar!
+-> Usar IA
+en el momento de diseñar el diagrama. desde punto de
+vista de interaccion
+investigar sobre Enterprise Architect
+diseñar el diagrama sin neceisdad de tocar el mouse. como
+si tuvieramos hablando con el asistente!
+mover quitar resaltar etc etc
+-> colaborativo
+pucha persona de manera simultanea usando el sistema para
+crear la politica de negocio pueden estar en distinto
+lugares.- usando la IA detectar cuello de bota, sugerir
+obtimizar la politica de negocio
+el proposito central es que el uso de software sea lo mas
+productivo. el software debe ser un asistente ayude
+oriente etc.
+antes se usaba manual = un agente que acuerdo al usuario
+que este ocupando la palicacion para saer que va suguerir
+
 Profesor: ¿Tienen alguna pregunta más?
 
 Alumno: Ingeniero, ¿tienen que haber políticas mínimas? Digamos unas cinco o mínimo... o ¿solo una?
