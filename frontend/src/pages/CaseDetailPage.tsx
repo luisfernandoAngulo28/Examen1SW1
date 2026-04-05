@@ -181,7 +181,9 @@ export default function CaseDetailPage() {
       {/* Tasks */}
       <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Tareas del flujo</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {caseData.tasks.map((task) => (
+        {caseData.tasks
+          .filter((task) => !['INITIAL', 'FORK', 'JOIN', 'FINAL'].includes(task.node.nodeType || 'ACTION'))
+          .map((task) => (
           <div key={task.id} className="task-card" style={{ borderLeftColor: statusColor[task.status] }}>
             <div className="task-card-header">
               <div>

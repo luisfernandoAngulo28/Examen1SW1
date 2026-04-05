@@ -96,13 +96,31 @@ export class CasesService {
 
     // Create tasks for each start node (supports PARALLEL start)
     for (const node of startNodes) {
-      await this.prisma.task.create({
+      const isInitial = (node as any).nodeType === 'INITIAL';
+      const task = await this.prisma.task.create({
         data: {
           caseId: newCase.id,
           nodeId: node.id,
-          status: 'PENDING',
+          status: isInitial ? 'DONE' : 'PENDING',
+          finishedAt: isInitial ? new Date() : undefined,
         },
       });
+
+      // Auto-advance past INITIAL nodes
+      if (isInitial) {
+        const outEdges = policy.edges.filter((e) => e.fromNodeId === node.id);
+        for (const edge of outEdges) {
+          await this.prisma.task.create({
+            data: { caseId: newCase.id, nodeId: edge.toNodeId, status: 'PENDING' },
+          });
+        }
+        if (outEdges.length > 0) {
+          await this.prisma.case.update({
+            where: { id: newCase.id },
+            data: { currentNodeId: outEdges[0].toNodeId },
+          });
+        }
+      }
     }
 
     // Log event
@@ -263,9 +281,85 @@ export class CasesService {
       }
     }
 
+    // Auto-advance any pass-through nodes (FORK, JOIN, FINAL)
+    await this.autoAdvanceSpecialNodes(task.caseId, task.case.policyId);
+
     const result = await this.findOne(task.caseId);
     this.events.emitTaskCompleted(result);
     return result;
+  }
+
+  /**
+   * Auto-complete FORK, JOIN, and FINAL nodes that don't require user interaction.
+   * Loops until no more special nodes can be advanced.
+   */
+  private async autoAdvanceSpecialNodes(caseId: string, policyId: string) {
+    let advanced = true;
+    while (advanced) {
+      advanced = false;
+      const pendingTasks = await this.prisma.task.findMany({
+        where: { caseId, status: 'PENDING' },
+        include: { node: true },
+      });
+
+      for (const t of pendingTasks) {
+        const nt = (t.node as any)?.nodeType || 'ACTION';
+
+        if (nt === 'INITIAL') {
+          // Auto-complete INITIAL and advance
+          await this.prisma.task.update({ where: { id: t.id }, data: { status: 'DONE', finishedAt: new Date() } });
+          const outEdges = await this.prisma.policyEdge.findMany({ where: { fromNodeId: t.nodeId, policyId } });
+          for (const e of outEdges) {
+            const exists = await this.prisma.task.findFirst({ where: { caseId, nodeId: e.toNodeId } });
+            if (!exists) await this.prisma.task.create({ data: { caseId, nodeId: e.toNodeId, status: 'PENDING' } });
+          }
+          advanced = true;
+        }
+
+        if (nt === 'FORK') {
+          // Auto-complete FORK and create parallel tasks
+          await this.prisma.task.update({ where: { id: t.id }, data: { status: 'DONE', finishedAt: new Date() } });
+          const outEdges = await this.prisma.policyEdge.findMany({ where: { fromNodeId: t.nodeId, policyId } });
+          for (const e of outEdges) {
+            const exists = await this.prisma.task.findFirst({ where: { caseId, nodeId: e.toNodeId } });
+            if (!exists) await this.prisma.task.create({ data: { caseId, nodeId: e.toNodeId, status: 'PENDING' } });
+          }
+          advanced = true;
+        }
+
+        if (nt === 'JOIN') {
+          // Only advance if ALL incoming source tasks are DONE
+          const inEdges = await this.prisma.policyEdge.findMany({ where: { toNodeId: t.nodeId, policyId } });
+          const srcIds = inEdges.map((e) => e.fromNodeId);
+          const pendingCount = await this.prisma.task.count({
+            where: { caseId, nodeId: { in: srcIds }, status: { not: 'DONE' } },
+          });
+          if (pendingCount === 0) {
+            await this.prisma.task.update({ where: { id: t.id }, data: { status: 'DONE', finishedAt: new Date() } });
+            const outEdges = await this.prisma.policyEdge.findMany({ where: { fromNodeId: t.nodeId, policyId } });
+            for (const e of outEdges) {
+              const exists = await this.prisma.task.findFirst({ where: { caseId, nodeId: e.toNodeId } });
+              if (!exists) await this.prisma.task.create({ data: { caseId, nodeId: e.toNodeId, status: 'PENDING' } });
+            }
+            if (outEdges.length === 1) {
+              await this.prisma.case.update({ where: { id: caseId }, data: { currentNodeId: outEdges[0].toNodeId } });
+            }
+            advanced = true;
+          }
+        }
+
+        if (nt === 'FINAL') {
+          // Auto-complete FINAL and check case completion
+          await this.prisma.task.update({ where: { id: t.id }, data: { status: 'DONE', finishedAt: new Date() } });
+          const remaining = await this.prisma.task.count({ where: { caseId, status: { not: 'DONE' } } });
+          if (remaining === 0) {
+            await this.prisma.case.update({ where: { id: caseId }, data: { status: 'COMPLETED', finishedAt: new Date() } });
+            await this.prisma.eventLog.create({ data: { caseId, type: 'CASE_COMPLETED' } });
+          }
+          advanced = true;
+        }
+      }
+    }
   }
 
   /** Assign a task to a user (officer) */
