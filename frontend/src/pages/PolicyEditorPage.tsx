@@ -293,37 +293,33 @@ export default function PolicyEditorPage() {
     if (!file) return;
 
     setAiMessages((prev) => [...prev, { role: 'user', text: `📷 Imagen: ${file.name}` }]);
-    setAiMessages((prev) => [...prev, { role: 'ai', text: 'Analizando imagen...' }]);
+    setAiMessages((prev) => [...prev, { role: 'ai', text: '🔍 Analizando imagen con OCR (Tesseract.js)...' }]);
 
     try {
-      // Use Canvas to load image, then try to extract any text-like content
-      const bitmap = await createImageBitmap(file);
-      const canvas = document.createElement('canvas');
-      canvas.width = bitmap.width;
-      canvas.height = bitmap.height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(bitmap, 0, 0);
+      // Real OCR using Tesseract.js
+      const Tesseract = await import('tesseract.js');
+      const { data: { text: ocrText } } = await Tesseract.recognize(file, 'spa+eng', {
+        logger: (m: any) => {
+          if (m.status === 'recognizing text') {
+            const pct = Math.round((m.progress || 0) * 100);
+            setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `🔍 OCR procesando... ${pct}%` }]);
+          }
+        },
+      });
 
-      // Send image info to backend for analysis
-      // Since we don't have server-side OCR, we ask user to describe what's in the image
-      // as a fallback, or process known patterns from the filename
-      let extractedText = '';
+      let extractedText = ocrText.trim();
 
-      // Try to use the file name as a hint
-      const nameHint = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
-      if (nameHint.length > 3) {
-        extractedText = `crear flujo para ${nameHint}`;
-      }
-
-      // Also provide a prompt input approach
-      const userDescription = prompt('Describe brevemente lo que muestra la imagen (ej: "flujo de contratación con 3 pasos: solicitud, revisión, aprobación"):');
-      if (userDescription) {
-        extractedText = userDescription;
-      }
-
-      if (!extractedText) {
-        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: 'No se pudo analizar la imagen. Describe lo que contiene para procesarla.' }]);
-        return;
+      if (!extractedText || extractedText.length < 5) {
+        // Fallback: ask user if OCR couldn't detect enough text
+        const userDescription = prompt('El OCR no detectó suficiente texto. Describe brevemente lo que muestra la imagen:');
+        if (userDescription) {
+          extractedText = userDescription;
+        } else {
+          setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: 'No se pudo extraer texto de la imagen.' }]);
+          return;
+        }
+      } else {
+        setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `🔍 OCR detectó: "${extractedText.substring(0, 120)}${extractedText.length > 120 ? '...' : ''}"` }]);
       }
 
       const res = await api.post('/ai-assistant/image', { extractedText, fileName: file.name });
