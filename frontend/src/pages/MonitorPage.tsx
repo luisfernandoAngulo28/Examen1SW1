@@ -9,7 +9,7 @@ interface Task {
   id: string;
   status: string;
   startedAt: string;
-  node: { id: string; title: string; department?: { name: string } };
+  node: { id: string; title: string; nodeType?: string; department?: { name: string } };
   assignedUser: { id: string; name: string; email: string } | null;
 }
 
@@ -108,7 +108,7 @@ export default function MonitorPage() {
                 <Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link>
               </div>
               <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {c.tasks.map((t) => (
+                {c.tasks.filter((t) => !['INITIAL', 'FORK', 'JOIN', 'FINAL'].includes(t.node.nodeType || 'ACTION')).map((t) => (
                   <div key={t.id} style={{
                     padding: '6px 12px',
                     borderRadius: 6,
