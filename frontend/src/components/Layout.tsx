@@ -50,6 +50,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <NavLink to="/policies/new" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
                 <span>➕</span> Nueva Política
               </NavLink>
+              <NavLink to="/register" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+                <span>👤</span> Registrar Usuario
+              </NavLink>
             </>
           )}
         </nav>

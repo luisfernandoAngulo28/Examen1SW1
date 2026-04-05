@@ -42,6 +42,14 @@ export class PoliciesService {
     edges: { fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; conditionJson?: any }[],
   ) {
     return this.prisma.$transaction(async (tx) => {
+      // Check for active cases — prevent graph changes if cases exist
+      const activeCases = await tx.case.count({
+        where: { policyId, status: { in: ['IN_PROGRESS', 'OPEN'] } },
+      });
+      if (activeCases > 0) {
+        throw new Error('No se puede editar el grafo con trámites en curso. Cancele o complete los trámites primero.');
+      }
+
       // Get existing node IDs to clean up related records
       const existingNodes = await tx.policyNode.findMany({
         where: { policyId },

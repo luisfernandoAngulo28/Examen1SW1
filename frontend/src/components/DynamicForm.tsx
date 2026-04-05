@@ -17,13 +17,14 @@ interface Props {
   schema: FormSchema;
   initialData?: Record<string, any> | null;
   readOnly?: boolean;
-  onSubmit?: (data: Record<string, any>) => void;
+  onSubmit?: (data: Record<string, any>, inputMode: string) => void;
   submitting?: boolean;
 }
 
 export default function DynamicForm({ schema, initialData, readOnly, onSubmit, submitting }: Props) {
   const [formData, setFormData] = useState<Record<string, any>>(initialData || {});
   const [listeningField, setListeningField] = useState<string | null>(null);
+  const [usedVoice, setUsedVoice] = useState(false);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -31,7 +32,7 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit?.(formData);
+    onSubmit?.(formData, usedVoice ? 'VOICE' : 'MANUAL');
   };
 
   const startVoiceForField = (fieldName: string) => {
@@ -44,6 +45,7 @@ export default function DynamicForm({ schema, initialData, readOnly, onSubmit, s
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setListeningField(null);
+      setUsedVoice(true);
       handleChange(fieldName, transcript);
     };
     recognition.onerror = () => setListeningField(null);

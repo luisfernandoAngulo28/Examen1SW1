@@ -39,6 +39,11 @@ export default function LoginPage() {
         <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
           Iniciar sesión
         </button>
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <a href="/register" style={{ color: 'var(--accent)', fontSize: 13, textDecoration: 'none' }}>
+            ¿No tienes cuenta? Regístrate
+          </a>
+        </div>
       </form>
     </div>
   );

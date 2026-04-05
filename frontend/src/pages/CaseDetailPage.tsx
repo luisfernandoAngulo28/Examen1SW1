@@ -117,10 +117,10 @@ export default function CaseDetailPage() {
     } catch { toast('Error al cancelar', 'error'); }
   };
 
-  const handleFormSubmit = async (taskId: string, data: Record<string, any>) => {
+  const handleFormSubmit = async (taskId: string, data: Record<string, any>, inputMode: string = 'MANUAL') => {
     setSubmittingForm(taskId);
     try {
-      await api.post(`/forms/submit/${taskId}`, { payloadJson: data, inputMode: 'MANUAL' });
+      await api.post(`/forms/submit/${taskId}`, { payloadJson: data, inputMode });
       setFormSubmissions((prev) => ({ ...prev, [taskId]: data }));
       toast('Formulario guardado', 'success');
     } catch (err) {
@@ -270,7 +270,7 @@ export default function CaseDetailPage() {
                     schema={formTemplates[task.node.id]}
                     initialData={formSubmissions[task.id] || null}
                     readOnly={task.status === 'DONE' || !!formSubmissions[task.id]}
-                    onSubmit={!formSubmissions[task.id] && task.status !== 'DONE' ? (data) => handleFormSubmit(task.id, data) : undefined}
+                    onSubmit={!formSubmissions[task.id] && task.status !== 'DONE' ? (data, inputMode) => handleFormSubmit(task.id, data, inputMode) : undefined}
                     submitting={submittingForm === task.id}
                   />
                 )}

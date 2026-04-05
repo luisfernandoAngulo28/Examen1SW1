@@ -11,6 +11,7 @@ import CasesPage from './pages/CasesPage';
 import CaseDetailPage from './pages/CaseDetailPage';
 import MonitorPage from './pages/MonitorPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import RegisterPage from './pages/RegisterPage';
 
 function PrivateRoute({ children, withLayout = true }: { children: React.ReactNode; withLayout?: boolean }) {
   const { user, isLoading } = useAuth();
@@ -28,6 +29,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<PrivateRoute><RoleBasedDashboard /></PrivateRoute>} />
       <Route path="/my-tasks" element={<PrivateRoute><OfficerDashboardPage /></PrivateRoute>} />
       <Route path="/departments" element={<PrivateRoute><DepartmentsPage /></PrivateRoute>} />
