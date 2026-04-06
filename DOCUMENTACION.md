@@ -357,35 +357,383 @@ El corazón de WorkflowSW1 es el **diagrama de actividad UML**, implementado com
 
 ---
 
-## Parte II — Desarrollo del Proyecto
+## Parte II — Proceso de Desarrollo
 
-### Arquitectura del Sistema
+---
+
+### 1. Flujo de Trabajo: Captura de Requisitos
+
+#### 1.1 Actores
+
+El sistema identifica dos actores principales que interactúan con el sistema:
+
+| Actor | Rol en el sistema | Descripción |
+|-------|-------------------|-------------|
+| **Diseñador de Procesos** | `DESIGNER` | Responsable de modelar las políticas de negocio mediante diagramas de actividad UML, configurar formularios dinámicos, crear departamentos, registrar usuarios, iniciar trámites y analizar métricas de desempeño. |
+| **Funcionario** | `OFFICER` | Responsable de ejecutar las tareas asignadas dentro de un trámite: completar formularios (manual, voz u OCR), tomar decisiones en nodos condicionales y reportar el avance de su trabajo. |
+
+**Actor secundario:**
+| Actor | Descripción |
+|-------|-------------|
+| **Sistema (Motor de Workflow)** | Actor no humano que gestiona automáticamente el avance del flujo: auto-completa nodos INITIAL, FORK, JOIN y FINAL, emite eventos WebSocket y registra la bitácora de auditoría. |
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    CLIENTE (Browser)                 │
-│  React 19 + Vite 8 + TypeScript + React Flow        │
-│  Puerto: 5173                                        │
-└──────────────────────┬────────────────┬─────────────┘
-                       │ HTTP/REST      │ WebSocket
-                       ▼                ▼
-┌─────────────────────────────────────────────────────┐
-│                 SERVIDOR (Backend)                    │
-│  NestJS 11 + Prisma ORM 6 + JWT + Socket.IO         │
-│  Puerto: 3000                                        │
-│  9 módulos: Auth, Departments, Policies, Cases,      │
-│             Forms, Events, Analytics, AI, Prisma     │
-└──────────────────────┬──────────────────────────────┘
-                       │ TCP :5432
-                       ▼
-┌─────────────────────────────────────────────────────┐
-│                 BASE DE DATOS                        │
-│  PostgreSQL 16 — Base: workflow_sw1                   │
-│  10 tablas + 6 enums                                 │
-└─────────────────────────────────────────────────────┘
+                        ┌─────────────────────────────────────┐
+                        │     Sistema de Gestión de Políticas  │
+                        │          de Negocio (Workflow)       │
+                        │                                     │
+   ┌──────────┐         │  ┌─────────────────────────────┐    │
+   │DISEÑADOR │─────────┼─►│ Diseñar diagrama de actividad│   │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Configurar formularios       │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Gestionar departamentos      │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Iniciar trámite              │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Monitorear en tiempo real    │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Analizar métricas e IA       │    │
+   └──────────┘         │  └─────────────────────────────┘    │
+                        │                                     │
+   ┌──────────┐         │  ┌─────────────────────────────┐    │
+   │FUNCIONARIO│────────┼─►│ Consultar bandeja de tareas  │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Completar tarea              │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Llenar formulario (voz/OCR)  │    │
+   │          │         │  └─────────────────────────────┘    │
+   │          │─────────┼─►│ Tomar decisión condicional   │    │
+   └──────────┘         │  └─────────────────────────────┘    │
+                        └─────────────────────────────────────┘
 ```
 
-### Stack Tecnológico
+#### 1.2 Casos de Uso
+
+Se identificaron **14 casos de uso** organizados por actor:
+
+| ID | Caso de Uso | Actor | Prioridad |
+|----|-------------|-------|-----------|
+| CU-01 | Iniciar sesión | Ambos | Alta |
+| CU-02 | Registrar usuario | Diseñador | Alta |
+| CU-03 | Gestionar departamentos (CRUD) | Diseñador | Alta |
+| CU-04 | Crear política de negocio | Diseñador | Alta |
+| CU-05 | Diseñar diagrama de actividad UML | Diseñador | Alta |
+| CU-06 | Configurar formulario dinámico por nodo | Diseñador | Media |
+| CU-07 | Iniciar trámite desde política | Diseñador | Alta |
+| CU-08 | Consultar bandeja de tareas | Funcionario | Alta |
+| CU-09 | Completar tarea del flujo | Funcionario | Alta |
+| CU-10 | Llenar formulario con voz / OCR | Funcionario | Media |
+| CU-11 | Tomar decisión en nodo condicional | Funcionario | Alta |
+| CU-12 | Asignar funcionario a tarea | Diseñador | Alta |
+| CU-13 | Monitorear trámites en tiempo real | Ambos | Media |
+| CU-14 | Consultar analítica e insights IA | Diseñador | Media |
+
+#### 1.3 Priorizar Casos de Uso
+
+La priorización se realizó utilizando el criterio **MoSCoW** (Must/Should/Could/Won't):
+
+| Prioridad | Casos de Uso | Justificación |
+|-----------|-------------|---------------|
+| **Must Have** | CU-01, CU-03, CU-04, CU-05, CU-07, CU-08, CU-09, CU-11, CU-12 | Funcionalidad core del workflow: sin estos el sistema no puede operar |
+| **Should Have** | CU-02, CU-06, CU-13 | Mejoran significativamente la usabilidad pero el sistema funciona sin ellos |
+| **Could Have** | CU-10, CU-14 | Funcionalidades avanzadas de UX e inteligencia artificial |
+
+**Orden de implementación por iteración:**
+
+| Iteración | Casos de Uso | Entregable |
+|-----------|-------------|------------|
+| 1 | CU-01, CU-02, CU-03 | Autenticación + Departamentos |
+| 2 | CU-04, CU-05 | Editor visual de políticas |
+| 3 | CU-07, CU-08, CU-09, CU-11, CU-12 | Motor de workflow completo |
+| 4 | CU-06, CU-10 | Formularios dinámicos + voz + OCR |
+| 5 | CU-13 | Monitor en tiempo real |
+| 6 | CU-14 | Analítica + IA |
+
+#### 1.4 Detallar Casos de Uso
+
+##### CU-05: Diseñar Diagrama de Actividad UML
+
+| Campo | Detalle |
+|-------|---------|
+| **Actor principal** | Diseñador de Procesos |
+| **Precondición** | El diseñador ha iniciado sesión y ha creado una política |
+| **Postcondición** | El diagrama se persiste en la base de datos con nodos y aristas |
+| **Flujo principal** | 1. El diseñador abre el editor visual de la política. 2. El sistema carga los nodos y aristas existentes en el canvas de React Flow. 3. El diseñador agrega nodos (Acción, Decisión, Fork, Join, Inicial, Final) desde el panel lateral. 4. El diseñador conecta nodos arrastrando aristas entre ellos. 5. El diseñador asigna departamentos a cada nodo mediante swimlanes. 6. El diseñador configura etiquetas de condición en aristas de nodos DECISION. 7. El diseñador hace clic en "Guardar". 8. El sistema persiste el grafo en una transacción (elimina anteriores, crea nuevos). |
+| **Flujo alternativo** | 7a. Si hay trámites activos, el sistema bloquea la edición con mensaje de error. |
+| **Excepciones** | Sin nodo inicial → error de validación al iniciar trámite. |
+
+##### CU-09: Completar Tarea del Flujo
+
+| Campo | Detalle |
+|-------|---------|
+| **Actor principal** | Funcionario |
+| **Precondición** | Existe un trámite en curso con una tarea en estado PENDING o IN_PROGRESS |
+| **Postcondición** | La tarea se marca como DONE, el motor avanza al siguiente nodo |
+| **Flujo principal** | 1. El funcionario abre el detalle de un trámite. 2. El sistema muestra las tareas con semáforo de estado. 3. El funcionario hace clic en "Completar" en una tarea. 4. El sistema marca la tarea como DONE y registra el evento. 5. El motor busca aristas salientes del nodo completado. 6. El motor crea tareas PENDING para los nodos destino. 7. El motor auto-avanza nodos especiales (FORK→paralelo, JOIN→sincronización, FINAL→cierre). 8. El sistema emite evento WebSocket a todos los conectados. |
+| **Flujo alternativo** | 5a. Si el nodo es DECISION, el funcionario elige un camino condicional. 5b. Si el nodo es JOIN, el motor verifica que TODOS los nodos fuente estén completados antes de avanzar. 6a. Si no hay aristas salientes (nodo FINAL), el motor cierra el trámite como COMPLETED. |
+| **Excepciones** | Tarea ya completada → BadRequestException(400). |
+
+##### CU-10: Llenar Formulario con Voz / OCR
+
+| Campo | Detalle |
+|-------|---------|
+| **Actor principal** | Funcionario |
+| **Precondición** | La tarea tiene un FormTemplate asociado configurado por el diseñador |
+| **Postcondición** | El formulario se almacena con el modo de entrada registrado (MANUAL/VOICE/AI) |
+| **Flujo principal** | 1. El funcionario expande el formulario en la tarea. 2. El sistema renderiza los campos dinámicos según el JSON Schema. 3a. **Manual:** El funcionario llena los campos con teclado. 3b. **Voz:** El funcionario hace clic en el ícono de micrófono, dicta el texto y el sistema transcribe con Web Speech API. 3c. **OCR:** El funcionario selecciona una imagen, Tesseract.js extrae el texto y lo coloca en el campo. 4. El funcionario hace clic en "Enviar". 5. El sistema almacena el payload JSON con el `inputMode` correspondiente. |
+
+#### 1.5 Estructurar Modelos de Casos de Uso
+
+Los casos de uso se agrupan en **5 paquetes funcionales** que reflejan los subsistemas del proyecto:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                    Modelo de Casos de Uso                       │
+│                                                                │
+│  ┌──────────────────┐   ┌──────────────────┐                  │
+│  │  «paquete»       │   │  «paquete»       │                  │
+│  │  Autenticación   │   │  Organización    │                  │
+│  │  ───────────     │   │  ────────────    │                  │
+│  │  CU-01 Login     │   │  CU-02 Registro  │                  │
+│  │                  │   │  CU-03 Deptos    │                  │
+│  └──────────────────┘   └──────────────────┘                  │
+│                                                                │
+│  ┌──────────────────────────────────────────┐                  │
+│  │  «paquete»  Diseño de Políticas          │                  │
+│  │  ──────────────────────────────          │                  │
+│  │  CU-04 Crear política                    │                  │
+│  │  CU-05 Diseñar diagrama UML              │                  │
+│  │  CU-06 Configurar formularios            │                  │
+│  └──────────────────────────────────────────┘                  │
+│                                                                │
+│  ┌──────────────────────────────────────────┐                  │
+│  │  «paquete»  Ejecución de Workflow         │                  │
+│  │  ────────────────────────────────        │                  │
+│  │  CU-07 Iniciar trámite                   │                  │
+│  │  CU-08 Consultar bandeja                 │                  │
+│  │  CU-09 Completar tarea                   │                  │
+│  │  CU-10 Formulario voz/OCR               │                  │
+│  │  CU-11 Decisión condicional              │                  │
+│  │  CU-12 Asignar funcionario               │                  │
+│  └──────────────────────────────────────────┘                  │
+│                                                                │
+│  ┌──────────────────┐   ┌──────────────────┐                  │
+│  │  «paquete»       │   │  «paquete»       │                  │
+│  │  Monitoreo       │   │  Analítica       │                  │
+│  │  ─────────       │   │  ─────────       │                  │
+│  │  CU-13 Monitor   │   │  CU-14 Analytics │                  │
+│  │  WebSocket       │   │  + IA Insights   │                  │
+│  └──────────────────┘   └──────────────────┘                  │
+└────────────────────────────────────────────────────────────────┘
+```
+
+**Relaciones entre casos de uso:**
+
+| Relación | Desde | Hacia | Tipo |
+|----------|-------|-------|------|
+| `<<include>>` | CU-09 Completar tarea | CU-11 Decisión condicional | El motor verifica si el nodo es DECISION |
+| `<<include>>` | CU-09 Completar tarea | CU-10 Formulario voz/OCR | Opcionalmente llena formulario antes de completar |
+| `<<extend>>` | CU-13 Monitor | CU-07 Iniciar trámite | El monitor se actualiza al iniciar trámite |
+| `<<extend>>` | CU-14 Analytics | CU-09 Completar tarea | Las métricas se recalculan al completar tareas |
+
+---
+
+### 2. Flujo de Trabajo: Análisis
+
+#### 2.1 Análisis de Arquitectura
+
+La arquitectura del sistema sigue el patrón **cliente-servidor de 3 capas** con comunicación REST + WebSocket:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     CAPA DE PRESENTACIÓN                        │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  React 19 + TypeScript + Vite 8                           │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  │
+│  │  │ Pages    │  │Components│  │ Context  │  │ API Layer│ │  │
+│  │  │ (10 pgs) │  │ (Layout, │  │ (Auth,   │  │ (Axios + │ │  │
+│  │  │          │  │  Toast,  │  │  Toast)  │  │  Socket) │ │  │
+│  │  │          │  │  Form)   │  │          │  │          │ │  │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                         │ HTTP :5173 → :3000  │ WS :3000        │
+└─────────────────────────┼─────────────────────┼─────────────────┘
+                          ▼                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     CAPA DE LÓGICA DE NEGOCIO                   │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  NestJS 11 — Módulos independientes con DI                │  │
+│  │  ┌─────────┐ ┌──────────┐ ┌─────────┐ ┌──────────────┐  │  │
+│  │  │  Auth   │ │ Policies │ │  Cases  │ │   Forms      │  │  │
+│  │  │ Module  │ │  Module  │ │ Module  │ │   Module     │  │  │
+│  │  │(JWT+    │ │(CRUD+    │ │(Motor   │ │(JSON Schema  │  │  │
+│  │  │ Guard)  │ │ Graph)   │ │Workflow)│ │ +Submission) │  │  │
+│  │  └─────────┘ └──────────┘ └─────────┘ └──────────────┘  │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌─────────────┐  │  │
+│  │  │  Depts   │ │ Events   │ │Analytics│ │AiAssistant  │  │  │
+│  │  │  Module  │ │ Gateway  │ │ Module  │ │  Module     │  │  │
+│  │  │(CRUD)    │ │(Socket.IO│ │(KPIs+   │ │(Insights+   │  │  │
+│  │  │          │ │ WS)      │ │Bottlen.)│ │ Recommend.) │  │  │
+│  │  └──────────┘ └──────────┘ └─────────┘ └─────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                         │ TCP :5432                              │
+└─────────────────────────┼───────────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     CAPA DE PERSISTENCIA                        │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  PostgreSQL 16 — Base: workflow_sw1                        │  │
+│  │  Prisma ORM 6.19 (migraciones + cliente tipado)           │  │
+│  │  10 tablas: users, departments, policies, policy_nodes,   │  │
+│  │  policy_edges, cases, tasks, form_templates,              │  │
+│  │  form_submissions, event_logs                             │  │
+│  │  6 enums: Role, PolicyStatus, NodeType, FlowType,         │  │
+│  │  TaskStatus, CaseStatus, InputMode                        │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Decisiones arquitectónicas clave:**
+
+| Decisión | Justificación |
+|----------|---------------|
+| **NestJS modular** | Cada dominio (auth, policies, cases, forms, analytics) es un módulo independiente con inyección de dependencias, favoreciendo cohesión alta y acoplamiento bajo |
+| **Prisma ORM** | Generación de tipos TypeScript automática desde el schema, migraciones versionadas, queries type-safe |
+| **JWT stateless** | Autenticación sin sesiones en servidor, escalable horizontalmente |
+| **Socket.IO** | Comunicación bidireccional servidor↔cliente para eventos en tiempo real sin polling |
+| **React Flow** | Librería especializada para editores de grafos/diagramas con drag & drop nativo |
+| **Transacciones Prisma** | La operación `saveGraph` usa `$transaction` para garantizar atomicidad al reescribir el grafo completo |
+
+#### 2.2 Análisis de Casos de Uso
+
+##### Análisis del CU-05: Diseñar Diagrama de Actividad
+
+**Clases de análisis identificadas:**
+
+| Clase | Estereotipo | Responsabilidad |
+|-------|-------------|-----------------|
+| `PolicyEditorPage` | `<<boundary>>` | Interfaz visual del editor con canvas React Flow |
+| `PoliciesController` | `<<control>>` | Recibe peticiones HTTP de guardar/cargar grafo |
+| `PoliciesService` | `<<control>>` | Lógica de negocio: transacción de guardado del grafo |
+| `Policy` | `<<entity>>` | Contiene nombre, estado y relación con nodos/aristas |
+| `PolicyNode` | `<<entity>>` | Nodo del diagrama: tipo, posición, departamento |
+| `PolicyEdge` | `<<entity>>` | Arista: origen, destino, tipo de flujo, condición |
+
+**Diagrama de colaboración (secuencia simplificada):**
+
+```
+Diseñador → PolicyEditorPage → [PUT /policies/:id] → PoliciesController
+    → PoliciesService.saveGraph()
+    → Prisma.$transaction:
+        1. Verificar que no hay trámites activos
+        2. Obtener nodos existentes
+        3. Eliminar: FormSubmission → Task → FormTemplate → Edge → Node
+        4. Crear nuevos nodos con posiciones
+        5. Crear nuevas aristas con tipos de flujo
+    → Response: Política actualizada con grafo completo
+```
+
+##### Análisis del CU-09: Completar Tarea
+
+**Clases de análisis identificadas:**
+
+| Clase | Estereotipo | Responsabilidad |
+|-------|-------------|-----------------|
+| `CaseDetailPage` | `<<boundary>>` | Muestra tareas con semáforo, botones de acción |
+| `CasesController` | `<<control>>` | Endpoint `POST /cases/tasks/:id/complete` |
+| `CasesService` | `<<control>>` | Motor de workflow: lógica de avance según tipo de nodo |
+| `EventsGateway` | `<<control>>` | Emite eventos WebSocket a clientes conectados |
+| `Task` | `<<entity>>` | Tarea con estado, nodo asociado, usuario asignado |
+| `Case` | `<<entity>>` | Trámite con estado global y nodo actual |
+| `EventLog` | `<<entity>>` | Registro de auditoría de cada evento |
+
+**Diagrama de colaboración:**
+
+```
+Funcionario → CaseDetailPage → [POST /cases/tasks/:id/complete] → CasesController
+    → CasesService.completeTask(taskId, userId, chosenEdgeLabel?)
+    → Marcar tarea como DONE + registrar EventLog
+    → Buscar aristas salientes del nodo:
+        ├── nodeType=ACTION  → Crear tarea PENDING en nodo(s) destino
+        ├── nodeType=DECISION → Elegir arista según chosenEdgeLabel
+        ├── nodeType=FORK    → Crear tareas PENDING en TODOS los destinos (paralelo)
+        ├── nodeType=JOIN    → Verificar ALL fuentes DONE antes de avanzar
+        └── nodeType=FINAL   → Verificar si trámite completo → COMPLETED
+    → autoAdvanceSpecialNodes() → Loop hasta no más nodos automáticos
+    → EventsGateway.emitTaskCompleted() → WebSocket broadcast
+    → Response: Caso actualizado con estado de todas las tareas
+```
+
+#### 2.4 Análisis de Paquetes
+
+El sistema se organiza en **5 paquetes de análisis** que mapean directamente a los módulos NestJS del backend y las agrupaciones de páginas del frontend:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│                     Paquetes del Sistema                           │
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │  «paquete» Seguridad                                    │      │
+│  │  AuthModule ↔ AuthContext (frontend)                    │      │
+│  │  Clases: User, JwtStrategy, AuthGuard, LoginPage       │      │
+│  │  Dependencia: PrismaModule                              │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                           │ usa                                    │
+│                           ▼                                        │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │  «paquete» Modelado de Procesos                         │      │
+│  │  PoliciesModule + DepartmentsModule                     │      │
+│  │  Clases: Policy, PolicyNode, PolicyEdge, Department     │      │
+│  │  UI: PolicyEditorPage (React Flow), DepartmentsPage     │      │
+│  │  Dependencia: PrismaModule                              │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                           │ usa                                    │
+│                           ▼                                        │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │  «paquete» Ejecución de Workflow                        │      │
+│  │  CasesModule + FormsModule + EventsModule               │      │
+│  │  Clases: Case, Task, FormTemplate, FormSubmission,      │      │
+│  │          EventLog, EventsGateway                        │      │
+│  │  UI: CasesPage, CaseDetailPage, DynamicForm             │      │
+│  │  Dependencia: PrismaModule, Modelado de Procesos        │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                           │ usa                                    │
+│                           ▼                                        │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │  «paquete» Inteligencia y Monitoreo                     │      │
+│  │  AnalyticsModule + AiAssistantModule + EventsModule     │      │
+│  │  Clases: AnalyticsService, AiAssistantService           │      │
+│  │  UI: AnalyticsPage, MonitorPage                         │      │
+│  │  Dependencia: PrismaModule, Ejecución de Workflow       │      │
+│  └─────────────────────────────────────────────────────────┘      │
+│                                                                    │
+│  ┌─────────────────────────────────────────────────────────┐      │
+│  │  «paquete» Infraestructura                              │      │
+│  │  PrismaModule (singleton), ConfigModule (global)        │      │
+│  │  Docker Compose, GitHub Actions CI/CD                   │      │
+│  │  Transversal: usado por TODOS los paquetes              │      │
+│  └─────────────────────────────────────────────────────────┘      │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+**Dependencias entre paquetes:**
+
+| Paquete origen | Paquete destino | Tipo de dependencia |
+|----------------|-----------------|---------------------|
+| Modelado de Procesos | Seguridad | `<<usa>>` — Solo diseñadores crean políticas |
+| Ejecución de Workflow | Modelado de Procesos | `<<usa>>` — Los trámites se basan en políticas definidas |
+| Ejecución de Workflow | Seguridad | `<<usa>>` — Tareas se asignan a usuarios autenticados |
+| Inteligencia y Monitoreo | Ejecución de Workflow | `<<usa>>` — Analiza datos de trámites y tareas |
+| Todos | Infraestructura | `<<usa>>` — Acceso a datos y configuración |
+
+---
+
+### 3. Flujo de Trabajo: Diseño
+
+#### 3.1 Arquitectura de Diseño
+
+##### Stack Tecnológico
 
 | Capa | Tecnología | Versión | Propósito |
 |------|-----------|---------|-----------|
@@ -410,109 +758,638 @@ El corazón de WorkflowSW1 es el **diagrama de actividad UML**, implementado com
 | | Jest | 30 | Testing unitario |
 | | ESLint | 9 | Análisis estático de código |
 
-### Modelo de Datos
+##### Patrones de diseño aplicados
 
-El sistema utiliza **10 modelos** y **6 enums** definidos en Prisma Schema:
+| Patrón | Dónde se aplica | Descripción |
+|--------|-----------------|-------------|
+| **MVC** | NestJS (Controller → Service → Prisma) | Separación de responsabilidades en controladores, servicios y modelos |
+| **Inyección de Dependencias** | NestJS `@Injectable()` + constructores | Los módulos reciben sus dependencias automáticamente via el contenedor IoC |
+| **Repository** | PrismaService como singleton | Capa de acceso a datos centralizada, reutilizada por todos los servicios |
+| **Observer** | EventsGateway (Socket.IO) | Los clientes se suscriben a eventos y reciben notificaciones en tiempo real |
+| **Strategy** | Motor de workflow (switch por nodeType) | Cada tipo de nodo (ACTION, DECISION, FORK, JOIN, FINAL) tiene su estrategia de avance |
+| **State** | Task.status / Case.status (enums) | Las entidades cambian de comportamiento según su estado actual |
+| **Template Method** | `autoAdvanceSpecialNodes()` loop | Algoritmo fijo con pasos variables según el tipo de nodo |
+| **Composite** | React Components (Layout → Pages → Components) | Árbol jerárquico de componentes reutilizables |
 
-**Enumeraciones:**
-- `Role`: DESIGNER, OFFICER
-- `PolicyStatus`: ACTIVE, INACTIVE
-- `NodeType`: ACTION, INITIAL, FINAL, DECISION, FORK, JOIN
-- `FlowType`: SEQUENTIAL, CONDITIONAL, ITERATIVE, PARALLEL
-- `TaskStatus`: PENDING, IN_PROGRESS, DONE, BLOCKED
-- `CaseStatus`: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
-- `InputMode`: MANUAL, VOICE, AI
+#### 3.2 Diseño de Casos de Uso
 
-**Tablas principales:**
-
-| Tabla | Campos clave | Relaciones |
-|-------|-------------|------------|
-| `users` | id, email, name, role, departmentId | → Department, → Task[] |
-| `departments` | id, name | → User[], → PolicyNode[] |
-| `policies` | id, name, status, createdBy | → PolicyNode[], PolicyEdge[], Case[] |
-| `policy_nodes` | id, policyId, departmentId, nodeType, title, posX, posY | → Policy, Department, FormTemplate?, Task[] |
-| `policy_edges` | id, policyId, fromNodeId, toNodeId, flowType, conditionLabel | → Policy, PolicyNode (from/to) |
-| `cases` | id, policyId, currentNodeId, status | → Policy, Task[], EventLog[] |
-| `tasks` | id, caseId, nodeId, assignedUserId, status | → Case, PolicyNode, User?, FormSubmission? |
-| `form_templates` | id, nodeId, schemaJson | → PolicyNode (1:1) |
-| `form_submissions` | id, taskId, payloadJson, inputMode | → Task (1:1) |
-| `event_logs` | id, caseId, type, payloadJson | → Case |
-
-### Módulos del Backend
-
-| # | Módulo | Endpoints principales | Descripción |
-|---|--------|----------------------|-------------|
-| 1 | **AuthModule** | `POST /auth/login`, `POST /auth/register`, `GET /auth/profile`, `GET /auth/users` | Autenticación JWT con Passport, registro con hashing bcrypt, guard de rutas |
-| 2 | **DepartmentsModule** | `GET /departments`, `POST /departments`, `DELETE /departments/:id` | CRUD de departamentos con relación a usuarios |
-| 3 | **PoliciesModule** | `GET /policies`, `POST /policies`, `GET /policies/:id`, `PUT /policies/:id`, `DELETE /policies/:id` | Gestión completa de políticas con nodos y aristas (sync del editor) |
-| 4 | **CasesModule** | `POST /cases`, `GET /cases`, `GET /cases/:id`, `POST /cases/tasks/:id/complete`, `PATCH /cases/tasks/:id/assign`, `PATCH /cases/:id/cancel`, `GET /cases/my-tasks` | Motor de workflow: instanciación, avance automático, fork/join, decisiones |
-| 5 | **FormsModule** | `GET /forms/template/:nodeId`, `POST /forms/template/:nodeId`, `POST /forms/submit/:taskId`, `GET /forms/submission/:taskId` | Plantillas JSON Schema + submissions con modo de entrada |
-| 6 | **EventsModule** | WebSocket Gateway | Eventos en tiempo real: `case:started`, `task:completed`, `task:assigned`, `case:completed`, `users:online` |
-| 7 | **AnalyticsModule** | `GET /analytics/dashboard`, `GET /analytics/policy/:id` | KPIs globales + análisis por política con detección de cuellos de botella |
-| 8 | **AiAssistantModule** | Integrado en Analytics | Generación de insights con severidad y recomendaciones |
-| 9 | **PrismaModule** | (servicio interno) | Servicio singleton de acceso a la base de datos |
-
-### Páginas del Frontend
-
-| # | Página | Ruta | Rol | Descripción |
-|---|--------|------|-----|-------------|
-| 1 | **LoginPage** | `/login` | Público | Formulario de inicio de sesión con diseño glassmorphism |
-| 2 | **RegisterPage** | `/register` | Público | Registro de nuevos usuarios con selección de rol y departamento |
-| 3 | **DashboardPage** | `/` | DESIGNER | KPIs del sistema + tabla de políticas con acciones |
-| 4 | **OfficerDashboardPage** | `/` | OFFICER | Bandeja de trabajo con KPIs + filtros + tabla de tareas |
-| 5 | **DepartmentsPage** | `/departments` | Todos | CRUD de departamentos organizacionales |
-| 6 | **PolicyEditorPage** | `/policies/:id/editor` | DESIGNER | Editor visual de diagramas UML con React Flow, swimlanes, IA |
-| 7 | **CasesPage** | `/policies/:policyId/cases` | Todos | Lista de trámites de una política con estados |
-| 8 | **CaseDetailPage** | `/cases/:id` | Todos | Detalle del trámite: tareas, formularios, asignaciones, historial |
-| 9 | **MonitorPage** | `/monitor` | Todos | Monitor en tiempo real con WebSocket + feed de eventos |
-| 10 | **AnalyticsPage** | `/analytics` | Todos | Dashboard analítico con gráficos, cuellos de botella e insights IA |
-
-### Despliegue y CI/CD
-
-#### Docker Compose — 3 servicios
-
-```yaml
-services:
-  db:        # PostgreSQL 16 Alpine — puerto 5432
-  backend:   # NestJS 11 — puerto 3000 (prisma migrate + node dist/main.js)
-  frontend:  # React + Nginx — puerto 5173→80
-```
-
-#### GitHub Actions — Pipeline CI/CD
+##### Diagrama de Secuencia: Completar Tarea con Avance Automático
 
 ```
-Push/PR a main
-    ├── Job 1: backend-test
-    │   ├── PostgreSQL 16 (servicio)
-    │   ├── npm install + prisma generate
-    │   ├── jest --coverage
-    │   └── npm run build
-    │
-    ├── Job 2: frontend-build
-    │   ├── npm install
-    │   ├── tsc (type check)
-    │   └── vite build
-    │
-    └── Job 3: docker-build (depende de 1 + 2)
-        ├── docker build ./backend
-        └── docker build ./frontend
+┌──────────┐   ┌──────────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────┐   ┌────────────┐
+│Funcionario│   │CaseDetailPage│   │CasesController│  │CasesService │   │  Prisma  │   │EventsGateway│
+└─────┬─────┘   └──────┬───────┘   └──────┬────────┘  └──────┬──────┘   └─────┬────┘   └─────┬──────┘
+      │                │                   │                  │                │              │
+      │ click          │                   │                  │                │              │
+      │ "Completar"    │                   │                  │                │              │
+      │───────────────>│                   │                  │                │              │
+      │                │  POST /tasks/:id/ │                  │                │              │
+      │                │  complete         │                  │                │              │
+      │                │──────────────────>│                  │                │              │
+      │                │                   │ completeTask()   │                │              │
+      │                │                   │─────────────────>│                │              │
+      │                │                   │                  │ findUnique()   │              │
+      │                │                   │                  │───────────────>│              │
+      │                │                   │                  │    task        │              │
+      │                │                   │                  │<───────────────│              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ update(DONE)   │              │
+      │                │                   │                  │───────────────>│              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ create(EventLog│              │
+      │                │                   │                  │ TASK_COMPLETED)│              │
+      │                │                   │                  │───────────────>│              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ findMany       │              │
+      │                │                   │                  │ (outEdges)     │              │
+      │                │                   │                  │───────────────>│              │
+      │                │                   │                  │  edges[]       │              │
+      │                │                   │                  │<───────────────│              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ create(Task    │              │
+      │                │                   │                  │ PENDING)       │              │
+      │                │                   │                  │───────────────>│              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ autoAdvance    │              │
+      │                │                   │                  │ SpecialNodes() │              │
+      │                │                   │                  │───────┐        │              │
+      │                │                   │                  │       │ loop   │              │
+      │                │                   │                  │<──────┘        │              │
+      │                │                   │                  │                │              │
+      │                │                   │                  │ emitTask       │              │
+      │                │                   │                  │ Completed()    │              │
+      │                │                   │                  │───────────────────────────────>│
+      │                │                   │                  │                │              │
+      │                │                   │  case updated    │                │              │
+      │                │                   │<─────────────────│                │              │
+      │                │   200 OK + case   │                  │                │              │
+      │                │<──────────────────│                  │                │              │
+      │  UI actualizada│                   │                  │                │              │
+      │<───────────────│                   │                  │                │              │
 ```
 
-### Pruebas Automatizadas
+##### Diagrama de Secuencia: Iniciar Trámite
 
-El backend cuenta con **25 pruebas unitarias** organizadas en **4 suites** de Jest:
+```
+Diseñador → DashboardPage → [POST /cases {policyId}] → CasesController
+    → CasesService.startCase(policyId):
+        1. Verificar política ACTIVE con nodos
+        2. Buscar nodos INITIAL (o nodos sin aristas entrantes)
+        3. Crear Case (status=IN_PROGRESS)
+        4. Crear Task para cada startNode
+        5. Si nodo es INITIAL → auto-completar → crear tasks para nodos siguientes
+        6. Registrar EventLog(CASE_STARTED)
+        7. EventsGateway.emitCaseStarted(case) → WebSocket broadcast
+    → Response: Case con tasks iniciales
+```
 
-| Suite | Tests | Descripción |
-|-------|-------|-------------|
-| **AuthService** | Tests de registro, login, hashing, validación JWT | Verifica autenticación completa |
-| **PoliciesService** | Tests de CRUD de políticas, nodos y aristas | Verifica persistencia del editor |
-| **CasesService** | Tests del motor de workflow, avance, fork/join | Verifica ejecución de trámites |
-| **AnalyticsService** | Tests de KPIs y detección de cuellos de botella | Verifica cálculos analíticos |
+##### Diagrama de Secuencia: Monitor en Tiempo Real
 
-**Ejecución:**
+```
+Cliente → Conectar Socket.IO con {userId}
+    → EventsGateway.handleConnection():
+        1. Registrar userId en mapa de conectados
+        2. Emitir 'users:online' → broadcast lista actualizada
+
+Funcionario completa tarea → CasesService:
+    → EventsGateway.emitTaskCompleted(case) → 'task:completed' → todos los clientes
+    → MonitorPage recibe evento:
+        1. Agregar entrada al eventFeed (tipo, hora, detalle)
+        2. Recargar lista de trámites activos
+
+Cliente desconecta → EventsGateway.handleDisconnect():
+    1. Eliminar userId del mapa
+    2. Emitir 'users:online' actualizado
+```
+
+#### 3.3 Diseño de Datos
+
+##### Modelo Entidad-Relación
+
+```
+┌──────────────────┐        ┌──────────────────┐
+│     Department    │        │      User        │
+├──────────────────┤        ├──────────────────┤
+│ PK id: UUID      │◄──────┤ PK id: UUID      │
+│    name: VARCHAR  │  1:N   │    email: VARCHAR │
+│                  │        │    name: VARCHAR  │
+│                  │        │    passwordHash   │
+│                  │        │    role: enum     │
+│                  │        │ FK departmentId   │
+└───────┬──────────┘        └──────────┬───────┘
+        │ 1:N                          │ 1:N
+        ▼                              ▼
+┌──────────────────┐        ┌──────────────────┐
+│   PolicyNode     │        │      Task        │
+├──────────────────┤        ├──────────────────┤
+│ PK id: UUID      │◄──────┤ PK id: UUID      │
+│ FK policyId      │  1:N   │ FK caseId        │
+│ FK departmentId  │        │ FK nodeId ───────┼──►│
+│    nodeType: enum│        │ FK assignedUserId│
+│    title: VARCHAR│        │    status: enum  │
+│    description   │        │    startedAt     │
+│    positionX     │        │    finishedAt    │
+│    positionY     │        │    dueAt         │
+└──┬───────────┬───┘        └──┬──────────┬────┘
+   │ 1:1       │ 1:N           │ 1:1      │
+   ▼           ▼               ▼          │
+┌──────────┐ ┌────────────┐ ┌────────────┐│
+│FormTempl.│ │PolicyEdge  │ │FormSubmis. ││
+├──────────┤ ├────────────┤ ├────────────┤│
+│PK id     │ │PK id       │ │PK id       ││
+│FK nodeId │ │FK policyId │ │FK taskId   ││
+│schemaJson│ │FK fromNodeId│ │payloadJson ││
+└──────────┘ │FK toNodeId │ │inputMode   ││
+             │flowType    │ └────────────┘│
+             │condLabel   │               │
+             │condJson    │               │
+             └────────────┘               │
+                                          │
+┌──────────────────┐    ┌──────────────────┐
+│     Policy       │    │      Case        │
+├──────────────────┤    ├──────────────────┤
+│ PK id: UUID      │◄──┤ PK id: UUID      │
+│    name: VARCHAR  │1:N│ FK policyId      │
+│    status: enum  │    │    currentNodeId │
+│    createdBy     │    │    status: enum  │
+│    createdAt     │    │    startedAt     │
+│    updatedAt     │    │    finishedAt    │
+└──────────────────┘    └───────┬──────────┘
+                                │ 1:N
+                                ▼
+                        ┌──────────────────┐
+                        │    EventLog      │
+                        ├──────────────────┤
+                        │ PK id: UUID      │
+                        │ FK caseId        │
+                        │    type: VARCHAR  │
+                        │    payloadJson   │
+                        │    createdAt     │
+                        └──────────────────┘
+```
+
+##### Enumeraciones del sistema
+
+| Enum | Valores | Uso |
+|------|---------|-----|
+| `Role` | DESIGNER, OFFICER | Rol del usuario, determina dashboard y permisos |
+| `PolicyStatus` | ACTIVE, INACTIVE | Solo políticas ACTIVE pueden instanciar trámites |
+| `NodeType` | ACTION, INITIAL, FINAL, DECISION, FORK, JOIN | Tipo de nodo UML en el diagrama de actividad |
+| `FlowType` | SEQUENTIAL, CONDITIONAL, ITERATIVE, PARALLEL | Tipo de flujo de cada arista |
+| `TaskStatus` | PENDING, IN_PROGRESS, DONE, BLOCKED | Estado de cada tarea individual |
+| `CaseStatus` | OPEN, IN_PROGRESS, COMPLETED, CANCELLED | Estado global del trámite |
+| `InputMode` | MANUAL, VOICE, AI | Modo de captura del formulario (teclado, voz, OCR) |
+
+##### Diccionario de datos — Tablas principales
+
+**Tabla `policies`**
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| id | UUID | PK, auto-gen | Identificador único |
+| name | VARCHAR | NOT NULL | Nombre de la política |
+| status | PolicyStatus | DEFAULT ACTIVE | Estado de la política |
+| created_by | VARCHAR | NOT NULL | ID del usuario creador |
+| created_at | TIMESTAMP | DEFAULT now() | Fecha de creación |
+| updated_at | TIMESTAMP | Auto-update | Última modificación |
+
+**Tabla `policy_nodes`**
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| id | UUID | PK, auto-gen | Identificador único |
+| policy_id | UUID | FK → policies, CASCADE | Política a la que pertenece |
+| department_id | UUID | FK → departments | Departamento responsable |
+| node_type | NodeType | DEFAULT ACTION | Tipo UML del nodo |
+| title | VARCHAR | NOT NULL | Nombre de la actividad |
+| description | TEXT | NULLABLE | Descripción opcional |
+| position_x | FLOAT | DEFAULT 0 | Coordenada X en el canvas |
+| position_y | FLOAT | DEFAULT 0 | Coordenada Y en el canvas |
+
+**Tabla `tasks`**
+
+| Campo | Tipo | Restricción | Descripción |
+|-------|------|-------------|-------------|
+| id | UUID | PK, auto-gen | Identificador único |
+| case_id | UUID | FK → cases | Trámite al que pertenece |
+| node_id | UUID | FK → policy_nodes | Nodo del diagrama que representa |
+| assigned_user_id | UUID | FK → users, NULLABLE | Funcionario asignado |
+| status | TaskStatus | DEFAULT PENDING | Estado actual de la tarea |
+| started_at | TIMESTAMP | DEFAULT now() | Fecha de creación |
+| finished_at | TIMESTAMP | NULLABLE | Fecha de completado |
+| due_at | TIMESTAMP | NULLABLE | Fecha límite (opcional) |
+
+---
+
+### 4. Flujo de Trabajo: Implementación
+
+#### 4.1 Implementación de la Arquitectura del Sistema
+
+##### Estructura de directorios
+
+```
+PrimerParcialSW1/
+├── backend/
+│   ├── src/
+│   │   ├── main.ts                    # Bootstrap: CORS, ValidationPipe, puerto 3000
+│   │   ├── app.module.ts              # Módulo raíz: importa 9 módulos
+│   │   ├── prisma/
+│   │   │   ├── prisma.module.ts       # Módulo global del ORM
+│   │   │   └── prisma.service.ts      # Servicio singleton PrismaClient
+│   │   ├── auth/
+│   │   │   ├── auth.module.ts         # Passport + JWT + bcrypt
+│   │   │   ├── auth.controller.ts     # POST /login, /register, GET /profile, /users
+│   │   │   ├── auth.service.ts        # Hash, verify, sign JWT
+│   │   │   └── jwt.strategy.ts        # Passport JWT strategy + AuthGuard
+│   │   ├── departments/
+│   │   │   ├── departments.module.ts
+│   │   │   ├── departments.controller.ts  # GET, POST, DELETE
+│   │   │   └── departments.service.ts
+│   │   ├── policies/
+│   │   │   ├── policies.module.ts
+│   │   │   ├── policies.controller.ts # CRUD + PUT /:id (saveGraph)
+│   │   │   └── policies.service.ts    # findAll, findOne, create, saveGraph
+│   │   ├── cases/
+│   │   │   ├── cases.module.ts
+│   │   │   ├── cases.controller.ts    # POST /cases, /tasks/:id/complete, etc.
+│   │   │   └── cases.service.ts       # Motor de workflow (256 líneas)
+│   │   ├── forms/
+│   │   │   ├── forms.module.ts
+│   │   │   ├── forms.controller.ts    # Template CRUD + submit
+│   │   │   └── forms.service.ts
+│   │   ├── events/
+│   │   │   ├── events.module.ts
+│   │   │   └── events.gateway.ts      # Socket.IO WebSocket Gateway
+│   │   ├── analytics/
+│   │   │   ├── analytics.module.ts
+│   │   │   ├── analytics.controller.ts # GET /dashboard, /policy/:id
+│   │   │   └── analytics.service.ts    # KPIs + cuellos de botella
+│   │   └── ai-assistant/
+│   │       ├── ai-assistant.module.ts
+│   │       └── ai-assistant.service.ts # Generación de insights IA
+│   ├── prisma/
+│   │   └── schema.prisma              # 10 modelos, 6 enums
+│   ├── test/                          # 25 tests unitarios (4 suites)
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── main.tsx                   # Entry point React
+│   │   ├── App.tsx                    # Router con 12 rutas
+│   │   ├── api.ts                     # Axios instance + JWT interceptor
+│   │   ├── index.css                  # Design system (400+ líneas CSS)
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx         # React Context para autenticación
+│   │   ├── components/
+│   │   │   ├── Layout.tsx             # Shell: sidebar + contenido
+│   │   │   ├── DynamicForm.tsx        # Renderizador de JSON Schema + voz + OCR
+│   │   │   ├── TrafficLight.tsx       # Indicador visual de estado
+│   │   │   ├── Toast.tsx              # Notificaciones toast
+│   │   │   ├── ToastContext.ts        # Contexto compartido
+│   │   │   └── useToast.ts           # Hook de acceso al toast
+│   │   └── pages/
+│   │       ├── LoginPage.tsx          # Login glassmorphism
+│   │       ├── RegisterPage.tsx       # Registro con departamento
+│   │       ├── DashboardPage.tsx      # KPIs + tabla de políticas (DESIGNER)
+│   │       ├── OfficerDashboardPage.tsx # Bandeja de tareas (OFFICER)
+│   │       ├── DepartmentsPage.tsx    # CRUD departamentos
+│   │       ├── PolicyEditorPage.tsx   # Editor React Flow (700+ líneas)
+│   │       ├── CasesPage.tsx          # Lista de trámites
+│   │       ├── CaseDetailPage.tsx     # Detalle: tareas + formularios + historial
+│   │       ├── MonitorPage.tsx        # Monitor WebSocket en tiempo real
+│   │       └── AnalyticsPage.tsx      # Gráficos + IA insights
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml                 # 3 servicios: db, backend, frontend
+├── .github/workflows/ci.yml          # Pipeline CI/CD (3 jobs)
+├── DOCUMENTACION.md                   # Este documento
+└── README.md                          # Guía rápida de instalación
+```
+
+##### Configuración del servidor (main.ts)
+
+```typescript
+const app = await NestFactory.create(AppModule);
+
+// CORS — permite peticiones del frontend
+app.enableCors({
+  origin: [process.env.FRONTEND_URL || 'http://localhost:5173'],
+  credentials: true,
+});
+
+// Validación global — sanitiza y valida DTOs automáticamente
+app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+await app.listen(process.env.PORT ?? 3000);
+```
+
+##### Registro de módulos (app.module.ts)
+
+```typescript
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),   // Variables de entorno
+    PrismaModule,         // Capa de datos (singleton)
+    AuthModule,           // JWT + Passport
+    DepartmentsModule,    // CRUD organizacional
+    PoliciesModule,       // Diseño de procesos
+    CasesModule,          // Motor de workflow
+    EventsModule,         // WebSocket Gateway
+    AnalyticsModule,      // KPIs y métricas
+    FormsModule,          // Formularios dinámicos
+    AiAssistantModule,    // Insights inteligentes
+  ],
+})
+export class AppModule {}
+```
+
+#### 4.2 Implementación de la Arquitectura del Subsistema
+
+##### Subsistema: Motor de Workflow (CasesService)
+
+El motor de workflow es el componente central del sistema. Implementa la lógica de avance de trámites según la teoría de diagramas de actividad UML.
+
+**Algoritmo principal — `completeTask()`:**
+
+```
+ENTRADA: taskId, userId, chosenEdgeLabel (opcional)
+1. Buscar tarea por ID (incluir caso y nodo)
+2. Validar que la tarea no esté ya completada
+3. Marcar tarea como DONE (finishedAt = ahora)
+4. Registrar EventLog(TASK_COMPLETED)
+5. Buscar aristas salientes del nodo completado
+6. Obtener el tipo del nodo actual (nodeType)
+7. SWITCH según nodeType:
+   ├── FINAL o sin aristas salientes:
+   │   └── Si TODAS las tareas del caso son DONE → CASE COMPLETED
+   ├── DECISION:
+   │   └── Elegir arista por chosenEdgeLabel → crear 1 tarea en destino
+   ├── FORK:
+   │   └── Crear tareas para TODOS los destinos (flujo paralelo)
+   ├── JOIN:
+   │   └── Verificar que TODOS los nodos fuente estén DONE
+   │       └── Si sí → avanzar; si no → esperar
+   └── ACTION / default:
+       └── Crear tareas para nodo(s) destino
+8. Ejecutar autoAdvanceSpecialNodes() (loop)
+9. Emitir evento WebSocket
+10. Retornar caso actualizado
+```
+
+**Algoritmo de auto-avance — `autoAdvanceSpecialNodes()`:**
+
+```
+ENTRADA: caseId, policyId
+REPETIR mientras haya avances:
+  1. Buscar tareas PENDING del caso
+  2. Para cada tarea pendiente:
+     ├── INITIAL → auto-completar → crear tareas siguientes
+     ├── FORK → auto-completar → crear tareas paralelas
+     ├── JOIN → verificar todas las fuentes DONE → si sí, completar y avanzar
+     └── FINAL → auto-completar → si no quedan tareas → cerrar caso
+  3. Si se avanzó alguna → repetir; sino → salir del loop
+```
+
+##### Subsistema: Analítica con IA (AnalyticsService + AiAssistantService)
+
+**Algoritmo de detección de cuellos de botella:**
+
+```
+ENTRADA: policyId
+1. Cargar política con nodos y departamentos
+2. Cargar todos los casos con tareas
+3. Para cada nodo:
+   a. Filtrar tareas del nodo
+   b. Calcular duración promedio (completadas)
+   c. Contar tareas pendientes
+4. Calcular promedio global de duración
+5. Umbral de cuello de botella = max(promedio × 1.5, 1 minuto)
+6. Marcar como bottleneck si:
+   - Duración promedio > umbral  O
+   - Tareas pendientes >= 3
+```
+
+**Algoritmo de generación de insights IA:**
+
+```
+ENTRADA: nodeStats[], bottlenecks[], totalCases, completedCases, avgDuration
+1. Análisis de tasa de completitud:
+   ├── < 30% → CRITICAL: "Tasa crítica"
+   ├── < 60% → WARNING: "Tasa baja"
+   └── >= 60% → SUCCESS: "Tasa saludable"
+2. Si hay cuellos de botella:
+   a. Identificar el peor nodo (mayor duración promedio)
+   b. Generar recomendación con departamento y actividad específicos
+   c. Detectar sobrecarga por departamento (>=5 tareas pendientes)
+   d. Si hay >=2 cuellos de botella → "problema sistémico"
+3. Análisis de cola global:
+   └── > 10 tareas pendientes total → WARNING
+4. Detección de anomalías de duración:
+   a. Calcular media y desviación estándar
+   b. Identificar outliers (> media + 2σ)
+   c. Generar alerta por cada outlier
+SALIDA: Array de {severity, message, action}
+```
+
+##### Subsistema: WebSocket en Tiempo Real (EventsGateway)
+
+```typescript
+@WebSocketGateway({ cors: { origin: '*' } })
+export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer() server: Server;
+  private connectedUsers = new Map<string, string>(); // socketId → userId
+
+  handleConnection(client: Socket) {
+    // Registrar usuario conectado y broadcast lista
+    connectedUsers.set(client.id, userId);
+    server.emit('users:online', [...connectedUsers.values()]);
+  }
+
+  handleDisconnect(client: Socket) {
+    // Eliminar y actualizar lista
+    connectedUsers.delete(client.id);
+    server.emit('users:online', [...connectedUsers.values()]);
+  }
+
+  // Métodos de emisión invocados por CasesService:
+  emitCaseStarted(caseData)    → server.emit('case:started', data)
+  emitTaskCompleted(caseData)  → server.emit('task:completed', data)
+  emitTaskAssigned(taskData)   → server.emit('task:assigned', data)
+  emitCaseCompleted(caseData)  → server.emit('case:completed', data)
+}
+```
+
+##### Subsistema: Formularios Dinámicos (DynamicForm.tsx)
+
+El componente `DynamicForm` renderiza formularios a partir de un JSON Schema almacenado en `FormTemplate`:
+
+```
+JSON Schema ejemplo:
+{
+  "fields": [
+    { "name": "nombre", "label": "Nombre completo", "type": "text", "required": true },
+    { "name": "monto", "label": "Monto solicitado", "type": "number" },
+    { "name": "observaciones", "label": "Observaciones", "type": "textarea", "fullWidth": true }
+  ]
+}
+
+Renderizado → Para cada field:
+  ├── type=text     → <input type="text"> + botón de voz
+  ├── type=number   → <input type="number">
+  ├── type=textarea → <textarea> + botón de voz
+  ├── type=date     → <input type="date">
+  └── type=select   → <select> con options
+
+Modos de entrada:
+  ├── Manual: teclado estándar
+  ├── Voz: Web Speech API (SpeechRecognition) → transcripción al campo
+  └── OCR: Tesseract.js → imagen → texto extraído al campo
+```
+
+---
+
+### 5. Flujo de Trabajo: Prueba
+
+#### 5.1 Estrategia de pruebas
+
+Se implementó una estrategia de **pruebas unitarias** con Jest, enfocada en validar la lógica de negocio de los servicios del backend. Las pruebas se organizan en **4 suites** con **25 tests** en total.
+
+**Nivel de pruebas:**
+
+| Nivel | Herramienta | Cobertura | Descripción |
+|-------|-------------|-----------|-------------|
+| **Unitarias** | Jest 30 | 4 servicios core | Servicios aislados con mocks de Prisma |
+| **Análisis estático** | TypeScript + ESLint | 100% del código | Detección de errores de tipo y estilo |
+| **Build validation** | `tsc -b` + `vite build` | Frontend completo | Compilación sin errores |
+| **CI automatizado** | GitHub Actions | Push/PR a main | Ejecuta tests + build + Docker |
+
+#### 5.2 Suites de prueba
+
+##### Suite 1: AuthService
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 1 | Debe registrar un usuario nuevo | Hashing de contraseña con bcrypt + creación en BD |
+| 2 | Debe rechazar email duplicado | Manejo de constraint UNIQUE de email |
+| 3 | Debe validar contraseña en login | Comparación bcrypt hash vs. input |
+| 4 | Debe generar JWT válido | Token firmado con secreto correcto |
+| 5 | Debe rechazar credenciales inválidas | Error 401 si email o password incorrectos |
+| 6 | Debe retornar perfil de usuario autenticado | Decodificación del JWT y lookup en BD |
+
+##### Suite 2: PoliciesService
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 7 | Debe crear una política nueva | Inserción en tabla policies |
+| 8 | Debe listar políticas ordenadas por fecha | OrderBy createdAt DESC |
+| 9 | Debe obtener política con nodos y aristas | Include de relaciones |
+| 10 | Debe guardar grafo completo en transacción | $transaction: delete + create atómico |
+| 11 | Debe rechazar edición con trámites activos | Validación de cases IN_PROGRESS |
+| 12 | Debe desactivar política (soft delete) | Update status → INACTIVE |
+
+##### Suite 3: CasesService (Motor de Workflow)
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 13 | Debe iniciar trámite desde política activa | Creación de Case + Tasks |
+| 14 | Debe rechazar inicio si política inactiva | BadRequestException |
+| 15 | Debe completar tarea y avanzar al siguiente nodo | Lógica de avance ACTION |
+| 16 | Debe manejar nodos DECISION con condición | Selección de arista por label |
+| 17 | Debe crear tareas paralelas en nodo FORK | Múltiples tareas simultáneas |
+| 18 | Debe sincronizar en nodo JOIN | Espera hasta que todos los fuentes completen |
+| 19 | Debe cerrar trámite al llegar a nodo FINAL | Case.status → COMPLETED |
+| 20 | Debe auto-avanzar nodos especiales | Loop de autoAdvanceSpecialNodes |
+| 21 | Debe asignar funcionario a tarea | Task.assignedUserId + status IN_PROGRESS |
+| 22 | Debe cancelar trámite | Case.status → CANCELLED |
+
+##### Suite 4: AnalyticsService
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 23 | Debe calcular KPIs del dashboard | Conteo de cases por estado |
+| 24 | Debe detectar cuellos de botella | Algoritmo de umbral 1.5x |
+| 25 | Debe generar insights IA con severidades | Reglas de completitud + anomalías |
+
+#### 5.3 Ejecución de pruebas
+
 ```bash
+# Ejecutar todas las pruebas
 cd backend
 npx jest --passWithNoTests
+
+# Resultado esperado:
+# Test Suites: 4 passed, 4 total
+# Tests:       25 passed, 25 total
+```
+
+#### 5.4 Pipeline CI/CD
+
+Las pruebas se ejecutan automáticamente en cada push/PR a la rama `main` mediante **GitHub Actions**:
+
+```yaml
+# .github/workflows/ci.yml — 3 jobs
+jobs:
+  backend-test:                    # Job 1: Test + Build backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:                    # PostgreSQL 16 de servicio
+        image: postgres:16
+        ports: ['5432:5432']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4 (node 20)
+      - npm install
+      - npx prisma generate
+      - npx jest --coverage        # ← 25 tests ejecutados aquí
+      - npm run build
+
+  frontend-build:                  # Job 2: Type-check + Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - npm install
+      - npx tsc -b (non-blocking)  # Análisis estático TypeScript
+      - npx vite build              # Build de producción
+
+  docker-build:                    # Job 3: Validar Docker (depende de 1+2)
+    needs: [backend-test, frontend-build]
+    steps:
+      - docker build ./backend -t workflow-backend
+      - docker build ./frontend -t workflow-frontend
+```
+
+#### 5.5 Despliegue con Docker Compose
+
+```yaml
+# docker-compose.yml — 3 servicios
+services:
+  db:                              # PostgreSQL 16 Alpine
+    image: postgres:16-alpine
+    ports: ['5432:5432']
+    environment:
+      POSTGRES_DB: workflow_sw1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: pg_isready -U postgres
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  backend:                         # NestJS 11
+    build: ./backend
+    ports: ['3000:3000']
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/workflow_sw1
+      JWT_SECRET: sw1-secret-key-2025
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/main.js"
+
+  frontend:                        # React + Nginx
+    build:
+      context: ./frontend
+      args: { VITE_API_URL: http://localhost:3000 }
+    ports: ['5173:80']
+    depends_on: [backend]
 ```
 
 ---
