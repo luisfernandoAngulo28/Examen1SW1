@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import { useToast } from '../components/useToast';
-import { Building2 } from 'lucide-react';
+import { Building2, Plus, Trash2, FolderOpen } from 'lucide-react';
 
 interface Dept {
   id: string;
@@ -52,7 +52,7 @@ export default function DepartmentsPage() {
           style={{ flex: 1 }}
         />
         <button onClick={handleCreate} className="btn btn-primary">
-          Crear
+          <Plus size={16} /> Crear
         </button>
       </div>
 
@@ -71,12 +71,17 @@ export default function DepartmentsPage() {
               <td style={{ fontWeight: 600 }}>{d.name}</td>
               <td>{d.users.map((u) => u.name).join(', ') || <span style={{ color: 'var(--text-secondary)' }}>—</span>}</td>
               <td>
-                <button onClick={() => handleDelete(d.id)} className="btn btn-danger btn-sm">Eliminar</button>
+                <button onClick={() => handleDelete(d.id)} className="btn btn-danger btn-sm"><Trash2 size={13} /> Eliminar</button>
               </td>
             </tr>
           ))}
           {departments.length === 0 && (
-            <tr><td colSpan={3} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay departamentos creados.</td></tr>
+            <tr><td colSpan={3} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <FolderOpen size={32} color="var(--border)" />
+                <span>No hay departamentos creados aún</span>
+              </div>
+            </td></tr>
           )}
         </tbody>
       </table>

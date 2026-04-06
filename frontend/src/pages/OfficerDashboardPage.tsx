@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import TrafficLight from '../components/TrafficLight';
-import { Inbox } from 'lucide-react';
+import { Inbox, Clock, Activity, CheckCircle2, ListTodo, FolderOpen } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -43,22 +43,50 @@ export default function OfficerDashboardPage() {
       </div>
       <div className="page-body fade-in">
         {/* KPI Cards */}
-        <div className="kpi-grid" style={{ marginBottom: 24 }}>
+        <div className="kpi-grid" style={{ marginBottom: 28 }}>
           <div className="kpi-card orange">
-            <div className="kpi-value" style={{ color: 'var(--warning)' }}>{pendingCount}</div>
-            <div className="kpi-label">Pendientes</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="kpi-value" style={{ color: 'var(--warning)' }}>{pendingCount}</div>
+                <div className="kpi-label">Pendientes</div>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--warning-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Clock size={20} color="var(--warning)" />
+              </div>
+            </div>
           </div>
           <div className="kpi-card blue">
-            <div className="kpi-value" style={{ color: 'var(--primary)' }}>{inProgressCount}</div>
-            <div className="kpi-label">En Progreso</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="kpi-value" style={{ color: 'var(--primary)' }}>{inProgressCount}</div>
+                <div className="kpi-label">En Progreso</div>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Activity size={20} color="var(--primary)" />
+              </div>
+            </div>
           </div>
           <div className="kpi-card green">
-            <div className="kpi-value" style={{ color: 'var(--success)' }}>{doneCount}</div>
-            <div className="kpi-label">Completadas</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="kpi-value" style={{ color: 'var(--success)' }}>{doneCount}</div>
+                <div className="kpi-label">Completadas</div>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle2 size={20} color="var(--success)" />
+              </div>
+            </div>
           </div>
           <div className="kpi-card">
-            <div className="kpi-value">{tasks.length}</div>
-            <div className="kpi-label">Total Asignadas</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <div className="kpi-value">{tasks.length}</div>
+                <div className="kpi-label">Total Asignadas</div>
+              </div>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ListTodo size={20} color="var(--text-secondary)" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -104,7 +132,12 @@ export default function OfficerDashboardPage() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: 'var(--text-secondary)' }}>No hay tareas</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <FolderOpen size={32} color="var(--border)" />
+                    <span>No hay tareas asignadas</span>
+                  </div>
+                </td></tr>
               )}
             </tbody>
           </table>

@@ -68,7 +68,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={handleLogout}
-            style={{ marginTop: 12, width: '100%', padding: '8px', background: '#1e293b', color: '#94a3b8', border: '1px solid #334155', borderRadius: 6, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            style={{
+              marginTop: 14, width: '100%', padding: '9px 12px',
+              background: 'rgba(255,255,255,.04)', color: '#8896ab',
+              border: '1px solid rgba(255,255,255,.08)', borderRadius: 10,
+              cursor: 'pointer', fontSize: 13, fontWeight: 500,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'all .2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,.1)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(239,68,68,.2)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,.04)'; e.currentTarget.style.color = '#8896ab'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.08)'; }}
           >
             <LogOut size={14} /> Cerrar sesión
           </button>

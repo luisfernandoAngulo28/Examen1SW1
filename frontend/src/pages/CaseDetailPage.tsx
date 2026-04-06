@@ -5,6 +5,7 @@ import api from '../api';
 import DynamicForm from '../components/DynamicForm';
 import { useToast } from '../components/useToast';
 import TrafficLight from '../components/TrafficLight';
+import { ArrowLeft, XCircle, CheckCircle, ChevronDown, ChevronRight, ClipboardList, History } from 'lucide-react';
 
 interface Department {
   id: string;
@@ -157,7 +158,7 @@ export default function CaseDetailPage() {
     <>
       <div className="page-header">
         <div>
-          <Link to={`/policies/${caseData.policy.id}/cases`} style={{ fontSize: 13 }}>&larr; Volver a trámites</Link>
+          <Link to={`/policies/${caseData.policy.id}/cases`} style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={13} /> Volver a trámites</Link>
           <h1 style={{ marginTop: 4 }}>Trámite: {caseData.policy.name}</h1>
           <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0', fontSize: 13 }}>
             ID: <code>{caseData.id}</code> · Iniciado: {new Date(caseData.startedAt).toLocaleString()}
@@ -171,7 +172,7 @@ export default function CaseDetailPage() {
           </span>
           {caseData.status !== 'COMPLETED' && caseData.status !== 'CANCELLED' && (
             <button onClick={handleCancel} className="btn btn-danger">
-              Cancelar trámite
+              <XCircle size={16} /> Cancelar trámite
             </button>
           )}
         </div>
@@ -179,7 +180,7 @@ export default function CaseDetailPage() {
       <div className="page-body fade-in">
 
       {/* Tasks */}
-      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Tareas del flujo</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><ClipboardList size={18} color="var(--text-secondary)" />Tareas del flujo</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {caseData.tasks
           .filter((task) => !['INITIAL', 'FORK', 'JOIN', 'FINAL'].includes(task.node.nodeType || 'ACTION'))
@@ -235,7 +236,7 @@ export default function CaseDetailPage() {
                   </div>
                 ) : (
                   <button onClick={() => handleComplete(task.id)} className="btn btn-success btn-sm">
-                    Completar
+                    <CheckCircle size={14} /> Completar
                   </button>
                 )
               )}
@@ -262,7 +263,7 @@ export default function CaseDetailPage() {
                   onClick={() => toggleForm(task.id)}
                   style={{ marginBottom: 8 }}
                 >
-                  {expandedForms.has(task.id) ? '▾' : '▸'} Formulario
+                  {expandedForms.has(task.id) ? <ChevronDown size={14} /> : <ChevronRight size={14} />} Formulario
                   {formSubmissions[task.id] && <span className="badge badge-green" style={{ marginLeft: 8 }}>Completado</span>}
                 </button>
                 {expandedForms.has(task.id) && (
@@ -281,7 +282,7 @@ export default function CaseDetailPage() {
       </div>
 
       {/* Event Log */}
-      <h2 style={{ marginTop: 32, fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Historial de eventos</h2>
+      <h2 style={{ marginTop: 32, fontSize: 16, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><History size={18} color="var(--text-secondary)" />Historial de eventos</h2>
       <div className="card">
       <table className="table">
         <thead>

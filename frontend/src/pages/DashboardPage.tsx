@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { LayoutDashboard, Plus, Pencil, FolderOpen, FileText, Activity, CheckCircle2, Clock } from 'lucide-react';
 
 interface Policy {
   id: string;
@@ -28,36 +29,67 @@ export default function DashboardPage() {
   return (
     <>
       <div className="page-header">
-        <h1>Dashboard</h1>
+        <h1><LayoutDashboard size={22} />Dashboard</h1>
       </div>
       <div className="page-body fade-in">
         {/* KPI Cards */}
         {stats && (
-          <div className="kpi-grid" style={{ marginBottom: 24 }}>
+          <div className="kpi-grid" style={{ marginBottom: 28 }}>
             <div className="kpi-card blue">
-              <div className="kpi-value" style={{ color: 'var(--primary)' }}>{stats.totalCases}</div>
-              <div className="kpi-label">Total Trámites</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="kpi-value" style={{ color: 'var(--primary)' }}>{stats.totalCases}</div>
+                  <div className="kpi-label">Total Trámites</div>
+                </div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FileText size={20} color="var(--primary)" />
+                </div>
+              </div>
             </div>
             <div className="kpi-card orange">
-              <div className="kpi-value" style={{ color: 'var(--warning)' }}>{stats.activeCases}</div>
-              <div className="kpi-label">En Progreso</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="kpi-value" style={{ color: 'var(--warning)' }}>{stats.activeCases}</div>
+                  <div className="kpi-label">En Progreso</div>
+                </div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--warning-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Activity size={20} color="var(--warning)" />
+                </div>
+              </div>
             </div>
             <div className="kpi-card green">
-              <div className="kpi-value" style={{ color: 'var(--success)' }}>{stats.completedCases}</div>
-              <div className="kpi-label">Completados</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="kpi-value" style={{ color: 'var(--success)' }}>{stats.completedCases}</div>
+                  <div className="kpi-label">Completados</div>
+                </div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--success-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckCircle2 size={20} color="var(--success)" />
+                </div>
+              </div>
             </div>
             <div className="kpi-card red">
-              <div className="kpi-value" style={{ color: 'var(--danger)' }}>{stats.pendingTasks}</div>
-              <div className="kpi-label">Tareas Pendientes</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="kpi-value" style={{ color: 'var(--danger)' }}>{stats.pendingTasks}</div>
+                  <div className="kpi-label">Tareas Pendientes</div>
+                </div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--danger-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={20} color="var(--danger)" />
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* Policies Table */}
         <div className="card">
-          <div className="card-body" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700 }}>Políticas de Negocio</h2>
-            <Link to="/policies/new" className="btn btn-primary btn-sm">+ Nueva Política</Link>
+          <div style={{ padding: '18px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FolderOpen size={18} color="var(--text-secondary)" />
+              Políticas de Negocio
+            </h2>
+            <Link to="/policies/new" className="btn btn-primary btn-sm"><Plus size={14} /> Nueva Política</Link>
           </div>
           <table className="table">
             <thead>
@@ -78,14 +110,20 @@ export default function DashboardPage() {
                   <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{new Date(p.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <Link to={`/policies/${p.id}/editor`} className="btn btn-ghost btn-sm">Editar</Link>
-                      <Link to={`/policies/${p.id}/cases`} className="btn btn-warning btn-sm" style={{ color: '#fff' }}>Trámites</Link>
+                      <Link to={`/policies/${p.id}/editor`} className="btn btn-ghost btn-sm"><Pencil size={13} /> Editar</Link>
+                      <Link to={`/policies/${p.id}/cases`} className="btn btn-warning btn-sm" style={{ color: '#fff' }}><FolderOpen size={13} /> Trámites</Link>
                     </div>
                   </td>
                 </tr>
               ))}
               {policies.length === 0 && (
-                <tr><td colSpan={4} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay políticas creadas</td></tr>
+                <tr><td colSpan={4} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    <FolderOpen size={32} color="var(--border)" />
+                    <span>No hay políticas creadas aún</span>
+                    <Link to="/policies/new" className="btn btn-primary btn-sm" style={{ marginTop: 8 }}><Plus size={14} /> Crear primera política</Link>
+                  </div>
+                </td></tr>
               )}
             </tbody>
           </table>

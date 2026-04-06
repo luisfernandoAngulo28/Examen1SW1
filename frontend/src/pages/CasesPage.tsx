@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import { useToast } from '../components/useToast';
 import TrafficLight from '../components/TrafficLight';
+import { ArrowLeft, Plus, FolderOpen, Eye } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -65,11 +66,11 @@ export default function CasesPage() {
     <>
       <div className="page-header">
         <div>
-          <Link to="/" style={{ fontSize: 13 }}>&larr; Dashboard</Link>
+          <Link to="/" style={{ fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 4 }}><ArrowLeft size={13} /> Dashboard</Link>
           <h1 style={{ marginTop: 4 }}>Trámites: {policyName}</h1>
         </div>
         <button onClick={handleStartCase} className="btn btn-primary">
-          + Iniciar Trámite
+          <Plus size={16} /> Iniciar Trámite
         </button>
       </div>
       <div className="page-body fade-in">
@@ -92,11 +93,17 @@ export default function CasesPage() {
               <td style={{ display: 'flex', alignItems: 'center', gap: 6 }}><TrafficLight status={c.status} size={12} /><span className={`badge ${c.status === 'IN_PROGRESS' ? 'badge-orange' : c.status === 'COMPLETED' ? 'badge-green' : 'badge-gray'}`}>{c.status}</span></td>
               <td>{c.tasks.filter((t) => t.status === 'DONE').length}/{c.tasks.length} completadas</td>
               <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>{new Date(c.startedAt).toLocaleString()}</td>
-              <td><Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm">Ver detalle</Link></td>
+              <td><Link to={`/cases/${c.id}`} className="btn btn-ghost btn-sm"><Eye size={13} /> Ver detalle</Link></td>
             </tr>
           ))}
           {cases.length === 0 && (
-            <tr><td colSpan={5} style={{ padding: 32, textAlign: 'center', color: 'var(--text-secondary)' }}>No hay trámites. Inicia uno con el botón de arriba.</td></tr>
+            <tr><td colSpan={5} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <FolderOpen size={32} color="var(--border)" />
+                <span>No hay trámites aún</span>
+                <button onClick={handleStartCase} className="btn btn-primary btn-sm" style={{ marginTop: 8 }}><Plus size={14} /> Iniciar primer trámite</button>
+              </div>
+            </td></tr>
           )}
         </tbody>
       </table>

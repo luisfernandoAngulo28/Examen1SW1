@@ -50,11 +50,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
-      <div className="card" style={{ width: '100%', maxWidth: 440, padding: 32 }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800 }}><Zap size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Workflow <span style={{ color: 'var(--accent)' }}>SW1</span></h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginTop: 8 }}>Crear nuevo usuario</p>
+    <div className="login-page">
+      <div className="login-card fade-in" style={{ maxWidth: 460 }}>
+        <div className="login-brand">
+          <h1><Zap size={22} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />Workflow<span>SW1</span></h1>
+          <p>Crear nuevo usuario</p>
         </div>
 
         {error && (
