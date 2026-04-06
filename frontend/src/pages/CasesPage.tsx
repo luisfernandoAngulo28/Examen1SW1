@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import TrafficLight from '../components/TrafficLight';
 
 interface Task {
@@ -24,7 +24,7 @@ interface Case {
 
 export default function CasesPage() {
   const { policyId } = useParams<{ policyId: string }>();
-  const { toast } = useToast();
+  const toast = useToast();
   const [cases, setCases] = useState<Case[]>([]);
   const [policyName, setPolicyName] = useState('');
   const [loading, setLoading] = useState(true);

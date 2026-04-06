@@ -1,17 +1,12 @@
-import { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Check, X, Info } from 'lucide-react';
+import { ToastContext } from './ToastContext';
 
 interface Toast {
   id: number;
   message: string;
   type: 'success' | 'error' | 'info';
 }
-
-interface ToastContextType {
-  toast: (message: string, type?: 'success' | 'error' | 'info') => void;
-}
-
-const ToastContext = createContext<ToastContextType>({ toast: () => {} });
 
 let nextId = 0;
 
@@ -40,5 +35,3 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     </ToastContext.Provider>
   );
 }
-
-export const useToast = () => useContext(ToastContext);

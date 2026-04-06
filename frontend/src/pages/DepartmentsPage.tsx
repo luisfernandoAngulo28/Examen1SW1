@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import { Building2 } from 'lucide-react';
 
 interface Dept {
@@ -12,7 +12,7 @@ interface Dept {
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Dept[]>([]);
   const [newName, setNewName] = useState('');
-  const { toast } = useToast();
+  const toast = useToast();
 
   const load = () => api.get('/departments').then((res) => setDepartments(res.data));
 

@@ -16,17 +16,40 @@ import {
 import '@xyflow/react/dist/style.css';
 import api from '../api';
 import { InitialNode, FinalNode, DecisionNode, ForkJoinNode } from '../components/UmlNodes';
-import { Trash2, Building2, ClipboardList, Bot, MessageSquare, Mic, Square, Camera, Search } from 'lucide-react';
+import { Trash2, Building2, ClipboardList, Bot, MessageSquare, Mic, Square, Camera } from 'lucide-react';
 
 interface Department {
   id: string;
   name: string;
 }
 
+interface NodeData extends Record<string, unknown> {
+  label: string;
+  departmentId?: string;
+  title?: string;
+  nodeType?: string;
+}
+
+interface EdgeData extends Record<string, unknown> {
+  flowType?: string;
+  conditionLabel?: string;
+}
+
+interface AiNode {
+  title: string;
+  department: string;
+}
+
+interface AiConnection {
+  from: string;
+  to: string;
+  flowType: string;
+}
+
 export default function PolicyEditorPage() {
   const { id: policyId } = useParams<{ id: string }>();
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<EdgeData>>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [policyName, setPolicyName] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
@@ -68,14 +91,15 @@ export default function PolicyEditorPage() {
     if (policyId) {
       api.get(`/policies/${policyId}`).then((res) => {
         setPolicyName(res.data.name);
-        const loadedNodes: Node[] = (res.data.nodes || []).map((n: any) => {
+        const loadedNodes: Node<NodeData>[] = (res.data.nodes || []).map((n: Record<string, string>) => {
           const nt = n.nodeType || 'ACTION';
           const isSpecial = ['INITIAL', 'FINAL', 'DECISION', 'FORK', 'JOIN'].includes(nt);
+          const dept = n.department as unknown as { name: string } | undefined;
           return {
             id: n.id,
             type: isSpecial ? nt : undefined,
-            position: { x: n.positionX, y: n.positionY },
-            data: { label: `${n.title}\n(${n.department?.name || 'Sin depto'})`, departmentId: n.departmentId, title: n.title, nodeType: nt },
+            position: { x: Number(n.positionX), y: Number(n.positionY) },
+            data: { label: `${n.title}\n(${dept?.name || 'Sin depto'})`, departmentId: n.departmentId, title: n.title, nodeType: nt },
             ...(isSpecial ? {} : {
               style: {
                 background: '#fff',
@@ -87,7 +111,7 @@ export default function PolicyEditorPage() {
             }),
           };
         });
-        const loadedEdges: Edge[] = (res.data.edges || []).map((e: any) => ({
+        const loadedEdges: Edge<EdgeData>[] = (res.data.edges || []).map((e: Record<string, string>) => ({
           id: e.id,
           source: e.fromNodeId,
           target: e.toNodeId,
@@ -100,6 +124,7 @@ export default function PolicyEditorPage() {
         setEdges(loadedEdges);
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [policyId]);
 
   const onConnect = useCallback(
@@ -117,7 +142,7 @@ export default function PolicyEditorPage() {
 
   const onEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
     const types = ['SEQUENTIAL', 'CONDITIONAL', 'PARALLEL', 'ITERATIVE'];
-    const flowType = (edge.data as any)?.flowType || (edge.label as string) || 'SEQUENTIAL';
+    const flowType = (edge.data as EdgeData)?.flowType || (edge.label as string) || 'SEQUENTIAL';
     const currentIdx = types.indexOf(flowType);
     const nextType = types[(currentIdx + 1) % types.length];
 
@@ -136,7 +161,7 @@ export default function PolicyEditorPage() {
               label: condLabel || nextType,
               animated: nextType === 'PARALLEL',
               style: { stroke: getEdgeColor(nextType) },
-              data: { ...((e.data as any) || {}), flowType: nextType, conditionLabel: condLabel },
+              data: { ...((e.data as EdgeData) || {}), flowType: nextType, conditionLabel: condLabel },
             }
           : e,
       ),
@@ -151,8 +176,8 @@ export default function PolicyEditorPage() {
     const title = newNodeTitle.trim() || (isSpecial ? defaultNames[selectedNodeType] || selectedNodeType : '');
     if (!title) return; // Only ACTION requires a manual name
     const dept = departments.find((d) => d.id === selectedDept);
-    const sameDepNodes = nodes.filter((n) => (n.data as any).departmentId === selectedDept);
-    const newNode: Node = {
+    const sameDepNodes = nodes.filter((n) => (n.data as NodeData).departmentId === selectedDept);
+    const newNode: Node<NodeData> = {
       id: crypto.randomUUID(),
       type: isSpecial ? selectedNodeType : undefined,
       position: { x: getNodeXForDept(selectedDept), y: 80 + sameDepNodes.length * 130 },
@@ -176,21 +201,21 @@ export default function PolicyEditorPage() {
     try {
       const graphNodes = nodes.map((n) => ({
         id: n.id,
-        departmentId: (n.data as any).departmentId || departments[0]?.id,
-        title: (n.data as any).title || String(n.data.label).split('\n')[0],
-        nodeType: (n.data as any).nodeType || 'ACTION',
+        departmentId: (n.data as NodeData).departmentId || departments[0]?.id,
+        title: (n.data as NodeData).title || String(n.data.label).split('\n')[0],
+        nodeType: (n.data as NodeData).nodeType || 'ACTION',
         positionX: n.position.x,
         positionY: n.position.y,
       }));
       const graphEdges = edges.map((e) => ({
         fromNodeId: e.source,
         toNodeId: e.target,
-        flowType: (e.data as any)?.flowType || (e.label as string) || 'SEQUENTIAL',
-        conditionLabel: (e.data as any)?.conditionLabel || undefined,
+        flowType: (e.data as EdgeData)?.flowType || (e.label as string) || 'SEQUENTIAL',
+        conditionLabel: (e.data as EdgeData)?.conditionLabel || undefined,
       }));
       await api.put(`/policies/${policyId}/graph`, { nodes: graphNodes, edges: graphEdges });
       alert('Diagrama guardado');
-    } catch (err) {
+    } catch {
       alert('Error al guardar el diagrama. Intente nuevamente.');
     } finally {
       setSaving(false);
@@ -213,11 +238,11 @@ export default function PolicyEditorPage() {
 
       // Process AI actions
       if (data.nodes && data.nodes.length > 0) {
-        const newNodes: Node[] = [];
-        data.nodes.forEach((n: any, i: number) => {
+        const newNodes: Node<NodeData>[] = [];
+        data.nodes.forEach((n: AiNode, i: number) => {
           const dept = departments.find((d) => d.name.toLowerCase() === n.department.toLowerCase());
           const deptId = dept?.id || departments[0]?.id;
-          const node: Node = {
+          const node: Node<NodeData> = {
             id: crypto.randomUUID(),
             position: { x: getNodeXForDept(deptId), y: 80 + i * 130 },
             data: { label: `${n.title}\n(${dept?.name || n.department})`, departmentId: deptId, title: n.title },
@@ -232,9 +257,9 @@ export default function PolicyEditorPage() {
           setTimeout(() => {
             setNodes((currentNodes) => {
               const newEdges: Edge[] = [];
-              data.connections.forEach((c: any) => {
-                const fromNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.from.toLowerCase());
-                const toNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.to.toLowerCase());
+              data.connections.forEach((c: AiConnection) => {
+                const fromNode = currentNodes.find((n) => (n.data as NodeData).title?.toLowerCase() === c.from.toLowerCase());
+                const toNode = currentNodes.find((n) => (n.data as NodeData).title?.toLowerCase() === c.to.toLowerCase());
                 if (fromNode && toNode) {
                   newEdges.push({
                     id: crypto.randomUUID(),
@@ -259,7 +284,7 @@ export default function PolicyEditorPage() {
         setAiMessages((prev) => [...prev, { role: 'ai', text: msg }]);
       } else if (data.action === 'remove_node') {
         const title = data.nodes?.[0]?.title?.toLowerCase();
-        setNodes((nds) => nds.filter((n) => !(n.data as any).title?.toLowerCase().includes(title)));
+        setNodes((nds) => nds.filter((n) => !(n.data as NodeData).title?.toLowerCase().includes(title)));
         setAiMessages((prev) => [...prev, { role: 'ai', text: `Eliminé la actividad "${data.nodes[0].title}".` }]);
       }
     } catch {
@@ -268,7 +293,7 @@ export default function PolicyEditorPage() {
   };
 
   const startVoice = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as unknown as Record<string, new () => { lang: string; interimResults: boolean; onresult: (event: { results: { 0: { 0: { transcript: string } } } }) => void; onerror: () => void; onend: () => void; start: () => void }>).SpeechRecognition || (window as unknown as Record<string, new () => { lang: string; interimResults: boolean; onresult: (event: { results: { 0: { 0: { transcript: string } } } }) => void; onerror: () => void; onend: () => void; start: () => void }>).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       setAiMessages((prev) => [...prev, { role: 'ai', text: 'Tu navegador no soporta reconocimiento de voz.' }]);
       return;
@@ -277,7 +302,7 @@ export default function PolicyEditorPage() {
     recognition.lang = 'es-ES';
     recognition.interimResults = false;
     setIsListening(true);
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: { results: { 0: { 0: { transcript: string } } } }) => {
       const transcript = event.results[0][0].transcript;
       setIsListening(false);
       handleAiPrompt(transcript);
@@ -300,7 +325,7 @@ export default function PolicyEditorPage() {
       // Real OCR using Tesseract.js
       const Tesseract = await import('tesseract.js');
       const { data: { text: ocrText } } = await Tesseract.recognize(file, 'spa+eng', {
-        logger: (m: any) => {
+        logger: (m: { status: string; progress?: number }) => {
           if (m.status === 'recognizing text') {
             const pct = Math.round((m.progress || 0) * 100);
             setAiMessages((prev) => [...prev.slice(0, -1), { role: 'ai', text: `OCR procesando... ${pct}%` }]);
@@ -327,11 +352,11 @@ export default function PolicyEditorPage() {
       const data = res.data;
 
       if (data.nodes && data.nodes.length > 0) {
-        const newNodes: Node[] = [];
-        data.nodes.forEach((n: any, i: number) => {
+        const newNodes: Node<NodeData>[] = [];
+        data.nodes.forEach((n: AiNode, i: number) => {
           const dept = departments.find((d) => d.name.toLowerCase() === (n.department || '').toLowerCase());
           const deptId = dept?.id || departments[0]?.id;
-          const node: Node = {
+          const node: Node<NodeData> = {
             id: crypto.randomUUID(),
             position: { x: getNodeXForDept(deptId), y: 80 + i * 130 },
             data: { label: `${n.title}\n(${dept?.name || n.department || departments[0]?.name || ''})`, departmentId: deptId, title: n.title },
@@ -345,9 +370,9 @@ export default function PolicyEditorPage() {
           setTimeout(() => {
             setNodes((currentNodes) => {
               const newEdges: Edge[] = [];
-              data.connections.forEach((c: any) => {
-                const fromNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.from.toLowerCase());
-                const toNode = currentNodes.find((n) => (n.data as any).title?.toLowerCase() === c.to.toLowerCase());
+              data.connections.forEach((c: AiConnection) => {
+                const fromNode = currentNodes.find((n) => (n.data as NodeData).title?.toLowerCase() === c.from.toLowerCase());
+                const toNode = currentNodes.find((n) => (n.data as NodeData).title?.toLowerCase() === c.to.toLowerCase());
                 if (fromNode && toNode) {
                   newEdges.push({ id: crypto.randomUUID(), source: fromNode.id, target: toNode.id, label: c.flowType, style: { stroke: getEdgeColor(c.flowType) } });
                 }
@@ -370,7 +395,7 @@ export default function PolicyEditorPage() {
     if (imageInputRef.current) imageInputRef.current.value = '';
   };
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setShowFormPanel(true);
     // Load existing form template
@@ -387,7 +412,7 @@ export default function PolicyEditorPage() {
     setFormFields((prev) => [...prev, { name: `campo_${prev.length + 1}`, label: '', type: 'text', required: false }]);
   };
 
-  const updateFormField = (index: number, key: string, value: any) => {
+  const updateFormField = (index: number, key: string, value: string | boolean | string[]) => {
     setFormFields((prev) => prev.map((f, i) => i === index ? { ...f, [key]: value } : f));
   };
 
@@ -501,7 +526,7 @@ export default function PolicyEditorPage() {
               <button onClick={() => setShowFormPanel(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#64748b' }}>×</button>
             </div>
             <div style={{ padding: 12, fontSize: 13, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>
-              Nodo: <strong style={{ color: '#1e293b' }}>{(selectedNode.data as any).title || String(selectedNode.data.label).split('\n')[0]}</strong>
+              Nodo: <strong style={{ color: '#1e293b' }}>{(selectedNode.data as NodeData).title || String(selectedNode.data.label).split('\n')[0]}</strong>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
               {formFields.length === 0 && (

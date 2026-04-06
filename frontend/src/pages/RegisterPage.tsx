@@ -2,7 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import { Zap } from 'lucide-react';
 
 interface Department {

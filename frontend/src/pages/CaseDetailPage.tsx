@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 import DynamicForm from '../components/DynamicForm';
-import { useToast } from '../components/Toast';
+import { useToast } from '../components/useToast';
 import TrafficLight from '../components/TrafficLight';
 
 interface Department {
@@ -48,7 +48,7 @@ interface UserOption {
 export default function CaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { toast } = useToast();
+  const toast = useToast();
   const [caseData, setCaseData] = useState<CaseDetail | null>(null);
   const [users, setUsers] = useState<UserOption[]>([]);
   const [formTemplates, setFormTemplates] = useState<Record<string, any>>({});
