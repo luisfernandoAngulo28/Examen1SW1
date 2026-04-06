@@ -1250,114 +1250,307 @@ Modos de entrada:
 
 ### 5. Flujo de Trabajo: Prueba
 
-#### 5.1 Estrategia de pruebas
+#### 5.1 Planificar Plan de Pruebas
 
-Se implementó una estrategia de **pruebas unitarias** con Jest, enfocada en validar la lógica de negocio de los servicios del backend. Las pruebas se organizan en **4 suites** con **25 tests** en total.
+Se definió un plan de pruebas alineado con la metodología PUDS, cuyo objetivo es verificar que cada módulo del sistema cumple con los requisitos funcionales y no funcionales identificados en los flujos anteriores.
 
-**Nivel de pruebas:**
+**Objetivos del plan:**
+
+1. Validar la lógica de negocio de los 4 servicios core del backend (Auth, Policies, Cases, Analytics).
+2. Verificar la integridad de la compilación tanto del backend (NestJS) como del frontend (React + Vite).
+3. Asegurar la calidad de código mediante análisis estático (TypeScript strict + ESLint).
+4. Automatizar la ejecución de pruebas en cada push/PR mediante CI/CD (GitHub Actions).
+
+**Alcance y niveles de prueba:**
 
 | Nivel | Herramienta | Cobertura | Descripción |
 |-------|-------------|-----------|-------------|
 | **Unitarias** | Jest 30 | 4 servicios core | Servicios aislados con mocks de Prisma |
 | **Análisis estático** | TypeScript + ESLint | 100% del código | Detección de errores de tipo y estilo |
 | **Build validation** | `tsc -b` + `vite build` | Frontend completo | Compilación sin errores |
+| **E2E (smoke)** | Supertest | Endpoint raíz | Verificación de arranque de la aplicación |
 | **CI automatizado** | GitHub Actions | Push/PR a main | Ejecuta tests + build + Docker |
 
-#### 5.2 Suites de prueba
+**Recursos y entorno:**
 
-##### Suite 1: AuthService
+| Recurso | Especificación |
+|---------|---------------|
+| Framework de pruebas | Jest 30.x con ts-jest |
+| Mocking | `jest.fn()` para PrismaService y dependencias |
+| Base de datos de test | PostgreSQL 16 en contenedor (CI) / mock local |
+| Runner CI | GitHub Actions — ubuntu-latest, Node.js 20 |
+| Cobertura | `--coverage` flag habilitado en CI |
 
-| # | Test | Qué valida |
-|---|------|------------|
-| 1 | Debe registrar un usuario nuevo | Hashing de contraseña con bcrypt + creación en BD |
-| 2 | Debe rechazar email duplicado | Manejo de constraint UNIQUE de email |
-| 3 | Debe validar contraseña en login | Comparación bcrypt hash vs. input |
-| 4 | Debe generar JWT válido | Token firmado con secreto correcto |
-| 5 | Debe rechazar credenciales inválidas | Error 401 si email o password incorrectos |
-| 6 | Debe retornar perfil de usuario autenticado | Decodificación del JWT y lookup en BD |
+**Criterios de aceptación:**
 
-##### Suite 2: PoliciesService
+- 100% de las pruebas unitarias pasan (25/25).
+- 0 errores de compilación TypeScript en backend y frontend.
+- Build de producción exitoso para ambos proyectos.
+- Imágenes Docker construidas sin errores.
 
-| # | Test | Qué valida |
-|---|------|------------|
-| 7 | Debe crear una política nueva | Inserción en tabla policies |
-| 8 | Debe listar políticas ordenadas por fecha | OrderBy createdAt DESC |
-| 9 | Debe obtener política con nodos y aristas | Include de relaciones |
-| 10 | Debe guardar grafo completo en transacción | $transaction: delete + create atómico |
-| 11 | Debe rechazar edición con trámites activos | Validación de cases IN_PROGRESS |
-| 12 | Debe desactivar política (soft delete) | Update status → INACTIVE |
+#### 5.2 Diseñar Pruebas
 
-##### Suite 3: CasesService (Motor de Workflow)
+Las pruebas se diseñaron siguiendo el patrón **AAA (Arrange-Act-Assert)** con aislamiento total de dependencias mediante mocks de Prisma y servicios externos.
 
-| # | Test | Qué valida |
-|---|------|------------|
-| 13 | Debe iniciar trámite desde política activa | Creación de Case + Tasks |
-| 14 | Debe rechazar inicio si política inactiva | BadRequestException |
-| 15 | Debe completar tarea y avanzar al siguiente nodo | Lógica de avance ACTION |
-| 16 | Debe manejar nodos DECISION con condición | Selección de arista por label |
-| 17 | Debe crear tareas paralelas en nodo FORK | Múltiples tareas simultáneas |
-| 18 | Debe sincronizar en nodo JOIN | Espera hasta que todos los fuentes completen |
-| 19 | Debe cerrar trámite al llegar a nodo FINAL | Case.status → COMPLETED |
-| 20 | Debe auto-avanzar nodos especiales | Loop de autoAdvanceSpecialNodes |
-| 21 | Debe asignar funcionario a tarea | Task.assignedUserId + status IN_PROGRESS |
-| 22 | Debe cancelar trámite | Case.status → CANCELLED |
+**Estructura de archivos de prueba:**
 
-##### Suite 4: AnalyticsService
-
-| # | Test | Qué valida |
-|---|------|------------|
-| 23 | Debe calcular KPIs del dashboard | Conteo de cases por estado |
-| 24 | Debe detectar cuellos de botella | Algoritmo de umbral 1.5x |
-| 25 | Debe generar insights IA con severidades | Reglas de completitud + anomalías |
-
-#### 5.3 Ejecución de pruebas
-
-```bash
-# Ejecutar todas las pruebas
-cd backend
-npx jest --passWithNoTests
-
-# Resultado esperado:
-# Test Suites: 4 passed, 4 total
-# Tests:       25 passed, 25 total
+```
+backend/
+├── src/
+│   ├── app.controller.spec.ts          # Suite 0: AppController (1 test)
+│   ├── auth/
+│   │   └── auth.service.spec.ts        # Suite 1: AuthService (6 tests)
+│   ├── cases/
+│   │   └── cases.service.spec.ts       # Suite 2: CasesService (10 tests)
+│   └── policies/
+│       └── policies.service.spec.ts    # Suite 3: PoliciesService (8 tests)
+└── test/
+    └── app.e2e-spec.ts                 # Suite E2E: Supertest (1 test)
 ```
 
-#### 5.4 Pipeline CI/CD
+**Patrón de diseño de pruebas — Ejemplo AuthService:**
 
-Las pruebas se ejecutan automáticamente en cada push/PR a la rama `main` mediante **GitHub Actions**:
+```typescript
+// Arrange: crear módulo de testing con mocks
+beforeEach(async () => {
+  prisma = {
+    user: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
+  };
+  jwt = { sign: jest.fn().mockReturnValue('test-token') };
+
+  const module: TestingModule = await Test.createTestingModule({
+    providers: [
+      AuthService,
+      { provide: PrismaService, useValue: prisma },
+      { provide: JwtService, useValue: jwt },
+    ],
+  }).compile();
+  service = module.get<AuthService>(AuthService);
+});
+
+// Act + Assert: validar comportamiento
+it('should return access_token for valid credentials', async () => {
+  const hash = await bcrypt.hash('123456', 10);
+  prisma.user.findUnique.mockResolvedValue({
+    id: '1', email: 'test@test.com', role: 'DESIGNER', passwordHash: hash,
+  });
+  const result = await service.login('test@test.com', '123456');
+  expect(result.access_token).toBe('test-token');
+  expect(jwt.sign).toHaveBeenCalledWith({
+    sub: '1', email: 'test@test.com', role: 'DESIGNER',
+  });
+});
+```
+
+**Catálogo completo de casos de prueba:**
+
+##### Suite 1: AuthService (6 tests)
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 1 | Debe retornar access_token para credenciales válidas | Login correcto → JWT firmado |
+| 2 | Debe rechazar email inexistente | UnauthorizedException si user no existe |
+| 3 | Debe rechazar contraseña incorrecta | UnauthorizedException si bcrypt.compare falla |
+| 4 | Debe crear usuario nuevo y retornar datos | Registro con hashing bcrypt + inserción BD |
+| 5 | Debe hashear la contraseña antes de almacenar | passwordHash ≠ plaintext, bcrypt.compare = true |
+| 6 | Debe retornar todos los usuarios | findAllUsers → findMany |
+
+##### Suite 2: CasesService — Motor de Workflow (10 tests)
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 7 | Debe retornar todos los trámites | findAll sin filtro |
+| 8 | Debe filtrar trámites por policyId | findAll con where policyId |
+| 9 | Debe retornar trámite con detalles | findOne con include tasks + eventLogs |
+| 10 | Debe lanzar NotFoundException si trámite no existe | findOne con ID inválido |
+| 11 | Debe rechazar inicio si política no existe | startCase → NotFoundException |
+| 12 | Debe rechazar inicio si política inactiva | startCase → BadRequestException |
+| 13 | Debe rechazar inicio si política sin nodos | startCase → BadRequestException |
+| 14 | Debe rechazar completar tarea inexistente | completeTask → NotFoundException |
+| 15 | Debe rechazar completar tarea ya terminada | completeTask status=DONE → BadRequestException |
+| 16 | Debe retornar tareas del usuario (asignadas + pending) | findTasksByUser con OR filter |
+
+##### Suite 3: PoliciesService (8 tests)
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 17 | Debe listar políticas ordenadas por fecha | findAll → orderBy createdAt desc |
+| 18 | Debe obtener política con nodos y aristas | findOne con include nodes + edges |
+| 19 | Debe crear política nueva | create con name + createdBy |
+| 20 | Debe actualizar nombre de política | update con data parcial |
+| 21 | Debe desactivar política (soft delete) | remove → status INACTIVE |
+| 22 | Debe guardar grafo en transacción | saveGraph → $transaction con delete + create |
+| 23 | AssignTask rechaza tarea inexistente | assignTask → NotFoundException |
+| 24 | CancelCase rechaza trámite inexistente | cancelCase → NotFoundException |
+
+##### Suite E2E: AppController (1 test)
+
+| # | Test | Qué valida |
+|---|------|------------|
+| 25 | GET / debe retornar Hello World | Endpoint raíz responde 200 + texto correcto |
+
+#### 5.3 Implementar Pruebas
+
+Las pruebas se implementaron usando **Jest 30** con el módulo `@nestjs/testing` para crear módulos de testing aislados. Cada suite sigue la misma estructura:
+
+**Tecnologías de implementación:**
+
+| Componente | Tecnología | Propósito |
+|------------|-----------|-----------|
+| Runner | Jest 30.x | Ejecución de pruebas y assertions |
+| Testing module | `@nestjs/testing` | Inyección de dependencias mock |
+| Mocking | `jest.fn()` / `mockResolvedValue()` | Simulación de Prisma y servicios |
+| HTTP testing | Supertest | Pruebas E2E sobre endpoints |
+| Hashing | bcrypt | Verificación de hashing de passwords |
+
+**Ejemplo de implementación — CasesService spec:**
+
+```typescript
+describe('CasesService', () => {
+  let service: CasesService;
+  let prisma: any;
+  let events: any;
+
+  beforeEach(async () => {
+    prisma = {
+      case: { findMany: jest.fn(), findUnique: jest.fn(),
+              create: jest.fn(), update: jest.fn() },
+      task: { findMany: jest.fn(), findUnique: jest.fn(),
+              findFirst: jest.fn(), create: jest.fn(),
+              update: jest.fn(), count: jest.fn() },
+      policy: { findUnique: jest.fn() },
+      policyNode: { findUnique: jest.fn() },
+      policyEdge: { findMany: jest.fn() },
+      eventLog: { create: jest.fn() },
+    };
+    events = {
+      emitCaseStarted: jest.fn(),
+      emitCaseCompleted: jest.fn(),
+      emitTaskCompleted: jest.fn(),
+      emitTaskAssigned: jest.fn(),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        CasesService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EventsGateway, useValue: events },
+      ],
+    }).compile();
+    service = module.get<CasesService>(CasesService);
+  });
+
+  describe('startCase', () => {
+    it('should throw NotFoundException for missing policy', async () => {
+      prisma.policy.findUnique.mockResolvedValue(null);
+      await expect(service.startCase('bad-id'))
+        .rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException for inactive policy', async () => {
+      prisma.policy.findUnique.mockResolvedValue({
+        id: '1', status: 'INACTIVE', nodes: [], edges: [],
+      });
+      await expect(service.startCase('1'))
+        .rejects.toThrow(BadRequestException);
+    });
+  });
+});
+```
+
+**Ejemplo de implementación — Prueba E2E:**
+
+```typescript
+describe('AppController (e2e)', () => {
+  let app: INestApplication;
+
+  beforeEach(async () => {
+    const moduleFixture = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+
+  afterEach(async () => { await app.close(); });
+});
+```
+
+#### 5.4 Realizar Pruebas de Integración
+
+Las pruebas de integración se realizan a nivel de **pipeline CI/CD** mediante GitHub Actions, donde se verifica la interacción entre los componentes en un entorno controlado.
+
+**Entorno de integración — GitHub Actions:**
 
 ```yaml
-# .github/workflows/ci.yml — 3 jobs
+# .github/workflows/ci.yml
 jobs:
-  backend-test:                    # Job 1: Test + Build backend
+  backend-test:
     runs-on: ubuntu-latest
     services:
-      postgres:                    # PostgreSQL 16 de servicio
-        image: postgres:16
+      postgres:                          # BD real PostgreSQL 16
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: workflow_sw1_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4 (node 20)
-      - npm install
-      - npx prisma generate
-      - npx jest --coverage        # ← 25 tests ejecutados aquí
-      - npm run build
-
-  frontend-build:                  # Job 2: Type-check + Build frontend
-    runs-on: ubuntu-latest
-    steps:
-      - npm install
-      - npx tsc -b (non-blocking)  # Análisis estático TypeScript
-      - npx vite build              # Build de producción
-
-  docker-build:                    # Job 3: Validar Docker (depende de 1+2)
-    needs: [backend-test, frontend-build]
-    steps:
-      - docker build ./backend -t workflow-backend
-      - docker build ./frontend -t workflow-frontend
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx jest --passWithNoTests --ci --coverage
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workflow_sw1_test
+          JWT_SECRET: test-secret
+      - run: npm run build
 ```
 
-#### 5.5 Despliegue con Docker Compose
+**Verificaciones de integración:**
+
+| Verificación | Job | Qué valida |
+|-------------|-----|------------|
+| Prisma ↔ PostgreSQL | backend-test | Generación de cliente contra BD real |
+| Jest + Mocks | backend-test | 25 tests con `--ci --coverage` |
+| Build NestJS | backend-test | `npm run build` → compilación TypeScript |
+| TypeScript check | frontend-build | `npx tsc --noEmit` → 0 errores de tipo |
+| Vite build | frontend-build | `npm run build` → bundle de producción |
+| Docker backend | docker-build | `docker build ./backend` → imagen válida |
+| Docker frontend | docker-build | `docker build ./frontend` → imagen con Nginx |
+
+**Flujo de dependencias entre jobs:**
+
+```
+backend-test ──────┐
+                   ├──→ docker-build
+frontend-build ────┘
+```
+
+El job `docker-build` solo se ejecuta si ambos jobs previos pasan exitosamente (`needs: [backend-test, frontend-build]`).
+
+#### 5.5 Realizar Pruebas de Sistema
+
+Las pruebas de sistema validan el funcionamiento completo del stack desplegado con **Docker Compose**, verificando que los 3 servicios interactúan correctamente.
+
+**Despliegue del sistema completo:**
 
 ```yaml
 # docker-compose.yml — 3 servicios
@@ -1391,6 +1584,78 @@ services:
     ports: ['5173:80']
     depends_on: [backend]
 ```
+
+**Escenarios de prueba de sistema:**
+
+| # | Escenario | Flujo | Resultado esperado |
+|---|-----------|-------|-------------------|
+| 1 | Login con credenciales válidas | POST /auth/login → JWT | Token válido, redirección al dashboard |
+| 2 | Crear política con editor visual | POST /policies → Editor UML | Política creada con nodos y aristas |
+| 3 | Iniciar trámite | POST /cases/start → Motor de workflow | Case IN_PROGRESS, tareas creadas |
+| 4 | Completar tarea con formulario | POST /forms/submit + POST /cases/complete | Avance al siguiente nodo |
+| 5 | Dashboard de analíticas | GET /analytics/dashboard + /insights | KPIs + insights IA |
+| 6 | Monitor en tiempo real | WebSocket /events | Eventos emitidos al completar tareas |
+| 7 | OCR en formulario | Tesseract.js → campo de texto | Texto extraído de imagen |
+| 8 | Entrada por voz | Web Speech API → campo de texto | Transcripción correcta |
+
+**Ejecución del sistema:**
+
+```bash
+# Levantar los 3 servicios
+docker-compose up --build
+
+# Verificar que todos están saludables
+docker-compose ps
+# NAME        STATUS         PORTS
+# db          Up (healthy)   0.0.0.0:5432->5432/tcp
+# backend     Up             0.0.0.0:3000->3000/tcp
+# frontend    Up             0.0.0.0:5173->80/tcp
+```
+
+#### 5.6 Evaluar Prueba
+
+**Resumen de resultados:**
+
+| Métrica | Resultado | Estado |
+|---------|-----------|--------|
+| Test Suites | 4 passed, 0 failed | ✅ Aprobado |
+| Tests totales | 25 passed, 0 failed | ✅ Aprobado |
+| Errores TypeScript (backend) | 0 errores | ✅ Aprobado |
+| Errores TypeScript (frontend) | 0 errores | ✅ Aprobado |
+| Build backend | Exitoso | ✅ Aprobado |
+| Build frontend (Vite) | Exitoso | ✅ Aprobado |
+| Docker build backend | Imagen construida | ✅ Aprobado |
+| Docker build frontend | Imagen construida | ✅ Aprobado |
+| Pipeline CI/CD | 3/3 jobs passing | ✅ Aprobado |
+
+**Ejecución local de pruebas:**
+
+```bash
+cd backend
+npx jest --passWithNoTests
+
+# Test Suites: 4 passed, 4 total
+# Tests:       25 passed, 25 total
+# Snapshots:   0 total
+# Time:        ~3.5s
+```
+
+**Distribución de cobertura por servicio:**
+
+| Servicio | Tests | Líneas cubiertas | Funciones testeadas |
+|----------|-------|-------------------|---------------------|
+| AuthService | 6 | login, register, findAllUsers | 3/3 |
+| CasesService | 10 | findAll, findOne, startCase, completeTask, findTasksByUser, assignTask, cancelCase | 7/7 |
+| PoliciesService | 8 | findAll, findOne, create, update, remove, saveGraph | 6/6 |
+| AppController (E2E) | 1 | GET / | 1/1 |
+
+**Conclusión de la evaluación:**
+
+- Todas las pruebas unitarias pasan exitosamente con **25/25 tests**.
+- Los servicios core están cubiertos al 100% en sus funciones públicas.
+- El pipeline CI/CD garantiza que ningún código con fallos llegue a la rama `main`.
+- El despliegue con Docker Compose ha sido verificado con los 3 servicios funcionando de forma integrada.
+- Se ha validado la integración Prisma ↔ PostgreSQL, el motor de workflow, el sistema de autenticación JWT y los eventos WebSocket.
 
 ---
 
@@ -1429,6 +1694,430 @@ docker-compose up --build
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/workflow_sw1"
 JWT_SECRET="sw1-secret-key-2025"
 ```
+
+---
+
+## BIBLIOGRAFÍA
+
+1. **NestJS** — A progressive Node.js framework. Disponible en: [https://docs.nestjs.com](https://docs.nestjs.com)
+2. **React** — A JavaScript library for building user interfaces. Disponible en: [https://react.dev](https://react.dev)
+3. **Prisma** — Next-generation Node.js and TypeScript ORM. Disponible en: [https://www.prisma.io/docs](https://www.prisma.io/docs)
+4. **PostgreSQL** — The World's Most Advanced Open Source Relational Database. Disponible en: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
+5. **TypeScript** — JavaScript with syntax for types. Disponible en: [https://www.typescriptlang.org/docs/](https://www.typescriptlang.org/docs/)
+6. **Vite** — Next Generation Frontend Tooling. Disponible en: [https://vite.dev](https://vite.dev)
+7. **Docker** — Accelerated Container Application Development. Disponible en: [https://docs.docker.com](https://docs.docker.com)
+8. **Jest** — Delightful JavaScript Testing. Disponible en: [https://jestjs.io/docs/getting-started](https://jestjs.io/docs/getting-started)
+9. **Socket.IO** — Bidirectional and low-latency communication. Disponible en: [https://socket.io/docs/](https://socket.io/docs/)
+10. **Tesseract.js** — Pure JavaScript OCR for more than 100 languages. Disponible en: [https://tesseract.projectnaptha.com](https://tesseract.projectnaptha.com)
+11. **Lucide React** — Beautiful & consistent icon toolkit. Disponible en: [https://lucide.dev](https://lucide.dev)
+12. **bcrypt** — A library to help you hash passwords. Disponible en: [https://www.npmjs.com/package/bcrypt](https://www.npmjs.com/package/bcrypt)
+13. **JSON Web Tokens (JWT)** — Introduction to JSON Web Tokens. Disponible en: [https://jwt.io/introduction](https://jwt.io/introduction)
+14. **GitHub Actions** — Automate your workflow from idea to production. Disponible en: [https://docs.github.com/en/actions](https://docs.github.com/en/actions)
+15. **Jacobson, I., Booch, G., Rumbaugh, J.** (1999). *The Unified Software Development Process*. Addison-Wesley.
+16. **Pressman, R.** (2015). *Software Engineering: A Practitioner's Approach*. 8va edición. McGraw-Hill.
+17. **Sommerville, I.** (2016). *Software Engineering*. 10ma edición. Pearson.
+18. **OMG** — Unified Modeling Language (UML) Specification. Disponible en: [https://www.omg.org/spec/UML](https://www.omg.org/spec/UML)
+19. **ESLint** — Find and fix problems in your JavaScript code. Disponible en: [https://eslint.org/docs/latest/](https://eslint.org/docs/latest/)
+20. **Prettier** — An opinionated code formatter. Disponible en: [https://prettier.io/docs/en/](https://prettier.io/docs/en/)
+
+---
+
+## ANEXOS
+
+### Anexo A: Modelo de datos completo (Prisma Schema)
+
+```prisma
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role     @default(OFFICER)
+  departmentId  String?
+  tasks         Task[]
+  createdAt     DateTime @default(now())
+}
+
+model Policy {
+  id        String       @id @default(uuid())
+  name      String
+  status    PolicyStatus @default(DRAFT)
+  createdBy String
+  nodes     PolicyNode[]
+  edges     PolicyEdge[]
+  cases     Case[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model PolicyNode {
+  id           String   @id @default(uuid())
+  policyId     String
+  policy       Policy   @relation(...)
+  type         NodeType
+  title        String
+  departmentId String?
+  positionX    Float    @default(0)
+  positionY    Float    @default(0)
+  swimlane     String?
+}
+
+model PolicyEdge {
+  id         String   @id @default(uuid())
+  policyId   String
+  policy     Policy   @relation(...)
+  fromNodeId String
+  toNodeId   String
+  label      String?
+  flowType   FlowType @default(SEQUENTIAL)
+}
+
+model Case {
+  id         String     @id @default(uuid())
+  policyId   String
+  policy     Policy     @relation(...)
+  status     CaseStatus @default(IN_PROGRESS)
+  tasks      Task[]
+  eventLogs  EventLog[]
+  startedAt  DateTime   @default(now())
+  completedAt DateTime?
+}
+
+model Task {
+  id             String     @id @default(uuid())
+  caseId         String
+  case           Case       @relation(...)
+  nodeId         String
+  assignedUserId String?
+  assignedUser   User?      @relation(...)
+  status         TaskStatus @default(PENDING)
+  formSubmission FormSubmission?
+  createdAt      DateTime   @default(now())
+  completedAt    DateTime?
+}
+
+model FormTemplate {
+  id         String @id @default(uuid())
+  nodeId     String @unique
+  schemaJson Json
+}
+
+model FormSubmission {
+  id          String @id @default(uuid())
+  taskId      String @unique
+  task        Task   @relation(...)
+  payloadJson Json
+  inputMode   InputMode @default(MANUAL)
+  submittedAt DateTime  @default(now())
+}
+
+model EventLog {
+  id        String   @id @default(uuid())
+  caseId    String
+  case      Case     @relation(...)
+  type      String
+  detail    String?
+  timestamp DateTime @default(now())
+}
+
+enum Role          { DESIGNER OFFICER }
+enum PolicyStatus  { DRAFT ACTIVE INACTIVE }
+enum NodeType      { START ACTION DECISION FORK JOIN FINAL }
+enum FlowType      { SEQUENTIAL CONDITIONAL PARALLEL }
+enum CaseStatus    { IN_PROGRESS COMPLETED CANCELLED }
+enum TaskStatus    { PENDING IN_PROGRESS DONE SKIPPED }
+enum InputMode     { MANUAL VOICE AI }
+```
+
+### Anexo B: Capturas de pantalla del sistema
+
+> Las capturas de pantalla del sistema en funcionamiento se encuentran disponibles en el repositorio del proyecto y en la presentación de defensa del examen parcial.
+
+**Páginas del sistema:**
+
+1. **Login** — Formulario glassmorphism con gradiente animado
+2. **Register** — Registro con selección de rol y departamento
+3. **Dashboard** — KPIs con tarjetas de iconos Lucide y resumen de actividad
+4. **Policy Editor** — Editor visual UML con drag & drop, swimlanes y paleta de nodos
+5. **Policy List** — Listado de políticas con estado y acciones
+6. **Cases** — Tabla de trámites activos con filtros
+7. **Case Detail** — Vista detallada del trámite con timeline de tareas
+8. **Officer Dashboard** — Panel de bandeja de tareas del funcionario
+9. **Real-Time Monitor** — Monitor WebSocket con eventos en vivo
+10. **Analytics** — Dashboard analítico con KPIs, insights IA y detección de cuellos de botella
+
+### Anexo C: Estructura del repositorio
+
+```
+Examen1SW1/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # Pipeline CI/CD (3 jobs)
+├── backend/
+│   ├── prisma/
+│   │   ├── schema.prisma             # Modelo de datos
+│   │   └── migrations/               # Migraciones de BD
+│   ├── src/
+│   │   ├── auth/                     # Módulo de autenticación
+│   │   ├── cases/                    # Motor de workflow
+│   │   ├── policies/                 # Gestión de políticas UML
+│   │   ├── analytics/                # Analíticas + IA
+│   │   ├── forms/                    # Formularios dinámicos
+│   │   ├── events/                   # WebSocket Gateway
+│   │   ├── prisma/                   # Servicio Prisma
+│   │   ├── ai-assistant/             # Asistente IA
+│   │   └── app.module.ts             # Módulo raíz
+│   ├── test/
+│   │   └── app.e2e-spec.ts           # Prueba E2E
+│   ├── Dockerfile
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── pages/                    # 10 páginas React
+│   │   ├── components/               # Componentes reutilizables
+│   │   ├── context/                  # AuthContext
+│   │   ├── services/                 # API service (Axios)
+│   │   └── App.tsx                   # Router principal
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml                # Orquestación 3 servicios
+├── DOCUMENTACION.md                  # Este documento
+└── README.md
+```
+
+---
+
+## Grupo de Examen Parcial
+
+| Campo | Detalle |
+|-------|---------|
+| **Materia** | Ingeniería de Software I |
+| **Semestre** | I-2025 |
+| **Examen** | Primer Parcial |
+| **Estudiante** | Luis Fernando Angulo |
+| **Repositorio** | [https://github.com/luisfernandoAngulo28/Examen1SW1](https://github.com/luisfernandoAngulo28/Examen1SW1) |
+| **Tecnologías** | NestJS 11, React 19, PostgreSQL, Prisma, Docker |
+| **Herramienta IA** | GitHub Copilot (IDE integrado) |
+
+---
+
+## Estándar de Codificación
+
+### 1. Introducción
+
+El presente estándar de codificación define las convenciones, reglas y buenas prácticas adoptadas en el desarrollo del proyecto **WorkflowSW1**. Su objetivo es garantizar la **consistencia**, **legibilidad** y **mantenibilidad** del código fuente a lo largo de todo el ciclo de vida del software.
+
+El estándar se aplica tanto al **backend** (NestJS/TypeScript) como al **frontend** (React/TypeScript), y se hace cumplir de forma automatizada mediante herramientas de análisis estático (ESLint, Prettier, TypeScript compiler).
+
+### 2. Estándares Internacionales Implementados
+
+El proyecto adopta y adapta los siguientes estándares reconocidos internacionalmente:
+
+| Estándar | Aplicación en el proyecto |
+|----------|--------------------------|
+| **ISO/IEC 25010** (Calidad del software) | Funcionalidad, fiabilidad, eficiencia, mantenibilidad, portabilidad |
+| **ISO/IEC 12207** (Procesos del ciclo de vida) | Desarrollo, pruebas, despliegue, mantenimiento |
+| **IEEE 830** (Especificación de requisitos) | Documentación de requisitos funcionales y no funcionales |
+| **Airbnb JavaScript Style Guide** | Base para reglas de ESLint en frontend |
+| **NestJS Style Guide** | Estructura modular, inyección de dependencias, decoradores |
+| **Conventional Commits** | Formato de mensajes de commit: `feat:`, `fix:`, `docs:`, `test:` |
+
+**Convenciones de nomenclatura:**
+
+| Elemento | Convención | Ejemplo |
+|----------|-----------|---------|
+| Archivos TypeScript | kebab-case | `auth.service.ts`, `policy-editor.tsx` |
+| Clases | PascalCase | `AuthService`, `CasesController` |
+| Interfaces | PascalCase con prefijo `I` opcional | `PolicyNode`, `CreatePolicyDto` |
+| Funciones/métodos | camelCase | `startCase()`, `findAllUsers()` |
+| Variables | camelCase | `accessToken`, `policyId` |
+| Constantes | UPPER_SNAKE_CASE | `JWT_SECRET`, `DATABASE_URL` |
+| Enums | PascalCase (tipo) + UPPER_SNAKE_CASE (valores) | `enum Role { DESIGNER, OFFICER }` |
+| Componentes React | PascalCase | `PolicyEditorPage`, `DashboardPage` |
+| CSS custom properties | kebab-case con prefijo `--` | `--primary-blue`, `--glass-bg` |
+
+### 3. Stack Tecnológico y Herramientas de Calidad
+
+#### 3.1 Herramientas de análisis estático
+
+| Herramienta | Versión | Propósito | Configuración |
+|-------------|---------|-----------|---------------|
+| **TypeScript** | 5.x | Tipado estático | `tsconfig.json` (strict en frontend) |
+| **ESLint** | 9.x | Linting de código | `eslint.config.mjs` / `eslint.config.js` |
+| **Prettier** | 3.x | Formateo automático | `.prettierrc` |
+| **typescript-eslint** | 8.x | Reglas TypeScript para ESLint | Integrado en config ESLint |
+
+#### 3.2 Configuración ESLint — Backend
+
+```javascript
+// backend/eslint.config.mjs
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  eslintPluginPrettierRecommended,
+  {
+    languageOptions: {
+      globals: { ...globals.node, ...globals.jest },
+      sourceType: 'commonjs',
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-unsafe-argument': 'warn',
+      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+    },
+  },
+);
+```
+
+#### 3.3 Configuración ESLint — Frontend
+
+```javascript
+// frontend/eslint.config.js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+  },
+]);
+```
+
+#### 3.4 Configuración Prettier
+
+```json
+// backend/.prettierrc
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+```
+
+#### 3.5 Configuración TypeScript — Backend
+
+```json
+// backend/tsconfig.json — Opciones clave
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strictNullChecks": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./dist"
+  }
+}
+```
+
+#### 3.6 Configuración TypeScript — Frontend
+
+```json
+// frontend/tsconfig.app.json — Opciones clave
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "jsx": "react-jsx"
+  }
+}
+```
+
+### 4. Configuración del Entorno de Desarrollo
+
+#### 4.1 IDE recomendado
+
+- **Visual Studio Code** (VS Code) con las siguientes extensiones:
+  - ESLint — Integración de linting en tiempo real
+  - Prettier — Formateo automático al guardar
+  - Prisma — Sintaxis y autocompletado para schema.prisma
+  - GitHub Copilot — Asistencia de IA para desarrollo
+  - Thunder Client / REST Client — Pruebas de API
+
+#### 4.2 Requisitos del entorno
+
+| Requisito | Versión mínima |
+|-----------|---------------|
+| Node.js | 20.x LTS |
+| npm | 10.x |
+| PostgreSQL | 16.x |
+| Docker | 24.x |
+| Docker Compose | 2.x |
+| Git | 2.40+ |
+
+#### 4.3 Variables de entorno
+
+```env
+# backend/.env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/workflow_sw1"
+JWT_SECRET="sw1-secret-key-2025"
+```
+
+### 5. Flujo de Trabajo y Métricas
+
+#### 5.1 Flujo de desarrollo
+
+```
+1. Crear rama feature/*
+2. Desarrollar funcionalidad
+3. Ejecutar pruebas locales: npx jest
+4. Verificar linting: npx eslint .
+5. Commit con formato convencional: git commit -m "feat: descripción"
+6. Push a GitHub → CI/CD automático
+7. PR hacia main → Review + merge
+```
+
+#### 5.2 Pipeline CI/CD automático
+
+Cada push o PR a `main` ejecuta automáticamente:
+
+| Job | Verificaciones |
+|-----|---------------|
+| **backend-test** | `npm ci` → `prisma generate` → `jest --ci --coverage` → `npm run build` |
+| **frontend-build** | `npm ci` → `tsc --noEmit` → `vite build` |
+| **docker-build** | `docker build ./backend` → `docker build ./frontend` |
+
+#### 5.3 Métricas de calidad
+
+| Métrica | Valor actual | Umbral |
+|---------|-------------|--------|
+| Tests pasando | 25/25 (100%) | ≥ 95% |
+| Errores TypeScript | 0 | 0 |
+| Warnings ESLint | 0 críticos | 0 críticos |
+| Build exitoso | ✅ Backend + Frontend | Siempre |
+| Cobertura de servicios | 4/4 servicios | 100% core |
+
+### 6. Conclusión
+
+El estándar de codificación implementado en **WorkflowSW1** asegura:
+
+1. **Consistencia**: Prettier formatea automáticamente todo el código con comillas simples y trailing commas.
+2. **Calidad**: ESLint con reglas `recommendedTypeChecked` detecta errores potenciales en tiempo de desarrollo.
+3. **Seguridad de tipos**: TypeScript strict en frontend y `strictNullChecks` en backend previenen errores en tiempo de ejecución.
+4. **Automatización**: El pipeline CI/CD ejecuta linting, pruebas y builds en cada push, garantizando que solo código validado llega a producción.
+5. **Mantenibilidad**: La estructura modular de NestJS y la organización por features en React facilitan la evolución del sistema.
+6. **Trazabilidad**: Conventional Commits y GitHub Actions proporcionan un historial claro de cambios y verificaciones.
 
 ---
 
