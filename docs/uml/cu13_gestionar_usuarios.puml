@@ -1,0 +1,53 @@
+@startuml CU13_Gestionar_Usuarios
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU13 — Gestionar Usuarios del Sistema
+
+' ── Actores ──
+actor "Diseñador /\nAdministrador" as ADMIN
+actor "Funcionario"  as OFFICER
+actor "Cliente"      as CLIENT
+actor "Usuario"      as USER
+
+ADMIN   --|> USER
+OFFICER --|> USER
+CLIENT  --|> USER
+
+' ── Casos de uso ──
+usecase "Registrarse en\nel sistema"          as UC_REG
+usecase "Ver perfil\npropio"                  as UC_PROFILE
+usecase "Listar todos\nlos usuarios"          as UC_LIST
+usecase "Asignar rol\na usuario\n(DESIGNER / OFFICER / CLIENT)" as UC_ROLE
+usecase "Asociar usuario\na departamento"     as UC_DEPT_ASSIGN
+usecase "Registrar token\nFCM del dispositivo" as UC_FCM
+
+' ── Relaciones ──
+USER   --> UC_REG
+USER   --> UC_PROFILE
+USER   --> UC_FCM
+ADMIN  --> UC_LIST
+ADMIN  --> UC_ROLE
+ADMIN  --> UC_DEPT_ASSIGN
+
+UC_ROLE        ..> UC_LIST        : <<include>>
+UC_DEPT_ASSIGN ..> UC_LIST        : <<include>>
+
+note right of UC_ROLE
+  Roles disponibles:
+  - DESIGNER: crea y edita políticas
+  - OFFICER: atiende tareas
+  - CLIENT: inicia trámites
+end note
+
+note right of UC_FCM
+  Registra el token del
+  dispositivo móvil para
+  recibir notificaciones push
+  de Firebase Cloud Messaging.
+end note
+
+@enduml

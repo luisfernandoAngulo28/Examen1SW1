@@ -1,0 +1,57 @@
+@startuml CU14_Dashboard_KPIs
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU14 — Ver Dashboard y KPIs Generales
+
+' ── Actores ──
+actor "Diseñador /\nAdministrador" as ADMIN
+actor "Funcionario"  as OFFICER
+actor "Usuario"      as USER
+
+ADMIN   --|> USER
+OFFICER --|> USER
+
+' ── Casos de uso ──
+usecase "Ver total de\ntrámites"                  as UC_TOTAL
+usecase "Ver trámites\nactivos"                   as UC_ACTIVE
+usecase "Ver trámites\ncompletados"               as UC_DONE
+usecase "Ver tareas\npendientes globales"          as UC_PENDING
+usecase "Ver carga de tareas\npor departamento"   as UC_BY_DEPT
+usecase "Ver resumen\nde políticas activas"       as UC_POLICIES
+usecase "Navegar al\ndetalle de un trámite"       as UC_DRILL
+
+' ── Relaciones ──
+ADMIN --> UC_TOTAL
+ADMIN --> UC_ACTIVE
+ADMIN --> UC_DONE
+ADMIN --> UC_PENDING
+ADMIN --> UC_BY_DEPT
+ADMIN --> UC_POLICIES
+OFFICER --> UC_PENDING
+OFFICER --> UC_BY_DEPT
+
+UC_TOTAL    ..> UC_ACTIVE   : <<include>>
+UC_TOTAL    ..> UC_DONE     : <<include>>
+UC_ACTIVE   ..> UC_DRILL    : <<extend>>
+UC_BY_DEPT  ..> UC_DRILL    : <<extend>>
+
+note right of UC_BY_DEPT
+  Barras de carga por
+  departamento. Rojo si
+  el departamento tiene
+  3 o más tareas acumuladas
+  (posible cuello de botella).
+end note
+
+note right of UC_POLICIES
+  Acceso directo a:
+  - Editor de política
+  - Lista de trámites
+  - Analytics de política
+end note
+
+@enduml

@@ -29,6 +29,10 @@ Todos los diagramas están en formato **PlantUML** (herramienta CASE estándar, 
 | [cu09_analitica_cuellos.puml](cu09_analitica_cuellos.puml) | CU09 — Analítica y Cuellos de Botella | Diseñador, Administrador |
 | [cu10_notificaciones_push.puml](cu10_notificaciones_push.puml) | CU10 — Notificaciones Push Móvil | Cliente, Funcionario |
 | [cu11_gestionar_departamentos.puml](cu11_gestionar_departamentos.puml) | CU11 — Gestionar Departamentos | Diseñador, Administrador |
+| [cu12_motor_workflow.puml](cu12_motor_workflow.puml) | CU12 — Motor de Ejecución del Workflow | Funcionario, Sistema Motor |
+| [cu13_gestionar_usuarios.puml](cu13_gestionar_usuarios.puml) | CU13 — Gestionar Usuarios del Sistema | Administrador, Funcionario, Cliente |
+| [cu14_dashboard_kpis.puml](cu14_dashboard_kpis.puml) | CU14 — Ver Dashboard y KPIs Generales | Diseñador, Administrador, Funcionario |
+| [cu15_historial_trazabilidad.puml](cu15_historial_trazabilidad.puml) | CU15 — Historial y Trazabilidad del Trámite | Cliente, Funcionario, Administrador |
 
 **Convención de flechas:**
 - `ActorB --|> ActorA` → B **extiende** (hereda de) A — generalización de actor

@@ -1,0 +1,64 @@
+@startuml CU12_Motor_Workflow
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU12 — Motor de Ejecución del Workflow
+
+' ── Actores ──
+actor "Funcionario" as OFFICER
+actor "Diseñador"   as DESIGNER
+actor "Usuario"     as USER
+actor "Sistema\n(Motor)"  as ENGINE
+
+OFFICER  --|> USER
+DESIGNER --|> USER
+
+' ── Casos de uso ──
+usecase "Enrutar al siguiente\nnodo automáticamente"       as UC_ROUTE
+usecase "Evaluar condición\n(nodo DECISION)"               as UC_DECISION
+usecase "Paralelizar ramas\n(nodo FORK)"                   as UC_FORK
+usecase "Sincronizar ramas\n(nodo JOIN)"                   as UC_JOIN
+usecase "Avanzar en bloque\niterativo (bucle)"             as UC_ITER
+usecase "Completar caso\n(nodo FINAL)"                     as UC_FINAL
+usecase "Publicar evento\n(WebSocket STOMP)"               as UC_EVENT
+
+' ── Relaciones actor–CU ──
+OFFICER --> UC_ROUTE
+OFFICER --> UC_FINAL
+DESIGNER --> UC_DECISION
+
+' ── Motor dispara internamente ──
+ENGINE ..> UC_ROUTE    : ejecuta
+ENGINE ..> UC_DECISION : evalúa
+ENGINE ..> UC_FORK     : bifurca
+ENGINE ..> UC_JOIN     : sincroniza
+ENGINE ..> UC_ITER     : repite
+ENGINE ..> UC_EVENT    : publica
+
+' ── Include / extend entre CU ──
+UC_ROUTE   ..> UC_DECISION : <<extend>>\nnodo DECISION
+UC_ROUTE   ..> UC_FORK     : <<extend>>\nnodo FORK
+UC_ROUTE   ..> UC_JOIN     : <<extend>>\nnodo JOIN
+UC_ROUTE   ..> UC_ITER     : <<extend>>\nnodo iterativo
+UC_ROUTE   ..> UC_FINAL    : <<extend>>\nnodo FINAL
+UC_FINAL   ..> UC_EVENT    : <<include>>
+
+note right of UC_JOIN
+  JOIN espera que TODAS
+  las ramas paralelas
+  estén en DONE antes
+  de avanzar al siguiente
+  nodo del flujo principal.
+end note
+
+note right of UC_ITER
+  Bucle: si la condición
+  es "No" vuelve al nodo
+  de validación anterior
+  (flujo iterativo UML).
+end note
+
+@enduml
