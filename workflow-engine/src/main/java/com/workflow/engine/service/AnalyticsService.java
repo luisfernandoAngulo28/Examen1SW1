@@ -147,15 +147,22 @@ public class AnalyticsService {
             nodeStats.add(stat);
         }
 
-        // Bottleneck detection: pendingTasks >= 3 OR avgDuration > globalAvg * 1.5
+        // Bottleneck detection: pendingTasks >= 2, OR avgDuration > globalAvg * 1.5,
+        // OR nodo con tareas pendientes que representa >40% del total pendiente global
         double globalAvg = nodeStats.stream()
                 .mapToLong(s -> (long) s.get("avgDurationMinutes"))
                 .average().orElse(0.0);
 
+        long totalPendingGlobal = nodeStats.stream()
+                .mapToLong(s -> (long) s.get("pendingTasks")).sum();
+
         for (Map<String, Object> stat : nodeStats) {
             long pending = (long) stat.get("pendingTasks");
             long avg = (long) stat.get("avgDurationMinutes");
-            boolean isBottleneck = pending >= 3 || (globalAvg > 0 && avg > globalAvg * 1.5);
+            double pendingRatio = totalPendingGlobal > 0 ? (double) pending / totalPendingGlobal : 0;
+            boolean isBottleneck = pending >= 2
+                    || (globalAvg > 0 && avg > globalAvg * 1.5)
+                    || (pending >= 1 && pendingRatio >= 0.4);
             stat.put("isBottleneck", isBottleneck);
         }
 
@@ -222,10 +229,18 @@ public class AnalyticsService {
 
         // High pending tasks globally
         long totalPending = nodeStats.stream().mapToLong(s -> (long) s.get("pendingTasks")).sum();
-        if (totalPending > 5 && bottlenecks.isEmpty()) {
+        if (totalPending >= 2 && bottlenecks.isEmpty()) {
             insights.add(insight("info",
                     totalPending + " tareas pendientes distribuidas uniformemente entre las actividades.",
                     "La carga está distribuida pero considere priorizar tareas con mayor antigüedad."));
+        }
+
+        // Detectar ramas paralelas bloqueadas (FORK con multiples nodos con pending)
+        long nodesConPending = nodeStats.stream().filter(s -> (long) s.get("pendingTasks") >= 1).count();
+        if (nodesConPending >= 2 && totalPending >= 2) {
+            insights.add(insight("warning",
+                    nodesConPending + " actividades en paralelo con tareas pendientes. El JOIN no puede avanzar hasta que todas terminen.",
+                    "Priorizar la atencion de las ramas paralelas bloqueadas para desbloquear el flujo principal."));
         }
 
         // No cases yet
