@@ -56,8 +56,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Permite cualquier puerto en localhost (Angular :4200, Flutter web :cualquierPuerto, etc.)
-        config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        // Localhost (dev) + any origin from env var CORS_EXTRA_ORIGINS (prod/AWS)
+        List<String> patterns = new java.util.ArrayList<>(List.of(
+                "http://localhost:*", "http://127.0.0.1:*"));
+        String extra = System.getenv("CORS_EXTRA_ORIGINS");
+        if (extra != null && !extra.isBlank()) {
+            for (String origin : extra.split(",")) {
+                patterns.add(origin.trim());
+            }
+        }
+        config.setAllowedOriginPatterns(patterns);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
