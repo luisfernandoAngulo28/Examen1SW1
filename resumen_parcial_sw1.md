@@ -117,17 +117,17 @@ Estos puntos aparecen en los apuntes de clase y conviene dejarlos como backlog p
 - Protección de roles en endpoints sensibles (@Roles DESIGNER en saveGraph).
 - saveGraph protegido: no permite editar grafo con trámites en curso.
 - Token expiry handling: redirect automático a login si 401.
-- 25 tests unitarios (AuthService, PoliciesService, CasesService) - 100% pass.
-- Docker: docker-compose.yml + Dockerfiles backend/frontend + nginx.conf.
+- 27 tests unitarios (AuthControllerTest, AnalyticsControllerTest, CaseControllerTest) - 100% pass.
+- Docker: docker-compose.yml + Dockerfiles backend/frontend/ai-service.
 - CI/CD: GitHub Actions pipeline (backend tests + frontend build + docker build).
-- Script de seed demo con política completa (11 nodos UML, 11 aristas, 2 formularios).
+- Script de seed demo con 5 políticas incluyendo "Solicitud de Crédito Empresarial" (20 nodos UML, 22 aristas, todos los tipos de flujo).
 - Manual de usuario con 20+ capturas del sistema funcionando.
 - Código versionado en GitHub con commits descriptivos.
 
 ### Checklist final de entrega
 - [x] Backend levantando sin errores.
 - [x] Frontend levantando sin errores.
-- [x] Login funcional con usuario de prueba (admin@test.com / 123456).
+- [x] Login funcional con usuario de prueba (admin@demo.com / Admin1234!).
 - [x] Registro de usuarios funcional (UI + API).
 - [x] Política de ejemplo lista para demo (Proceso de Contratación).
 - [x] Trámite de ejemplo ejecutado de punta a punta (CASE_COMPLETED).
@@ -138,7 +138,7 @@ Estos puntos aparecen en los apuntes de clase y conviene dejarlos como backlog p
 - [x] Monitor actualizando estados en tiempo real (WebSocket).
 - [x] Analíticas visibles con datos y gráficos.
 - [x] Análisis IA de cuellos de botella con recomendaciones.
-- [x] Tests unitarios pasando (25/25).
+- [x] Tests unitarios pasando (27/27).
 - [x] Docker configurado (docker-compose.yml).
 - [x] CI/CD configurado (GitHub Actions).
 - [x] Manual con capturas finales correctas.
