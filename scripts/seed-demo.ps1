@@ -36,6 +36,27 @@ function Invoke-Api($method, $path, $body = $null, $token = $null) {
     }
 }
 
+function Complete-ContratacionCase($caseObj) {
+    $maxIter = 20
+    $current = $caseObj
+    for ($i = 0; $i -lt $maxIter; $i++) {
+        if ($current.status -eq "COMPLETED") { break }
+        $pending = $current.tasks | Where-Object { $_.status -eq "PENDING" -or $_.status -eq "IN_PROGRESS" }
+        if (-not $pending) { break }
+        foreach ($t in $pending) {
+            $isDecision = ($t.node -and $t.node.nodeType -eq "DECISION")
+            if ($isDecision) {
+                $current = Invoke-Api POST "/cases/tasks/$($t.id)/complete" @{ chosenEdgeLabel="Aprobado" } $tk
+            } else {
+                $current = Invoke-Api POST "/cases/tasks/$($t.id)/complete" @{} $tk
+            }
+            if (-not $current) { return $null }
+            if ($current.status -eq "COMPLETED") { return $current }
+        }
+    }
+    return $current
+}
+
 Write-Host ""
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host "   SEED DEMO - Workflow Engine (SW1 2026)   " -ForegroundColor Cyan
@@ -347,30 +368,6 @@ for ($i = 1; $i -le 2; $i++) {
     }
 }
 
-# Contratacion: 2 casos completados (rama Aprobado + Fork/Join)
-# Helper especifico: completa linealmente hasta encontrar DECISION, elige "Aprobado",
-# luego completa todas las tareas PENDING restantes (incluyendo las ramas paralelas).
-function Complete-ContratacionCase($caseObj) {
-    $maxIter = 20
-    $current = $caseObj
-    for ($i = 0; $i -lt $maxIter; $i++) {
-        if ($current.status -eq "COMPLETED") { break }
-        $pending = $current.tasks | Where-Object { $_.status -eq "PENDING" -or $_.status -eq "IN_PROGRESS" }
-        if (-not $pending) { break }
-        foreach ($t in $pending) {
-            # Detectar si es una tarea de nodo tipo DECISION por titulo
-            $isDecision = ($t.node -and $t.node.nodeType -eq "DECISION")
-            if ($isDecision) {
-                $current = Invoke-Api POST "/cases/tasks/$($t.id)/complete" @{ chosenEdgeLabel="Aprobado" } $tk
-            } else {
-                $current = Invoke-Api POST "/cases/tasks/$($t.id)/complete" @{} $tk
-            }
-            if (-not $current) { return $null }
-            if ($current.status -eq "COMPLETED") { return $current }
-        }
-    }
-    return $current
-}
 for ($i = 1; $i -le 2; $i++) {
     $h = Invoke-Api POST "/cases" @{ policyId=$p1Id } $tk
     if ($h) {
@@ -462,6 +459,214 @@ for ($i = 1; $i -le 3; $i++) {
     }
 }
 
+# --- 10. Politica Estrella: Solicitud de Credito Empresarial (ejemplo de clase) ---
+Write-Host "`n10. Politica ESTRELLA: Solicitud de Credito Empresarial..." -ForegroundColor Magenta
+Write-Host "    (Ejemplo exacto del diagrama de clase: ITERATIVO + FORK/JOIN + ALTERNATIVO)" -ForegroundColor DarkMagenta
+
+# Asegurar departamentos necesarios
+$deptAtC   = $depts["Atencion al Cliente"]
+$deptValT  = $depts["Validacion Tecnica"]
+$deptLegal = $depts["Legal"]
+$deptRiesg = $depts["Riesgos"]
+$deptDir   = $depts["Direccion"]
+
+# Si no existen crearlos
+if (-not $deptAtC) {
+    $d = Invoke-Api POST "/departments" @{ name="Atencion al Cliente" } $tk
+    if ($d -and $d.id) { $depts["Atencion al Cliente"] = $d.id; $deptAtC = $d.id; Write-Host "   OK Atencion al Cliente" -ForegroundColor Green }
+}
+if (-not $deptValT) {
+    $d = Invoke-Api POST "/departments" @{ name="Validacion Tecnica" } $tk
+    if ($d -and $d.id) { $depts["Validacion Tecnica"] = $d.id; $deptValT = $d.id; Write-Host "   OK Validacion Tecnica" -ForegroundColor Green }
+}
+if (-not $deptRiesg) {
+    $d = Invoke-Api POST "/departments" @{ name="Riesgos" } $tk
+    if ($d -and $d.id) { $depts["Riesgos"] = $d.id; $deptRiesg = $d.id; Write-Host "   OK Riesgos" -ForegroundColor Green }
+}
+if (-not $deptDir) {
+    $d = Invoke-Api POST "/departments" @{ name="Direccion" } $tk
+    if ($d -and $d.id) { $depts["Direccion"] = $d.id; $deptDir = $d.id; Write-Host "   OK Direccion" -ForegroundColor Green }
+}
+# Legal y Riesgos ya existen en $depts
+
+# IDs de nodos
+$cI    = [guid]::NewGuid().ToString()  # INICIO
+$cRec  = [guid]::NewGuid().ToString()  # Recepcion de solicitud
+$cVer  = [guid]::NewGuid().ToString()  # Verificacion de datos
+$cDat  = [guid]::NewGuid().ToString()  # DECISION: Datos completos?
+$cNot  = [guid]::NewGuid().ToString()  # Notificar al cliente (iterativo)
+$cFork = [guid]::NewGuid().ToString()  # FORK paralelo
+$cLeg  = [guid]::NewGuid().ToString()  # Analisis legal
+$cRsk  = [guid]::NewGuid().ToString()  # Evaluacion de riesgo
+$cHis  = [guid]::NewGuid().ToString()  # Revision de historial
+$cJoin = [guid]::NewGuid().ToString()  # JOIN paralelo
+$cMon  = [guid]::NewGuid().ToString()  # DECISION: Monto > 50000?
+$cADir = [guid]::NewGuid().ToString()  # Aprobacion Direccion
+$cARsk = [guid]::NewGuid().ToString()  # Aprobacion Riesgos
+$cApro = [guid]::NewGuid().ToString()  # DECISION: Aprobado?
+$cConv = [guid]::NewGuid().ToString()  # Convergencia post-aprobacion (join alternativo)
+$cCont = [guid]::NewGuid().ToString()  # Generacion de contrato
+$cFirm = [guid]::NewGuid().ToString()  # Firma y desembolso
+$cRej  = [guid]::NewGuid().ToString()  # Notificar rechazo
+$cFin1 = [guid]::NewGuid().ToString()  # FIN (aprobado)
+$cFin2 = [guid]::NewGuid().ToString()  # FIN (rechazado)
+
+$polCred = Invoke-Api POST "/policies" @{ name="Solicitud de Credito Empresarial"; description="Ejemplo del diagrama de clase: iterativo + fork/join paralelo + alternativo"; status="ACTIVE" } $tk
+$pCredId = $polCred.id
+Write-Host "   Politica id: $pCredId" -ForegroundColor Green
+
+Invoke-Api PUT "/policies/$pCredId/graph" @{
+    nodes = @(
+        @{ id=$cI;    nodeType="INITIAL";  title="Inicio";                   positionX=400; positionY=20 },
+        @{ id=$cRec;  nodeType="ACTION";   title="Recepcion de solicitud";   departmentId=$deptAtC;  positionX=400; positionY=130;
+           formTemplate=@{ fields=@(
+               @{name="solicitante"; label="Nombre del solicitante"; type="text";   required=$true},
+               @{name="empresa";     label="Razon social";           type="text";   required=$true},
+               @{name="monto";       label="Monto solicitado (USD)"; type="number"; required=$true},
+               @{name="descripcion"; label="Descripcion del credito"; type="textarea"; required=$false}
+           ) } },
+        @{ id=$cVer;  nodeType="ACTION";   title="Verificacion de datos";    departmentId=$deptValT; positionX=400; positionY=250;
+           formTemplate=@{ fields=@(
+               @{name="ci";          label="CI / NIT verificado";    type="text";     required=$true},
+               @{name="documentos";  label="Documentos recibidos";   type="textarea"; required=$true},
+               @{name="completo";    label="Datos completos";        type="checkbox"; required=$true}
+           ) } },
+        @{ id=$cDat;  nodeType="DECISION"; title="Datos completos?";          departmentId=$deptValT; positionX=400; positionY=370 },
+        @{ id=$cNot;  nodeType="ACTION";   title="Notificar al cliente";      departmentId=$deptAtC;  positionX=650; positionY=370;
+           formTemplate=@{ fields=@(
+               @{name="motivo";   label="Motivo de devolucion"; type="textarea"; required=$true},
+               @{name="contacto"; label="Contacto notificado";  type="text";     required=$true}
+           ) } },
+        @{ id=$cFork; nodeType="FORK";     title="Fork Analisis Paralelo";   positionX=400; positionY=490 },
+        @{ id=$cLeg;  nodeType="ACTION";   title="Analisis legal";            departmentId=$deptLegal; positionX=150; positionY=610;
+           formTemplate=@{ fields=@(
+               @{name="resultado"; label="Resultado del analisis legal"; type="textarea"; required=$true},
+               @{name="riesgo";    label="Nivel de riesgo legal";        type="select";   required=$true; options=@("Bajo","Medio","Alto")}
+           ) } },
+        @{ id=$cRsk;  nodeType="ACTION";   title="Evaluacion de riesgo";     departmentId=$deptRiesg; positionX=400; positionY=610;
+           formTemplate=@{ fields=@(
+               @{name="score";      label="Score de riesgo (0-100)"; type="number";   required=$true},
+               @{name="categoria";  label="Categoria";               type="select";   required=$true; options=@("Verde","Amarillo","Rojo")},
+               @{name="observ";     label="Observaciones";            type="textarea"; required=$false}
+           ) } },
+        @{ id=$cHis;  nodeType="ACTION";   title="Revision de historial";    departmentId=$deptValT;  positionX=650; positionY=610;
+           formTemplate=@{ fields=@(
+               @{name="historial";  label="Historial crediticio";    type="textarea"; required=$true},
+               @{name="deudas";     label="Deudas vigentes";         type="number";   required=$true},
+               @{name="calificacion"; label="Calificacion";          type="select";   required=$true; options=@("Excelente","Bueno","Regular","Malo")}
+           ) } },
+        @{ id=$cJoin; nodeType="JOIN";     title="Join Analisis Completo";   positionX=400; positionY=740 },
+        @{ id=$cMon;  nodeType="DECISION"; title="Monto mayor a 50000?";     departmentId=$deptRiesg; positionX=400; positionY=860 },
+        @{ id=$cADir; nodeType="ACTION";   title="Aprobacion Direccion";     departmentId=$deptDir;   positionX=200; positionY=980;
+           formTemplate=@{ fields=@(
+               @{name="decision";   label="Decision de Direccion";  type="select";   required=$true; options=@("Aprobado","Rechazado","Condicionado")},
+               @{name="condicion";  label="Condicion (si aplica)";  type="textarea"; required=$false},
+               @{name="firma";      label="Firmado por";            type="text";     required=$true}
+           ) } },
+        @{ id=$cARsk; nodeType="ACTION";   title="Aprobacion Riesgos";       departmentId=$deptRiesg; positionX=600; positionY=980;
+           formTemplate=@{ fields=@(
+               @{name="decision";   label="Decision de Riesgos";   type="select";   required=$true; options=@("Aprobado","Rechazado")},
+               @{name="limite";     label="Limite aprobado (USD)"; type="number";   required=$false},
+               @{name="plazo";      label="Plazo (meses)";         type="number";   required=$false}
+           ) } },
+        @{ id=$cApro; nodeType="DECISION"; title="Aprobado?";                departmentId=$deptDir;   positionX=400; positionY=1100 },
+        @{ id=$cCont; nodeType="ACTION";   title="Generacion de contrato";   departmentId=$deptLegal; positionX=250; positionY=1220;
+           formTemplate=@{ fields=@(
+               @{name="numContrato"; label="Numero de contrato"; type="text";   required=$true},
+               @{name="clausulas";   label="Clausulas especiales"; type="textarea"; required=$false},
+               @{name="fechaInicio"; label="Fecha de inicio";    type="date";   required=$true}
+           ) } },
+        @{ id=$cFirm; nodeType="ACTION";   title="Firma y desembolso";       departmentId=$deptDir;   positionX=250; positionY=1340;
+           formTemplate=@{ fields=@(
+               @{name="firmante";    label="Firmado por cliente";  type="text";   required=$true},
+               @{name="cuenta";      label="Cuenta de desembolso"; type="text";   required=$true},
+               @{name="fechaDesemb"; label="Fecha de desembolso";  type="date";   required=$true}
+           ) } },
+        @{ id=$cRej;  nodeType="ACTION";   title="Notificar rechazo";        departmentId=$deptAtC;   positionX=600; positionY=1220;
+           formTemplate=@{ fields=@(
+               @{name="motivo";    label="Motivo de rechazo"; type="textarea"; required=$true},
+               @{name="contacto";  label="Contacto notificado"; type="text";   required=$true}
+           ) } },
+        @{ id=$cFin1; nodeType="FINAL";    title="Fin - Credito Aprobado";   positionX=250; positionY=1460 },
+        @{ id=$cFin2; nodeType="FINAL";    title="Fin - Credito Rechazado";  positionX=600; positionY=1340 }
+    )
+    edges = @(
+        # Flujo principal inicial
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cI;    toNodeId=$cRec;  flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cRec;  toNodeId=$cVer;  flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cVer;  toNodeId=$cDat;  flowType="SEQUENTIAL" },
+        # ITERATIVO: datos incompletos -> notificar -> volver a verificar
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cDat;  toNodeId=$cNot;  flowType="CONDITIONAL"; conditionLabel="No" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cNot;  toNodeId=$cVer;  flowType="ITERATIVE";   conditionLabel="Reintentar" },
+        # PARALELO: datos completos -> fork
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cDat;  toNodeId=$cFork; flowType="CONDITIONAL"; conditionLabel="Si" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cFork; toNodeId=$cLeg;  flowType="PARALLEL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cFork; toNodeId=$cRsk;  flowType="PARALLEL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cFork; toNodeId=$cHis;  flowType="PARALLEL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cLeg;  toNodeId=$cJoin; flowType="PARALLEL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cRsk;  toNodeId=$cJoin; flowType="PARALLEL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cHis;  toNodeId=$cJoin; flowType="PARALLEL" },
+        # ALTERNATIVO: segun monto
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cJoin; toNodeId=$cMon;  flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cMon;  toNodeId=$cADir; flowType="CONDITIONAL"; conditionLabel="Si, mayor a 50000" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cMon;  toNodeId=$cARsk; flowType="CONDITIONAL"; conditionLabel="No, menor o igual" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cADir; toNodeId=$cApro; flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cARsk; toNodeId=$cApro; flowType="SEQUENTIAL" },
+        # Decision final
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cApro; toNodeId=$cCont; flowType="CONDITIONAL"; conditionLabel="Si" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cApro; toNodeId=$cRej;  flowType="CONDITIONAL"; conditionLabel="No" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cCont; toNodeId=$cFirm; flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cFirm; toNodeId=$cFin1; flowType="SEQUENTIAL" },
+        @{ id=[guid]::NewGuid().ToString(); fromNodeId=$cRej;  toNodeId=$cFin2; flowType="SEQUENTIAL" }
+    )
+} $tk | Out-Null
+Write-Host "   OK Grafo Credito Empresarial guardado (20 nodos, 22 aristas)" -ForegroundColor Green
+
+# Caso activo: en etapa de analisis paralelo (para demo del monitor)
+$caseCred = Invoke-Api POST "/cases" @{ policyId=$pCredId } $tk
+if ($caseCred -and $caseCred.id) {
+    Write-Host "   Caso Credito activo: $($caseCred.id)" -ForegroundColor Green
+    # Completar Inicio (auto) y Recepcion
+    $t1 = $caseCred.tasks | Where-Object { $_.status -eq "PENDING" } | Select-Object -First 1
+    if ($t1) {
+        $caseCred = Invoke-Api POST "/cases/tasks/$($t1.id)/complete" @{
+            payloadJson = '{"solicitante":"Empresa ABC SRL","empresa":"ABC SRL","monto":"75000","descripcion":"Capital de trabajo para expansion"}'
+        } $tk
+        Write-Host "   OK Recepcion completada" -ForegroundColor Green
+    }
+    # Completar Verificacion de datos -> decision "Si" -> entra al Fork
+    $t2 = $caseCred.tasks | Where-Object { $_.status -eq "PENDING" } | Select-Object -First 1
+    if ($t2) {
+        $caseCred = Invoke-Api POST "/cases/tasks/$($t2.id)/complete" @{
+            payloadJson = '{"ci":"1234567","documentos":"Todos los documentos presentados","completo":"true"}'
+        } $tk
+        Write-Host "   OK Verificacion completada" -ForegroundColor Green
+    }
+    # Decision datos completos -> "Si"
+    $tDec = $caseCred.tasks | Where-Object { $_.status -eq "PENDING" } | Select-Object -First 1
+    if ($tDec) {
+        $caseCred = Invoke-Api POST "/cases/tasks/$($tDec.id)/complete" @{ chosenEdgeLabel="Si" } $tk
+        Write-Host "   OK Decision -> Si (datos completos, entra a Fork paralelo)" -ForegroundColor Green
+    }
+    # Asignar ramas paralelas a distintos usuarios para demo
+    if ($caseCred -and $caseCred.tasks) {
+        foreach ($tp in ($caseCred.tasks | Where-Object { $_.status -eq "PENDING" })) {
+            $nTitle = if ($tp.node) { $tp.node.title } else { "" }
+            if ($nTitle -like "*legal*" -or $nTitle -like "*Legal*") {
+                Invoke-Api PATCH "/cases/tasks/$($tp.id)/assign" @{ userId=$userIds["legal@demo.com"] } $tk | Out-Null
+                Write-Host "   OK Analisis legal asignado a Luis Legal" -ForegroundColor Green
+            } elseif ($nTitle -like "*riesgo*" -or $nTitle -like "*Riesgo*") {
+                Invoke-Api PATCH "/cases/tasks/$($tp.id)/assign" @{ userId=$userIds["finanzas@demo.com"] } $tk | Out-Null
+                Write-Host "   OK Evaluacion de riesgo asignada a Felipe Finanzas" -ForegroundColor Green
+            } elseif ($nTitle -like "*historial*" -or $nTitle -like "*Historial*") {
+                Invoke-Api PATCH "/cases/tasks/$($tp.id)/assign" @{ userId=$userIds["rrhh@demo.com"] } $tk | Out-Null
+                Write-Host "   OK Revision de historial asignada a Rosa RRHH" -ForegroundColor Green
+            }
+        }
+    }
+    Write-Host "   OK Caso listo: 3 tareas paralelas asignadas a 3 funcionarios diferentes" -ForegroundColor Cyan
+}
+
 Write-Host ""
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host "   SEED COMPLETADO OK                       " -ForegroundColor Cyan
@@ -480,11 +685,13 @@ Write-Host "  ti@demo.com           OFFICER - TI"
 Write-Host "  cliente@demo.com      CLIENT  - (app movil - seguimiento de tramites)"
 Write-Host ""
 Write-Host "Politicas activas:" -ForegroundColor White
+Write-Host "  - Solicitud de Credito Empresarial (EJEMPLO DE CLASE: ITERATIVO + FORK/JOIN + ALTERNATIVO)" -ForegroundColor Magenta
 Write-Host "  - Contratacion de Personal  (DECISION + FORK/JOIN paralelo)"
 Write-Host "  - Solicitud de Vacaciones   (flujo secuencial)"
 Write-Host "  - Aprobacion de Compras     (flujo secuencial)"
 Write-Host "  - Revision de Contratos     (flujo ITERATIVO - back-edge)"
 Write-Host ""
-Write-Host "Casos activos: 5 (listos para demo en Monitor)" -ForegroundColor White
+Write-Host "Casos activos: 6 (listos para demo en Monitor)" -ForegroundColor White
+Write-Host "  Credito Empresarial: 1 caso con 3 tareas PARALELAS activas (Legal + Finanzas + RRHH)" -ForegroundColor Magenta
 Write-Host "  Revision de Contratos: 1 caso con iteracion activa (Luis Legal, v2)" -ForegroundColor Cyan
 Write-Host ""
