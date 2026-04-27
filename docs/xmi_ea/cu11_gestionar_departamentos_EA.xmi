@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:uml="http://www.omg.org/spec/UML/20090901"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0">
+  <xmi:Documentation exporter="PlantUML-to-EA" exporterVersion="1.0"/>
+  <uml:Model xmi:type="uml:Model" name="CU11 — Gestionar Departamentos" visibility="public">
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_3842E014_7DF9_4433_9AA3_D47D4B462005" name="CU11 — Gestionar Departamentos" visibility="public">
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_5FC3680A_766F_4C73_8F7B_84F50CB30DB9" name="Diseñador" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_86AB3D9D_85B8_4683_B2F4_89098DC43762" name="Administrador" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_B035CA10_BA98_4104_8F09_2FE1CEE92554" name="Usuario" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_C66813EA_8052_43FD_85E9_A3597FCCD750" name="Crear departamento" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_E3EF9373_0083_4BEB_AFFE_08C0DECC4EB7" name="Listar departamentos" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_B7D6925C_55C5_462A_9BF0_60C173F6E7A6" name="Asignar departamento a actividad de política" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_5CBAEBD7_A073_4357_9FE4_C33618541659" name="Asignar funcionario a departamento" visibility="public"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_93AAE44E_B399_4EAC_BCBE_AD0D62E784DE" general="EAID_B035CA10_BA98_4104_8F09_2FE1CEE92554" specific="EAID_5FC3680A_766F_4C73_8F7B_84F50CB30DB9"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_8DC3A520_C19F_4640_97C8_1E94AF4EC857" general="EAID_B035CA10_BA98_4104_8F09_2FE1CEE92554" specific="EAID_86AB3D9D_85B8_4683_B2F4_89098DC43762"/>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_C0B9E6BF_FE99_4C4B_9248_7E8C371C9B26" visibility="public">
+      <memberEnd xmi:idref="EAID_1644B724_B29E_4DF9_AFFC_73571D760A77"/>
+      <memberEnd xmi:idref="EAID_712BA9B3_10EB_4BA0_922E_C8BD91FF70B0"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_1644B724_B29E_4DF9_AFFC_73571D760A77" type="EAID_5FC3680A_766F_4C73_8F7B_84F50CB30DB9" association="EAID_C0B9E6BF_FE99_4C4B_9248_7E8C371C9B26"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_712BA9B3_10EB_4BA0_922E_C8BD91FF70B0" type="EAID_C66813EA_8052_43FD_85E9_A3597FCCD750" association="EAID_C0B9E6BF_FE99_4C4B_9248_7E8C371C9B26"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_AEA23BAB_C8C3_42C5_82A3_CA067A99024F" visibility="public">
+      <memberEnd xmi:idref="EAID_52701B53_E9AF_405D_817F_0CC489128F73"/>
+      <memberEnd xmi:idref="EAID_B6897A8D_72F2_4591_9F83_91320BDBEF19"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_52701B53_E9AF_405D_817F_0CC489128F73" type="EAID_5FC3680A_766F_4C73_8F7B_84F50CB30DB9" association="EAID_AEA23BAB_C8C3_42C5_82A3_CA067A99024F"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_B6897A8D_72F2_4591_9F83_91320BDBEF19" type="EAID_E3EF9373_0083_4BEB_AFFE_08C0DECC4EB7" association="EAID_AEA23BAB_C8C3_42C5_82A3_CA067A99024F"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_505E6121_8628_4975_AD17_BB34A403E3DB" visibility="public">
+      <memberEnd xmi:idref="EAID_DBC9F34E_9EC1_46C2_90EC_E125E1B0B462"/>
+      <memberEnd xmi:idref="EAID_4D9266B5_64EE_4DC0_AD1B_0F8939A4F982"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_DBC9F34E_9EC1_46C2_90EC_E125E1B0B462" type="EAID_5FC3680A_766F_4C73_8F7B_84F50CB30DB9" association="EAID_505E6121_8628_4975_AD17_BB34A403E3DB"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_4D9266B5_64EE_4DC0_AD1B_0F8939A4F982" type="EAID_B7D6925C_55C5_462A_9BF0_60C173F6E7A6" association="EAID_505E6121_8628_4975_AD17_BB34A403E3DB"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_6DF42BC8_2986_46AC_9FA1_4515E107F085" visibility="public">
+      <memberEnd xmi:idref="EAID_7B597519_DACA_479C_84B7_0B2A4FB8066A"/>
+      <memberEnd xmi:idref="EAID_AC1874F3_E867_4C6A_84FF_8161D6F43D63"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_7B597519_DACA_479C_84B7_0B2A4FB8066A" type="EAID_86AB3D9D_85B8_4683_B2F4_89098DC43762" association="EAID_6DF42BC8_2986_46AC_9FA1_4515E107F085"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_AC1874F3_E867_4C6A_84FF_8161D6F43D63" type="EAID_5CBAEBD7_A073_4357_9FE4_C33618541659" association="EAID_6DF42BC8_2986_46AC_9FA1_4515E107F085"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Include" xmi:id="EAID_0FA85D33_9FA8_43FB_A3F2_40FD26690FD8">
+      <addition xmi:idref="EAID_E3EF9373_0083_4BEB_AFFE_08C0DECC4EB7"/>
+      <includingCase xmi:idref="EAID_B7D6925C_55C5_462A_9BF0_60C173F6E7A6"/>
+    </packagedElement>
+  </packagedElement>
+  </uml:Model>
+</xmi:XMI>

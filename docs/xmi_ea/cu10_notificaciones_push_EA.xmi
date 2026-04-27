@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:uml="http://www.omg.org/spec/UML/20090901"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0">
+  <xmi:Documentation exporter="PlantUML-to-EA" exporterVersion="1.0"/>
+  <uml:Model xmi:type="uml:Model" name="CU10 — Notificaciones Push (Móvil)" visibility="public">
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_11183CA1_66FC_455F_B0D9_3F6F3085EA39" name="CU10 — Notificaciones Push (Móvil)" visibility="public">
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_27353973_697D_4720_98C8_3BC792E361DD" name="Cliente" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_A6599DD9_633C_4B92_B1C5_1240E63D39AD" name="Funcionario" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_7CEA7195_18DA_4118_8593_30EB1B5AA5A0" name="Usuario" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_B9941DE3_A6C4_40E3_9764_EF0977D0D5CE" name="Firebase FCM" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_59AF49D5_8B05_49EA_80E6_160137EB43F3" name="Sistema Backend" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_E2A4238C_D547_4382_8DC1_EE8856DCF6DA" name="Registrar token FCM del dispositivo" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_E5B00ADF_B302_4345_9161_D79F8C3673F9" name="Ver notificación como alerta local" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_5A5E0498_D1AA_4D4C_A019_630310FBC352" name="Detectar nueva tarea (polling cada 15 s)" visibility="public"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_01CF93FB_0A56_4E1D_B925_916B73A86DD5" general="EAID_7CEA7195_18DA_4118_8593_30EB1B5AA5A0" specific="EAID_27353973_697D_4720_98C8_3BC792E361DD"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_008FCFDB_FCB6_4B63_B83D_F70A0E5138B9" general="EAID_7CEA7195_18DA_4118_8593_30EB1B5AA5A0" specific="EAID_A6599DD9_633C_4B92_B1C5_1240E63D39AD"/>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_689D20FE_010C_407C_9B2C_08F1E32D7F17" visibility="public">
+      <memberEnd xmi:idref="EAID_6D0DA2E8_66F2_4B4D_BDEA_8551724D7542"/>
+      <memberEnd xmi:idref="EAID_7CEECCCE_FF48_4B3D_96AF_FB2ABC4C7A39"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_6D0DA2E8_66F2_4B4D_BDEA_8551724D7542" type="EAID_A6599DD9_633C_4B92_B1C5_1240E63D39AD" association="EAID_689D20FE_010C_407C_9B2C_08F1E32D7F17"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_7CEECCCE_FF48_4B3D_96AF_FB2ABC4C7A39" type="EAID_E2A4238C_D547_4382_8DC1_EE8856DCF6DA" association="EAID_689D20FE_010C_407C_9B2C_08F1E32D7F17"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_78C6549D_602D_447A_9B33_7CA1123A6A2C" visibility="public">
+      <memberEnd xmi:idref="EAID_C0576627_72F9_4540_B692_D3C41331333D"/>
+      <memberEnd xmi:idref="EAID_B781715A_6645_49FF_AF70_810068422C77"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_C0576627_72F9_4540_B692_D3C41331333D" type="EAID_27353973_697D_4720_98C8_3BC792E361DD" association="EAID_78C6549D_602D_447A_9B33_7CA1123A6A2C"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_B781715A_6645_49FF_AF70_810068422C77" type="EAID_E2A4238C_D547_4382_8DC1_EE8856DCF6DA" association="EAID_78C6549D_602D_447A_9B33_7CA1123A6A2C"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_C471B1C8_D0A2_4781_8AFA_5A0132FB1638">
+      <extendedCase xmi:idref="EAID_E5B00ADF_B302_4345_9161_D79F8C3673F9"/>
+      <extension xmi:idref="EAID_5A5E0498_D1AA_4D4C_A019_630310FBC352"/>
+    </packagedElement>
+  </packagedElement>
+  </uml:Model>
+</xmi:XMI>

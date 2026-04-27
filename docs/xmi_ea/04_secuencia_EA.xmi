@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:uml="http://www.omg.org/spec/UML/20090901"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0">
+  <xmi:Documentation exporter="PlantUML-to-EA" exporterVersion="1.0"/>
+  <uml:Model xmi:type="uml:Model" name="Diagrama de Secuencia — Flujo Completo de un Trámite\n(Inicio por Cliente → Procesamiento por Funcionario → Notificación)\n(UML 2.5)" visibility="public">
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_C290F963_519C_4035_82F0_B3831B5AF781" name="Diagrama de Secuencia — Flujo Completo de un Trámite\n(Inicio por Cliente → Procesamiento por Funcionario → Notificación)\n(UML 2.5)" visibility="public">
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_A05ABF26_F116_4803_AE4D_49DC9CE6DD08" name="Cliente (App Móvil)" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_2D15A05B_01BF_4D1C_8404_DAD62B87BB78" name="Funcionario (Web / App)" visibility="public"/>
+  </packagedElement>
+  </uml:Model>
+</xmi:XMI>

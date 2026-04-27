@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:uml="http://www.omg.org/spec/UML/20090901"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0">
+  <xmi:Documentation exporter="PlantUML-to-EA" exporterVersion="1.0"/>
+  <uml:Model xmi:type="uml:Model" name="CU12 — Motor de Ejecución del Workflow" visibility="public">
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_C06F34B7_7F59_45C8_832D_C21DC274B974" name="CU12 — Motor de Ejecución del Workflow" visibility="public">
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_780805E3_11EC_4793_8EB6_F04CA4926CAF" name="Funcionario" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_8170E1FA_6DD3_42DB_9362_60D8485A3D12" name="Diseñador" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_578DE962_2D66_416C_A4AF_363981054B26" name="Usuario" visibility="public"/>
+    <packagedElement xmi:type="uml:Actor" xmi:id="EAID_CA52F231_2C3D_407B_94D9_5F3747A6C1CC" name="Sistema (Motor)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321" name="Enrutar al siguiente nodo automáticamente" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_D1777BBC_EA11_4101_A53B_0AF8F36F4481" name="Evaluar condición (nodo DECISION)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_A22B436B_E0DE_4B84_859A_160EAC778AB3" name="Paralelizar ramas (nodo FORK)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_54B73F0E_C108_499E_A0C8_73EF74174D5B" name="Sincronizar ramas (nodo JOIN)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_04B6AE3B_43CF_49C1_BDB0_F88C4A74975B" name="Avanzar en bloque iterativo (bucle)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_6DE377B5_92A8_46F5_9DB8_DDB9DF60488E" name="Completar caso (nodo FINAL)" visibility="public"/>
+    <packagedElement xmi:type="uml:UseCase" xmi:id="EAID_35B67367_8465_4E9E_92AC_BF6A96450B8C" name="Publicar evento (WebSocket STOMP)" visibility="public"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_805252D8_9D71_4E6A_BA87_1654B84AF313" general="EAID_578DE962_2D66_416C_A4AF_363981054B26" specific="EAID_780805E3_11EC_4793_8EB6_F04CA4926CAF"/>
+    <packagedElement xmi:type="uml:Generalization" xmi:id="EAID_07FF81C3_A9CE_488F_81CD_C84881065EF8" general="EAID_578DE962_2D66_416C_A4AF_363981054B26" specific="EAID_8170E1FA_6DD3_42DB_9362_60D8485A3D12"/>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_0EE5C0F1_638E_48CD_83EF_D0A81C2419E4" visibility="public">
+      <memberEnd xmi:idref="EAID_13BA5832_F761_45CC_BD3C_768D5BF09EA1"/>
+      <memberEnd xmi:idref="EAID_6BF272FF_10F1_40E9_9DE5_7D4AE2F5233E"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_13BA5832_F761_45CC_BD3C_768D5BF09EA1" type="EAID_780805E3_11EC_4793_8EB6_F04CA4926CAF" association="EAID_0EE5C0F1_638E_48CD_83EF_D0A81C2419E4"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_6BF272FF_10F1_40E9_9DE5_7D4AE2F5233E" type="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321" association="EAID_0EE5C0F1_638E_48CD_83EF_D0A81C2419E4"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_55394462_569E_4D95_B378_5048C78EDE6E" visibility="public">
+      <memberEnd xmi:idref="EAID_838552A9_E984_4192_9306_11677C9AE478"/>
+      <memberEnd xmi:idref="EAID_AEBD22AF_00E6_4C0A_B582_3CB9352A5353"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_838552A9_E984_4192_9306_11677C9AE478" type="EAID_780805E3_11EC_4793_8EB6_F04CA4926CAF" association="EAID_55394462_569E_4D95_B378_5048C78EDE6E"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_AEBD22AF_00E6_4C0A_B582_3CB9352A5353" type="EAID_6DE377B5_92A8_46F5_9DB8_DDB9DF60488E" association="EAID_55394462_569E_4D95_B378_5048C78EDE6E"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Association" xmi:id="EAID_4B25A201_6A95_4E7A_B33E_D0034FB71510" visibility="public">
+      <memberEnd xmi:idref="EAID_82B92E09_00F1_4CBF_8691_4EAA9B5211FD"/>
+      <memberEnd xmi:idref="EAID_FB744635_6549_4873_B69B_8F255780FEC4"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_82B92E09_00F1_4CBF_8691_4EAA9B5211FD" type="EAID_8170E1FA_6DD3_42DB_9362_60D8485A3D12" association="EAID_4B25A201_6A95_4E7A_B33E_D0034FB71510"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="EAID_FB744635_6549_4873_B69B_8F255780FEC4" type="EAID_D1777BBC_EA11_4101_A53B_0AF8F36F4481" association="EAID_4B25A201_6A95_4E7A_B33E_D0034FB71510"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Include" xmi:id="EAID_D084E4C6_C68D_4A76_9515_F1FDAF59F73E">
+      <addition xmi:idref="EAID_35B67367_8465_4E9E_92AC_BF6A96450B8C"/>
+      <includingCase xmi:idref="EAID_6DE377B5_92A8_46F5_9DB8_DDB9DF60488E"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_E33E2AE5_1BA8_4FD0_9C87_764F4916A918">
+      <extendedCase xmi:idref="EAID_D1777BBC_EA11_4101_A53B_0AF8F36F4481"/>
+      <extension xmi:idref="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_C506865D_7A00_4154_8DD5_F05ED8C25B92">
+      <extendedCase xmi:idref="EAID_A22B436B_E0DE_4B84_859A_160EAC778AB3"/>
+      <extension xmi:idref="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_047C4CFB_2DFD_4B10_9597_DD1E2F96BE56">
+      <extendedCase xmi:idref="EAID_54B73F0E_C108_499E_A0C8_73EF74174D5B"/>
+      <extension xmi:idref="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_F62AB380_0EA2_4134_98FD_86A5B6C4025F">
+      <extendedCase xmi:idref="EAID_04B6AE3B_43CF_49C1_BDB0_F88C4A74975B"/>
+      <extension xmi:idref="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Extend" xmi:id="EAID_92F905ED_57AC_4088_A0BF_B29E1D8AE3FD">
+      <extendedCase xmi:idref="EAID_6DE377B5_92A8_46F5_9DB8_DDB9DF60488E"/>
+      <extension xmi:idref="EAID_C29D952A_E060_4CB3_BC62_E9BD63D19321"/>
+    </packagedElement>
+  </packagedElement>
+  </uml:Model>
+</xmi:XMI>
