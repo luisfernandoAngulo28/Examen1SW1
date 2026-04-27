@@ -1,6 +1,7 @@
 package com.workflow.engine.controller;
 
 import com.workflow.engine.model.Policy;
+import com.workflow.engine.service.EventPublisher;
 import com.workflow.engine.service.PolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.List;
 public class PolicyController {
 
     private final PolicyService policyService;
+    private final EventPublisher eventPublisher;
 
     @GetMapping
     public ResponseEntity<List<Policy>> findAll() {
@@ -43,5 +45,15 @@ public class PolicyController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         policyService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Saves only nodes+edges (graph topology) without touching other policy fields. */
+    @PutMapping("/{id}/graph")
+    @PreAuthorize("hasRole('DESIGNER')")
+    public ResponseEntity<Policy> updateGraph(@PathVariable String id,
+                                               @RequestBody java.util.Map<String, Object> body) {
+        Policy saved = policyService.updateGraph(id, body);
+        eventPublisher.emitPolicyUpdated(id);
+        return ResponseEntity.ok(saved);
     }
 }

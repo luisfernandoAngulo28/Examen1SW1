@@ -30,6 +30,13 @@
   - [Páginas del Frontend](#páginas-del-frontend)
   - [Despliegue y CI/CD](#despliegue-y-cicd)
   - [Pruebas Automatizadas](#pruebas-automatizadas)
+- [Parte III — Aplicación Móvil (Flutter)](#parte-iii--aplicación-móvil-flutter)
+  - [Descripción General](#descripción-general)
+  - [Arquitectura de la App Móvil](#arquitectura-de-la-app-móvil)
+  - [Stack Tecnológico Móvil](#stack-tecnológico-móvil)
+  - [Pantallas y Flujos](#pantallas-y-flujos)
+  - [Notificaciones Push FCM](#notificaciones-push-fcm)
+  - [Integración con el Backend](#integración-con-el-backend)
 
 ---
 
@@ -37,260 +44,205 @@
 
 ### 1.1 Introducción
 
-En el contexto organizacional moderno, las instituciones públicas y privadas gestionan decenas de *políticas de negocio* que regulan procesos internos: aprobaciones de documentos, trámites ciudadanos, flujos de trabajo interdepartamentales, entre otros. La gestión manual de estos procesos genera ineficiencias, cuellos de botella y falta de trazabilidad.
+El presente proyecto propone el desarrollo de un sistema de gestión de políticas de negocio (workflow) mediante el uso de diagramas de actividad UML organizados en calles (swimlanes), con un enfoque orientado a la automatización de trámites y procesos organizacionales. La iniciativa surge de la necesidad de contar con herramientas que no solo permitan modelar de manera visual y estructurada los flujos de una empresa, sino que también automaticen el enrutamiento de las tareas y faciliten el monitoreo en tiempo real. 
 
-El presente proyecto, **WorkflowSW1**, propone una solución web integral para **diseñar, ejecutar y monitorear políticas de negocio** mediante diagramas de actividad UML interactivos. El sistema permite a los diseñadores de procesos modelar visualmente los flujos de trabajo con nodos de acción, decisión, bifurcación y unión, mientras que los funcionarios ejecutan las tareas asignadas a través de formularios dinámicos con soporte de voz y reconocimiento óptico de caracteres (OCR).
+El sistema contempla un entorno de diseño visual donde los administradores pueden crear los flujos de trabajo, transformando estos diagramas en procesos ejecutables gestionados por un motor de workflow. De esta forma, se garantiza que cada tarea sea asignada al departamento correspondiente de manera automática, reduciendo tiempos de espera y minimizando errores humanos en la transición entre etapas. 
+
+Adicionalmente, el proyecto integra características innovadoras como el diseño colaborativo en tiempo real, permitiendo a múltiples usuarios trabajar sobre la misma política de negocio. A ello se suma la incorporación de funcionalidades impulsadas por Inteligencia Artificial (IA), como la interacción mediante comandos de voz para la creación de flujos, el llenado automático de formularios (voz y OCR) para los funcionarios, y un módulo analítico capaz de detectar automáticamente cuellos de botella en la atención al cliente, ofreciendo una herramienta altamente eficiente e intuitiva.
 
 El proyecto se desarrolló aplicando la metodología **PUDS (Proceso Unificado de Desarrollo de Software)**, utilizando herramientas CASE modernas y principios de ingeniería humana centrados en la experiencia del usuario.
 
-### 1.2 Objetivo General
+### 1.2 Objetivos
 
-Desarrollar un sistema web de gestión de políticas de negocio basado en flujos de trabajo (workflow), que permita el diseño visual de procesos mediante diagramas de actividad UML, la ejecución automatizada de trámites y el monitoreo en tiempo real del estado de las tareas, aplicando la metodología PUDS y tecnologías modernas de desarrollo.
+#### 1.2.1 Objetivo General
+Desarrollar un software web que integre el diseño visual de políticas de negocio, la ejecución automatizada de flujos de trabajo (workflow) y el monitoreo de trámites en un entorno colaborativo, asistido por Inteligencia Artificial y aplicando la metodología PUDS.
 
-### 1.3 Objetivos Específicos
+#### 1.2.2 Objetivos Específicos
+• Diseñar e implementar un módulo de diseño visual colaborativo que permita crear y editar diagramas de actividad UML (organizados en calles) en tiempo real, incorporando asistencia de IA mediante comandos de texto y voz.
+• Desarrollar un motor de workflow capaz de instanciar trámites a partir de los diagramas diseñados, automatizando el flujo secuencial, condicional, iterativo y paralelo entre los distintos departamentos.
+• Incorporar formularios dinámicos para los funcionarios, que faciliten la carga de información mediante métodos manuales, dictado por voz (Web Speech API) y reconocimiento óptico de caracteres (OCR mediante Tesseract.js).
+• Implementar un sistema de monitoreo mediante WebSocket que se actualice en tiempo real, indicando visualmente (mediante semáforos) el estado y prioridad de las actividades pendientes.
+• Integrar un módulo analítico basado en Inteligencia Artificial que detecte cuellos de botella en el flujo de atención al cliente y sugiera optimizaciones en las políticas de negocio.
+• Garantizar la coherencia entre el diseño de los diagramas UML y la ejecución del backend (Spring Boot), asegurando la trazabilidad de cada evento en una bitácora auditable.
 
-1. **Diseñar e implementar un editor visual** de diagramas de actividad UML con soporte para nodos de tipo Acción, Inicial, Final, Decisión, Bifurcación (Fork) y Unión (Join), utilizando la librería React Flow.
-2. **Implementar un motor de ejecución de workflows** que instancie trámites (cases) a partir de políticas, gestione el avance automático entre nodos, soporte flujos condicionales y paralelos, y registre cada evento en una bitácora auditable.
-3. **Desarrollar un sistema de formularios dinámicos** con esquema JSON configurable por nodo, que soporte entrada manual, dictado por voz (Web Speech API) y extracción de texto por OCR (Tesseract.js).
-4. **Implementar un módulo de monitoreo en tiempo real** mediante WebSocket (Socket.IO) que notifique a los usuarios conectados sobre los avances de los trámites y la asignación de tareas.
-5. **Desarrollar un módulo de analítica** con indicadores KPI, detección automática de cuellos de botella y generación de insights con inteligencia artificial.
-6. **Aplicar principios de Ingeniería Humana (UX)** para garantizar una interfaz accesible, intuitiva y con retroalimentación visual efectiva (indicadores de semáforo, animaciones, diseño glassmorphism).
-7. **Configurar un pipeline de CI/CD** con GitHub Actions y contenerización con Docker para asegurar la calidad y facilitar el despliegue.
+### 1.3 Descripción del problema
 
-### 1.4 Descripción del Problema
+En la actualidad, instituciones públicas y privadas que gestionan múltiples procesos de atención al cliente (como solicitudes de servicios, instalaciones de medidores o aperturas de crédito) enfrentan serios problemas de ineficiencia y falta de control. El enrutamiento de un trámite entre distintos departamentos suele realizarse de manera manual o a través de sistemas desarticulados, lo que genera estancamientos, pérdida de documentos y tiempos de espera prolongados para el usuario final.
 
-Las organizaciones que manejan múltiples trámites departamentales enfrentan los siguientes desafíos:
+Por otra parte, cuando el cliente requiere conocer el estado de su trámite, los funcionarios de atención al cliente carecen de una herramienta centralizada que les permita visualizar rápidamente en qué etapa y en qué departamento se encuentra la solicitud, generando insatisfacción y desinformación.
 
-- **Falta de estandarización:** Los procesos se ejecutan de forma ad-hoc, sin un modelo formal que defina la secuencia de actividades, las condiciones de bifurcación ni los responsables.
-- **Ausencia de trazabilidad:** No existe un registro detallado de quién ejecutó cada tarea, cuándo se completó ni qué datos se ingresaron, dificultando las auditorías.
-- **Cuellos de botella invisibles:** Sin métricas de desempeño por nodo/departamento, los responsables no pueden identificar dónde se acumulan las tareas pendientes.
-- **Comunicación asíncrona:** Los funcionarios no se enteran en tiempo real cuando se les asigna una nueva tarea o cuando un trámite avanza de etapa.
-- **Ingreso de datos ineficiente:** Los formularios en papel o en formatos estáticos no aprovechan tecnologías modernas como dictado por voz o extracción automática de texto desde imágenes.
+Asimismo, el diseño e implementación de nuevos flujos de trabajo dentro de la empresa suele ser un proceso rígido que requiere intervención directa de programadores. No existen suficientes herramientas accesibles que permitan a los administradores diseñar sus propias políticas de negocio de manera visual y colaborativa, y mucho menos que las conviertan inmediatamente en procesos ejecutables.
 
-### 1.5 Alcance
+Finalmente, la falta de analítica en tiempo real impide a los gerentes identificar qué funcionario o qué departamento está demorando más de lo previsto (cuellos de botella), dificultando la toma de decisiones para optimizar el rendimiento de la organización.
 
-El sistema **WorkflowSW1** abarca las siguientes áreas funcionales:
+### 1.4 Alcance
 
-| Área | Descripción |
-|------|-------------|
-| **Autenticación** | Registro y login con JWT, roles DESIGNER y OFFICER |
-| **Departamentos** | CRUD de departamentos organizacionales |
-| **Editor de Políticas** | Diseño visual con diagramas de actividad UML (6 tipos de nodo, 4 tipos de flujo, swimlanes por departamento) |
-| **Motor de Workflow** | Instanciación de trámites, avance automático, bifurcaciones/uniones, decisiones condicionales |
-| **Formularios Dinámicos** | Esquema JSON configurable, entrada manual, voz y OCR |
-| **Monitoreo en Tiempo Real** | WebSocket con Socket.IO, feed de eventos en vivo, usuarios conectados |
-| **Analítica** | KPIs de gestión, detección de cuellos de botella, gráficos de barras/dona, insights IA |
-| **Testing** | 25 pruebas unitarias con Jest (4 suites) |
-| **Despliegue** | Docker Compose (3 servicios), CI/CD con GitHub Actions (3 jobs) |
+#### 1.4.1 Módulo de Gestión de Usuarios y Departamentos
+• Permite la autenticación y registro de usuarios en el sistema mediante JWT, diferenciando entre roles (DESIGNER, OFFICER y CLIENT).
+• Facilita la creación y administración (CRUD) de los distintos departamentos de la organización, a los cuales se les asignarán las actividades en los diagramas (calles/swimlanes).
+
+#### 1.4.2 Módulo de Gestión y Diseño de Políticas (Diagramación)
+• Proporciona un lienzo de trabajo interactivo (ngx-graph) para la creación de diagramas de actividad UML organizados en calles (swimlanes), definiendo tareas, responsables y flujos (secuenciales, condicionales, paralelos e iterativos).
+• Ofrece colaboración en tiempo real, permitiendo a múltiples diseñadores trabajar simultáneamente sobre el mismo diagrama.
+• Incorpora asistencia de IA, permitiendo al usuario crear nodos y conexiones mediante comandos de voz o texto simples (prompts).
+
+#### 1.4.3 Módulo de Ejecución de Workflow y Formularios
+• Cuenta con un motor de ejecución que toma la política de negocio diseñada y gestiona el enrutamiento automático de los trámites hacia las bandejas de los funcionarios correspondientes.
+• Proporciona una bandeja de entrada en tiempo real para el funcionario, organizada mediante indicadores visuales (semáforo) para mostrar tareas nuevas, en proceso o urgentes.
+• Permite al funcionario completar su tarea mediante formularios dinámicos, que soportan ingreso manual, dictado por voz y extracción de texto de imágenes (OCR).
+
+#### 1.4.4 Módulo de Monitoreo y Analítica (IA)
+• Rastrea el avance general del trámite, permitiendo a los asesores informar al cliente sobre la etapa exacta de su solicitud (o recibir notificaciones push en móvil).
+• Implementa un sistema de análisis con Inteligencia Artificial que evalúa los tiempos de atención y detecta automáticamente cuellos de botella en el flujo, generando reportes y recomendaciones para la optimización del proceso.
 
 **Limitaciones:**
-- El sistema no implementa notificaciones por correo electrónico ni push notifications móviles.
-- La IA genera insights basados en reglas heurísticas, no en modelos de machine learning entrenados.
+- El sistema no implementa notificaciones por correo electrónico.
+- La IA para detección de cuellos de botella se basa en reglas heurísticas y umbrales.
 - El OCR está limitado a imágenes con texto claro en español e inglés.
+- Las notificaciones push requieren configurar un proyecto Firebase y el `google-services.json` en la app móvil.
 
 ---
 
-## Parte I — Fundamentación Teórica
+## 2. Parte I
 
-### 1. Ingeniería de Software Asistido por Computadora (CASE)
+### 2.1 Fundamentación Teórica 
 
-La Ingeniería de Software Asistido por Computadora (CASE, por sus siglas en inglés: *Computer-Aided Software Engineering*) engloba el conjunto de herramientas, métodos y técnicas que automatizan o asisten las actividades del ciclo de vida del software.
+#### 2.1.1 Ingeniería de Software Asistida por Computadora – CASE 
+**2.1.1.1 Introducción**
+La Ingeniería de Software Asistida por Computadora, conocida como CASE (Computer-Aided Software Engineering), se refiere al uso de herramientas tecnológicas destinadas a apoyar y automatizar las diferentes fases del ciclo de vida del software. Su propósito principal es aumentar la productividad de los equipos de desarrollo, reducir los errores y asegurar la calidad de los productos generados, proporcionando un marco estandarizado y eficiente para la gestión de proyectos de software. 
 
-**Clasificación de herramientas CASE:**
+**2.1.1.2 Conceptos Fundamentales**
+El funcionamiento de CASE se basa en la integración de herramientas que facilitan actividades críticas dentro del desarrollo de software. Entre los conceptos fundamentales que lo caracterizan se encuentran: 
+• Automatización de tareas repetitivas, como la generación de diagramas, documentación y prototipos. 
+• Uso de un repositorio central, que almacena los diferentes artefactos del proyecto (requisitos, diagramas, documentos, informes) y garantiza que los equipos trabajen sobre una fuente de información unificada. 
+• Cobertura del ciclo de vida del software, ya que las herramientas CASE se aplican desde las fases de análisis y diseño hasta la implementación, pruebas y mantenimiento. 
 
-| Tipo | Fase | Ejemplos en el proyecto |
-|------|------|------------------------|
-| **Upper CASE** | Análisis y diseño | Diagramas UML de actividad (el propio sistema), modelado de datos con Prisma Schema |
-| **Lower CASE** | Implementación y pruebas | VS Code + GitHub Copilot, Jest (testing), ESLint (análisis estático) |
-| **Integrated CASE** | Ciclo completo | GitHub (repositorio + Actions CI/CD + Issues) |
+**2.1.1.3 Clasificación de Herramientas CASE**
+Las herramientas CASE se clasifican en función de la etapa del ciclo de vida del software en la que son utilizadas: 
+• Herramientas Upper CASE: Análisis y diseño (ej. diagramas UML de actividad en WorkflowSW1). 
+• Herramientas Lower CASE: Implementación, pruebas (ej. VS Code, JUnit 5). 
+• Herramientas Integrated CASE (I-CASE): Ciclo completo (ej. GitHub Actions). 
 
-**Aplicación en el proyecto:**
+#### 2.1.2 Ingeniería de Software basada en componentes 
+**2.1.2.1 Introducción**
+La ingeniería de software basada en componentes es un enfoque que busca la construcción de sistemas a partir de la integración de piezas de software reutilizables denominadas componentes. Este paradigma surge como respuesta a la necesidad de reducir la complejidad y los costos de desarrollo, promoviendo la modularidad y la reutilización en lugar de la creación de código desde cero. 
 
-- **Prisma ORM** actúa como herramienta CASE de modelado de datos: a partir de un esquema declarativo (`schema.prisma`), genera automáticamente el cliente de acceso a datos, las migraciones SQL y los tipos TypeScript.
-- **React Flow** funciona como herramienta CASE de modelado visual: permite diseñar diagramas de actividad UML de forma interactiva, con persistencia automática en la base de datos.
-- **GitHub Actions** automatiza la integración continua (compilación, testing, análisis) y el despliegue continuo (build de imágenes Docker).
-- **ESLint + TypeScript** proporcionan análisis estático de código, detectando errores de tipo y violaciones de estilo antes de la ejecución.
+**2.1.2.2 Concepto de Componente**
+Un componente de software se define como una unidad independiente que encapsula una funcionalidad específica y que interactúa con otros componentes mediante interfaces claramente establecidas. Esta independencia permite que los componentes sean utilizados en distintos sistemas sin necesidad de modificar su estructura interna, garantizando portabilidad e interoperabilidad. 
 
-### 2. Desarrollo de Software Basado en Componentes
+**2.1.2.3 Principios Fundamentales**
+La ingeniería de software basada en componentes se apoya en diversos principios esenciales para su aplicación: 
+• Reutilización de módulos existentes para disminuir tiempos de desarrollo. 
+• Modularidad para dividir el sistema en partes manejables. 
+• Encapsulamiento que asegura independencia y ocultamiento de la lógica interna. 
+• Interoperabilidad entre distintos entornos y plataformas. 
+• Evolutividad que permite sustituir o actualizar componentes sin alterar el resto del sistema. 
 
-El Desarrollo Basado en Componentes (CBSD, *Component-Based Software Development*) es un paradigma que promueve la construcción de sistemas a partir de **componentes reutilizables, encapsulados e independientes** que se conectan a través de interfaces bien definidas.
+**2.1.2.4 Aplicaciones y Tecnologías**
+La ingeniería de software basada en componentes se ha materializado en diferentes tecnologías y marcos de trabajo, entre los que destacan arquitecturas basadas en Spring (módulos inyectables) y más recientemente las arquitecturas de microservicios. Estas tecnologías representan la evolución del paradigma hacia soluciones más flexibles y distribuidas. 
 
-**Principios aplicados:**
+#### 2.1.3 Desarrollo de Software basado en componentes 
+**2.1.3.1 Introducción**
+El desarrollo de software basado en componentes es un enfoque práctico que aplica los principios de la ingeniería de software orientada a componentes en la construcción de sistemas. Su propósito es ensamblar aplicaciones a partir de unidades reutilizables, reduciendo el esfuerzo de programación desde cero y garantizando mayor calidad en los productos generados. 
 
-- **Encapsulamiento:** Cada módulo del backend (AuthModule, PoliciesModule, CasesModule, etc.) encapsula su propia lógica de negocio, controladores y servicios, exponiéndolos a través de una API REST definida.
-- **Reutilización:** Los componentes de React (TrafficLight, DynamicForm, Toast, Layout) se reutilizan en múltiples páginas sin duplicación de código.
-- **Composición:** La aplicación se compone jerárquicamente: `App → Layout → Pages → Components`.
-- **Independencia:** Los módulos de NestJS se pueden agregar, eliminar o reemplazar sin afectar a los demás, gracias al sistema de inyección de dependencias.
+**2.1.3.2 Características del Desarrollo Basado en Componentes**
+El proceso se caracteriza por los siguientes aspectos: 
+• Selección de componentes existentes en repositorios (ej. librerías de Angular). 
+• Adaptación de componentes para que encajen con los requisitos específicos del sistema. 
+• Ensamblaje de componentes en una arquitectura unificada que permita la comunicación e interoperabilidad. 
+• Creación de componentes nuevos únicamente cuando no existan soluciones previas reutilizables. 
 
-**Arquitectura de componentes del proyecto:**
+**2.1.3.3 Fases del Desarrollo**
+Este enfoque incorpora fases particulares que complementan las etapas tradicionales del ciclo de vida del software: 
+• Análisis y especificación de requisitos, identificando qué componentes pueden satisfacerlos. 
+• Búsqueda y evaluación de componentes disponibles en repositorios o marcos de trabajo. 
+• Adaptación e integración de componentes en la arquitectura del sistema. 
+• Pruebas de integración, orientadas a verificar la interoperabilidad y el correcto funcionamiento conjunto de los módulos. 
 
-```
-Backend (NestJS - 9 módulos):
-├── PrismaModule      → Acceso a datos (compartido)
-├── AuthModule        → Autenticación JWT + registro
-├── DepartmentsModule → CRUD departamentos
-├── PoliciesModule    → CRUD políticas + nodos + aristas
-├── CasesModule       → Motor de workflow + tareas
-├── FormsModule       → Plantillas + submissions dinámicas
-├── EventsModule      → WebSocket Gateway (Socket.IO)
-├── AnalyticsModule   → KPIs + cuellos de botella + IA
-└── AiAssistantModule → Insights inteligentes
+#### 2.1.4 Arquitectura de Software 
+**2.1.4.1 Introducción**
+La arquitectura de software se entiende como la estructura fundamental de un sistema, compuesta por sus componentes, sus relaciones y los principios y guías que orientan su diseño y evolución. Se trata de un nivel de abstracción superior al diseño detallado, que busca ofrecer una visión global del sistema antes de entrar en la implementación. 
 
-Frontend (React - Componentes):
-├── Layout            → Shell con sidebar + contenido
-├── TrafficLight      → Indicador visual de estado (semáforo)
-├── DynamicForm       → Renderizador de formularios JSON
-├── Toast / ToastProvider → Sistema de notificaciones
-├── PolicyEditorPage  → Editor visual React Flow
-└── 9 páginas funcionales
-```
+**2.1.4.2 Conceptos Fundamentales**
+La arquitectura de software se apoya en tres conceptos esenciales: 
+• Componentes, que representan las unidades funcionales encargadas de encapsular partes del sistema. 
+• Conectores, que constituyen los mecanismos de interacción entre los componentes (ej. REST API, WebSockets). 
+• Atributos de Calidad (Requisitos No Funcionales): Las propiedades del sistema que definen su rendimiento. Incluyen la escalabilidad, seguridad, disponibilidad, mantenibilidad y usabilidad. 
+• Reglas de Diseño: Las restricciones y principios que guían la toma de decisiones arquitectónicas.
 
-### 3. Ingeniería Humana (Experiencia del Usuario — UX)
+**2.1.4.3 Importancia de una arquitectura robusta**
+Una arquitectura de software bien definida es crucial por las siguientes razones: 
+• Gestión de la Complejidad: Descompone un sistema complejo en partes más manejables.
+• Guía para el Desarrollo: Proporciona un marco de trabajo y una visión clara.
+• Toma de Decisiones Estratégicas: Permite tomar decisiones de diseño cruciales en las primeras etapas.
+• Mantenibilidad y Escalabilidad: Reduce el costo de los cambios.
+• Comunicación con las Partes Interesadas: Facilita la comunicación entre el equipo técnico y las partes interesadas.
 
-La Ingeniería Humana o *Human Factors Engineering* estudia la interacción entre las personas y los sistemas, con el objetivo de diseñar interfaces que sean **eficientes, seguras, accesibles y satisfactorias** de usar.
+**2.1.4.4 Tipos comunes de Arquitectura**
+Existen diferentes estilos y patrones que se utilizan en la arquitectura de software: 
+• Cliente-servidor, donde el servidor provee servicios y el cliente los consume. 
+• Arquitectura orientada a servicios (SOA). 
+• Microservicios, evolución de SOA que divide el sistema en servicios pequeños (ej. el backend en Spring y el microservicio de IA en FastAPI). 
+• Event-driven (basada en eventos), para notificaciones asíncronas. 
+• Arquitectura en Capas: El sistema se divide en capas (presentación, lógica de negocio y datos), separando responsabilidades y mejorando mantenibilidad. 
 
-**Principios de UX aplicados en el proyecto:**
+#### 2.1.5 Modelo conceptual de una Base de datos 
+**2.1.5.1 Introducción**
+El modelo conceptual de una base de datos constituye una representación abstracta y de alto nivel de la información que será gestionada por un sistema. Su objetivo es describir cuáles son las entidades relevantes del dominio, cómo se relacionan entre sí y qué restricciones deben cumplirse. 
 
-| Principio | Implementación |
-|-----------|---------------|
-| **Visibilidad del estado del sistema** | Semáforo (TrafficLight) en cada tarea: rojo = bloqueado, amarillo = en progreso, verde = completado. Indicador de usuarios conectados en tiempo real. |
-| **Correspondencia con el mundo real** | Diagramas de actividad UML familiares para diseñadores de procesos. Swimlanes por departamento como en la notación estándar. |
-| **Control y libertad del usuario** | Botón de cancelar trámite, formularios expandibles/colapsables, filtros en la bandeja del funcionario. |
-| **Consistencia y estándares** | Sistema de diseño unificado con variables CSS (colores, tipografía, espaciado, bordes), iconografía consistente con Lucide React. |
-| **Prevención de errores** | Validación de formularios con ValidationPipe (backend) y required/type en inputs (frontend). Confirmaciones antes de acciones destructivas. |
-| **Reconocimiento antes que recuerdo** | Badges de estado con colores semánticos, iconos descriptivos en cada botón y sección. |
-| **Flexibilidad y eficiencia** | Dictado por voz para llenado rápido de formularios, OCR para extracción automática de texto desde imágenes. |
-| **Diseño estético y minimalista** | Interfaz glassmorphism para login, KPIs con hover animations, tipografía Inter, gradientes sutiles. |
-| **Retroalimentación** | Toasts con animaciones para cada acción (éxito, error, info), estados de carga con spinners. |
+**2.1.5.2 Componentes del Modelo Conceptual**
+El modelo conceptual incluye los siguientes elementos: 
+• Clases o Entidades, que representan los objetos de interés del dominio (ej. Políticas, Trámites, Tareas). 
+• Relaciones, que indican los vínculos existentes entre las entidades (ej. referencias a ObjectIds en bases documentales). 
+• Multiplicidad, que establece las restricciones de cardinalidad. 
+• Restricciones, que definen condiciones adicionales que deben cumplirse. 
 
-**Tecnologías de UX implementadas:**
+**2.1.5.3 Importancia del Modelo Conceptual**
+El modelo conceptual cumple funciones esenciales: 
+• Permite capturar los requisitos de información de manera estructurada. 
+• Garantiza la coherencia y consistencia de los datos. 
+• Facilita la transición hacia el modelo físico. 
 
-- **Web Speech API:** Reconocimiento de voz nativo del navegador para dictado en formularios.
-- **Tesseract.js:** OCR en el navegador para extraer texto de imágenes (español + inglés).
-- **Socket.IO:** Eventos en tiempo real que actualizan la interfaz sin necesidad de refresh.
-- **CSS Design System:** Variables CSS con 30+ tokens, transiciones suaves (`cubic-bezier`), efecto glassmorphism con `backdrop-filter: blur()`.
+#### 2.1.6 Construcción del backend mediante Spring Boot y Spring Data
+**2.1.6.1 Spring Boot**
+Es un framework basado en Java que simplifica el desarrollo de aplicaciones mediante una configuración mínima y una amplia integración con librerías de la plataforma Spring. Proporciona un conjunto de herramientas para construir aplicaciones listas para producción, destacando por su inyección de dependencias y capacidad para exponer servicios web a través de controladores REST. 
 
-### 4. Inteligencia Artificial Aplicada en el Desarrollo del Software
+**2.1.6.2 Mapeo Objeto-Documento (ODM)**
+Dado el uso de bases de datos NoSQL como MongoDB, se emplea un ODM en lugar de un ORM. Esto permite mapear los objetos del dominio de la aplicación directamente con colecciones y documentos BSON, eliminando la necesidad de esquemas rígidos e instrucciones SQL.
 
-La Inteligencia Artificial (IA) se integra en el desarrollo de software moderno en dos dimensiones: como **herramienta de asistencia al desarrollador** y como **funcionalidad dentro del producto final**.
+**2.1.6.3 Spring Data MongoDB**
+Spring Data MongoDB proporciona el motor de persistencia que traduce operaciones sobre objetos Java en consultas nativas para MongoDB. Facilita la implementación de operaciones CRUD y la gestión de relaciones complejas (documentos embebidos o referenciados). 
 
-**IA como funcionalidad del producto (WorkflowSW1):**
+**2.1.6.4 Proceso de construcción del backend con Spring Data**
+Spring Boot sigue un proceso estructurado: 
+• Definición de entidades: se crean clases Java anotadas con `@Document` que representan las colecciones, con atributos correspondientes a los campos. 
+• Configuración de repositorios: se implementan interfaces que extienden de `MongoRepository` para operaciones CRUD automáticas. 
+• Implementación de servicios: se construyen clases que encapsulan la lógica del motor de workflow. 
+• Exposición de controladores REST: se crean controladores anotados con `@RestController` que definen los endpoints de la API. 
 
-El módulo **AiAssistantModule** del backend genera insights inteligentes sobre el desempeño de los flujos de trabajo:
+#### 2.1.7 Inteligencia Artificial aplicada a la ingeniería de software 
+**2.1.7.1 Introducción**
+La inteligencia artificial permite automatizar tareas complejas, optimizar procesos de desarrollo y mejorar la calidad de los productos generados. La combinación de técnicas de IA con metodologías de software permite construir sistemas más inteligentes y eficientes. 
 
-- **Detección de cuellos de botella:** Analiza la duración promedio y las tareas pendientes por nodo. Cuando un nodo supera el umbral de 2 tareas pendientes o una duración excesiva, se clasifica como cuello de botella.
-- **Generación de recomendaciones:** Basado en los patrones detectados, el sistema genera mensajes categorizados por severidad (critical, warning, info, success) con acciones recomendadas específicas.
-- **Análisis de completitud:** Calcula la tasa de trámites completados vs. activos y genera alertas cuando la eficiencia cae por debajo de umbrales definidos.
+**2.1.7.2 Aplicaciones en la Ingeniería de Software y en WorkflowSW1**
+• En la asistencia y diseño: mediante algoritmos (prompts) que ayudan al administrador a dibujar el diagrama de actividades de la política de negocio. 
+• En el procesamiento de lenguaje natural y visión: con herramientas de OCR (Tesseract) y dictado por voz para acelerar el llenado de formularios. 
+• En el análisis: mediante módulos analíticos que detectan cuellos de botella y anomalías en los tiempos de atención de los flujos. 
 
-**Ejemplo de insight generado:**
-```
-[CRITICAL] El nodo "Revisión Legal" tiene 5 tareas pendientes y un promedio de 45 min.
-→ Recomendación: Asignar un funcionario adicional al departamento Legal.
-```
+#### 2.1.8 UML 
+**2.1.8.1 Introducción**
+El Lenguaje Unificado de Modelado (UML) es un estándar utilizado en la ingeniería de software para representar de forma visual la estructura y el comportamiento de los sistemas. 
 
-**IA como herramienta de desarrollo:**
+**2.1.8.2 Diagrama de Actividades**
+El corazón de WorkflowSW1 es el diagrama de actividad UML, implementado como un editor visual interactivo para diseñar los flujos de trabajo. Los elementos soportados son:
+• **Nodo Inicial** (`INITIAL`) y **Nodo Final** (`FINAL`)
+• **Acción** (`ACTION`): Rectángulo redondeado que representa una tarea.
+• **Decisión** (`DECISION`): Rombo con condiciones lógicas para bifurcar el flujo.
+• **Bifurcación (Fork)** y **Unión (Join)**: Para flujos en paralelo.
+• **Calles (Swimlanes)**: Carril vertical que representa al departamento responsable.
 
-- **GitHub Copilot:** Se utilizó como asistente de codificación integrado en VS Code para generar código, corregir errores, escribir tests y crear documentación.
-- **Análisis estático con IA:** TypeScript + ESLint proporcionan inferencia de tipos y detección de errores potenciales antes de la compilación.
-
-### 5. IA Integrada en el IDE (Entorno de Desarrollo)
-
-El desarrollo de WorkflowSW1 se realizó con **Visual Studio Code** como IDE principal, aprovechando la integración nativa de **GitHub Copilot** como asistente de IA.
-
-**Capacidades utilizadas de GitHub Copilot:**
-
-| Capacidad | Uso en el proyecto |
-|-----------|--------------------|
-| **Code Completion** | Autocompletado inteligente de funciones, interfaces TypeScript, queries Prisma y estilos CSS. |
-| **Chat / Agent Mode** | Consultas interactivas sobre arquitectura, debugging de errores, y generación de módulos completos. |
-| **Multi-file Editing** | Edición coordinada de múltiples archivos (ej: extracción de Toast.tsx en 3 archivos para Fast Refresh compatibility). |
-| **Terminal Commands** | Ejecución de comandos de build, test y deploy directamente desde el chat. |
-| **Error Fixing** | Corrección de 68 errores de TypeScript/ESLint en una sola sesión (types `any` → interfaces tipadas). |
-| **Refactoring** | Reemplazo de ~30 emojis por iconos SVG de Lucide React en 11 archivos. |
-| **Documentation** | Generación de esta documentación técnica con conocimiento del código fuente. |
-
-**Extensiones complementarias del IDE:**
-
-- **Prisma:** Sintaxis highlighting y autocompletado para `schema.prisma`.
-- **ESLint:** Análisis estático de código en tiempo real.
-- **Docker:** Gestión de contenedores y validación de `docker-compose.yml`.
-- **GitLens:** Visualización avanzada del historial de Git.
-
-### 6. El Proceso de Desarrollo de Software (PUDS)
-
-El **Proceso Unificado de Desarrollo de Software** (PUDS) es un marco de trabajo iterativo e incremental para el desarrollo de software, basado en la arquitectura y dirigido por casos de uso.
-
-**Fases del PUDS aplicadas al proyecto:**
-
-#### Fase 1 — Inicio (Inception)
-- Definición del problema: gestión manual de políticas de negocio.
-- Identificación de actores: Diseñador de Procesos (DESIGNER) y Funcionario (OFFICER).
-- Alcance: sistema web con editor visual, motor de workflow, formularios dinámicos y monitoreo.
-- Evaluación de riesgos: complejidad del motor de workflow con flujos paralelos.
-
-#### Fase 2 — Elaboración (Elaboration)
-- Diseño de la arquitectura: cliente-servidor con NestJS + React + PostgreSQL.
-- Modelado de datos: 10 entidades con relaciones y claves foráneas en Prisma.
-- Prototipado del editor visual con React Flow.
-- Definición de la API REST: endpoints para cada módulo.
-
-#### Fase 3 — Construcción (Construction)
-- **Iteración 1:** Autenticación JWT + CRUD de departamentos y políticas.
-- **Iteración 2:** Editor visual de diagramas UML con persistencia.
-- **Iteración 3:** Motor de workflow (instanciación, avance, bifurcaciones).
-- **Iteración 4:** Formularios dinámicos con voz y OCR.
-- **Iteración 5:** Monitoreo en tiempo real con WebSocket.
-- **Iteración 6:** Analítica, cuellos de botella e insights IA.
-- **Iteración 7:** Testing, Docker, CI/CD.
-- **Iteración 8:** Pulido UI/UX — diseño glassmorphism, iconos Lucide, animaciones.
-
-#### Fase 4 — Transición (Transition)
-- Contenerización con Docker Compose (3 servicios).
-- Pipeline CI/CD con GitHub Actions (3 jobs: test, build frontend, build Docker).
-- Documentación técnica del sistema.
-
-**Artefactos generados:**
-
-| Artefacto PUDS | Equivalente en el proyecto |
-|----------------|---------------------------|
-| Modelo de Casos de Uso | Rutas del frontend (App.tsx) + endpoints del backend |
-| Modelo de Datos | `schema.prisma` (10 modelos, 6 enums) |
-| Modelo de Arquitectura | Diagrama cliente-servidor + módulos NestJS |
-| Plan de Iteración | Commits progresivos en GitHub |
-| Documento de Pruebas | 25 tests unitarios (Jest, 4 suites) |
-
-### 7. UML
-
-El **Lenguaje Unificado de Modelado** (UML, *Unified Modeling Language*) es un lenguaje estándar de modelado visual para especificar, construir y documentar los artefactos de un sistema software.
-
-**Diagramas UML en el proyecto:**
-
-#### 7.1 Diagrama de Actividad (core del sistema)
-
-El corazón de WorkflowSW1 es el **diagrama de actividad UML**, implementado como un editor visual interactivo. Los elementos soportados son:
-
-| Elemento UML | Nodo en el sistema | Representación |
-|--------------|-------------------|----------------|
-| **Nodo Inicial** | `INITIAL` | Círculo negro sólido |
-| **Nodo Final** | `FINAL` | Círculo negro con borde |
-| **Acción** | `ACTION` | Rectángulo redondeado con título |
-| **Decisión** | `DECISION` | Rombo con condiciones en las aristas |
-| **Bifurcación (Fork)** | `FORK` | Barra horizontal — divide flujo en paralelo |
-| **Unión (Join)** | `JOIN` | Barra horizontal — sincroniza flujos paralelos |
-| **Swimlane** | Departamento | Carril vertical por departamento |
-
-**Tipos de flujo entre nodos:**
-
-| Tipo de flujo | Enum | Descripción |
-|---------------|------|-------------|
-| Secuencial | `SEQUENTIAL` | Flujo lineal de una actividad a la siguiente |
-| Condicional | `CONDITIONAL` | Flujo que depende de una condición (desde nodos DECISION) |
-| Iterativo | `ITERATIVE` | Flujo que permite repetición de actividades |
-| Paralelo | `PARALLEL` | Flujo simultáneo (desde nodos FORK, hasta nodos JOIN) |
-
-#### 7.2 Diagrama de Clases (modelo de datos)
-
-```
+**2.1.8.3 Diagrama de Clases (Modelo de Datos del Proyecto)**
+```text
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
 │    User      │     │  Department  │     │   Policy     │
 ├──────────────┤     ├──────────────┤     ├──────────────┤
@@ -337,1788 +289,608 @@ El corazón de WorkflowSW1 es el **diagrama de actividad UML**, implementado com
                                                                       └──────────────┘
 ```
 
-#### 7.3 Diagrama de Casos de Uso
+#### 2.1.9 PUDS 
+**2.1.9.1 Introducción**
+El Proceso Unificado de Desarrollo de Software, conocido como PUDS, es una metodología iterativa e incremental que organiza el ciclo de vida del software en fases claramente definidas. Su propósito es reducir la complejidad de los proyectos, mejorar la calidad del producto final y garantizar que el sistema desarrollado cumpla con los requisitos del cliente. 
 
-**Actor: Diseñador de Procesos (DESIGNER)**
-- Crear, editar y eliminar políticas de negocio
-- Diseñar diagramas de actividad con el editor visual
-- Configurar formularios dinámicos por nodo
-- Crear departamentos y registrar usuarios
-- Iniciar trámites desde una política
-- Visualizar analíticas y cuellos de botella
-- Monitorear trámites en tiempo real
+**2.1.9.2 Fases del Proceso Unificado en WorkflowSW1**
+• **Inicio (Inception):** Definición del problema de gestión manual de políticas de negocio y evaluación de riesgos. 
+• **Elaboración (Elaboration):** Diseño de la arquitectura cliente-servidor (Spring Boot + Angular + MongoDB) y definición de los modelos de datos. 
+• **Construcción (Construction):** Desarrollo iterativo del editor visual, motor de workflow, analítica e IA. 
+• **Transición (Transition):** Documentación técnica, despliegue con Docker y CI/CD. 
 
-**Actor: Funcionario (OFFICER)**
-- Visualizar bandeja de tareas asignadas
-- Filtrar tareas (todas, propias, sin asignar)
-- Completar tareas (con formularios, voz, OCR)
-- Tomar decisiones en nodos de tipo DECISION
-- Ser asignado a tareas por el diseñador
+**2.1.9.3 Diagrama de Casos de Uso del Proyecto**
+- **Actor Diseñador de Procesos (DESIGNER):** Crear políticas, diseñar diagramas UML interactivos, asignar tareas, y analizar métricas/IA.
+- **Actor Funcionario (OFFICER):** Visualizar bandeja de tareas, completarlas mediante voz u OCR y tomar decisiones condicionales.
 
----
+### 2.2 Herramientas Utilizadas 
 
-## Parte II — Proceso de Desarrollo
+#### 2.2.1 Frontend 
+**2.2.1.1 Angular 18 – TypeScript**
+Angular es un framework construido y mantenido por Google que proporciona funcionalidades avanzadas para aplicaciones de una sola página (SPA). Al combinarlo con TypeScript, se obtiene un entorno de desarrollo con tipado estático que facilita la detección de errores y mejora la mantenibilidad del código. Esto lo convierte en una herramienta sólida para proyectos que requieren escalabilidad y componentes reutilizables (como los formularios dinámicos y la bandeja de tareas).
 
----
+**2.2.1.2 ngx-graph**
+Es una librería especializada en Angular para la construcción de interfaces gráficas interactivas basadas en grafos. Permite crear diagramas y flujos de trabajo con nodos personalizables y conexiones dinámicas. Su integración con Angular es directa y eficiente, lo que la hace especialmente útil para implementar editores visuales complejos como el de diagramas de actividad UML del proyecto.
 
-### 1. Flujo de Trabajo: Captura de Requisitos
+**2.2.1.3 Por qué usarlo**
+La elección de Angular responde a la necesidad de contar con un framework estructurado de grado corporativo que ofrezca un conjunto amplio de herramientas integradas (como HttpClient y animaciones). `ngx-graph` se selecciona porque ofrece todas las facilidades para la creación de un lienzo interactivo con funcionalidades drag-and-drop listas para usar.
 
-#### 1.1 Actores
+#### 2.2.2 Backend 
+**2.2.2.1 Spring Boot – Java – Spring Data MongoDB**
+Java ## 3. Parte II — Proceso de Desarrollo
 
-El sistema identifica dos actores principales que interactúan con el sistema:
+### 3.1 Flujo de Trabajo: Captura de requisitos 
 
-| Actor | Rol en el sistema | Descripción |
-|-------|-------------------|-------------|
-| **Diseñador de Procesos** | `DESIGNER` | Responsable de modelar las políticas de negocio mediante diagramas de actividad UML, configurar formularios dinámicos, crear departamentos, registrar usuarios, iniciar trámites y analizar métricas de desempeño. |
-| **Funcionario** | `OFFICER` | Responsable de ejecutar las tareas asignadas dentro de un trámite: completar formularios (manual, voz u OCR), tomar decisiones en nodos condicionales y reportar el avance de su trabajo. |
+#### 3.1.1 Identificar Actores y casos de uso 
+  
+**Actores:** 
+• Diseñador de Procesos
+• Funcionario 
+ 
+**A1. Diseñador de Procesos** 
+Actor responsable de la creación y administración de políticas de negocio, con la capacidad de gestionar la información general, los diagramas de actividad y los departamentos asociados. 
 
-**Actor secundario:**
-| Actor | Descripción |
-|-------|-------------|
-| **Sistema (Motor de Workflow)** | Actor no humano que gestiona automáticamente el avance del flujo: auto-completa nodos INITIAL, FORK, JOIN y FINAL, emite eventos WebSocket y registra la bitácora de auditoría. |
+**A2. Funcionario** 
+Actor que participa en la ejecución del contenido de las políticas, con énfasis en la resolución de tareas asignadas dentro de su bandeja de entrada. 
 
-```
-                        ┌─────────────────────────────────────┐
-                        │     Sistema de Gestión de Políticas  │
-                        │          de Negocio (Workflow)       │
-                        │                                     │
-   ┌──────────┐         │  ┌─────────────────────────────┐    │
-   │DISEÑADOR │─────────┼─►│ Diseñar diagrama de actividad│   │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Configurar formularios       │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Gestionar departamentos      │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Iniciar trámite              │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Monitorear en tiempo real    │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Analizar métricas e IA       │    │
-   └──────────┘         │  └─────────────────────────────┘    │
-                        │                                     │
-   ┌──────────┐         │  ┌─────────────────────────────┐    │
-   │FUNCIONARIO│────────┼─►│ Consultar bandeja de tareas  │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Completar tarea              │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Llenar formulario (voz/OCR)  │    │
-   │          │         │  └─────────────────────────────┘    │
-   │          │─────────┼─►│ Tomar decisión condicional   │    │
-   └──────────┘         │  └─────────────────────────────┘    │
-                        └─────────────────────────────────────┘
-```
+#### 3.1.2 Casos de uso 
+**CU01 Gestionar Inicio de Sesión:** Permite a los usuarios acceder al sistema mediante credenciales registradas, garantizando autenticación y seguridad. 
+**CU02 Gestionar Cierre de Sesión:** Facilita que los usuarios finalicen su sesión en el sistema de manera segura, liberando recursos y protegiendo la información. 
+**CU03 Gestionar Perfil de Usuario:** Permite al usuario visualizar y modificar su información personal básica asociada a su cuenta. 
+**CU04 Gestionar Políticas de Negocio:** Incorpora las funciones de creación, edición, actualización y eliminación de políticas (workflows) dentro del sistema. 
+**CU05 Gestionar Departamentos y Usuarios:** Permite al diseñador administrar los departamentos de la institución y asignar usuarios (funcionarios) a los mismos con sus respectivos roles. 
+**CU06 Gestionar Búsqueda de Trámites:** Proporciona un mecanismo para localizar casos activos o finalizados dentro del sistema con fines de consulta. 
+**CU07 Gestionar Reportes de Desempeño:** Genera reportes reflejando las métricas actuales de los diagramas y el desempeño de los trámites. 
+**CU08 Gestionar Motor de Workflow:** Permite iniciar un trámite a partir de una política, enrutando automáticamente las tareas a los funcionarios correspondientes según el flujo definido. 
+**CU09 Gestionar Diagrama de Actividad:** Permite crear, modificar y eliminar nodos (acciones, decisiones, bifurcaciones) y aristas dentro del lienzo interactivo. 
+**CU10 Gestionar Bandeja en Tiempo Real:** Ofrece soporte a la actualización en tiempo real, permitiendo que los funcionarios vean al instante sus nuevas tareas asignadas mediante WebSockets. 
+**CU11 Gestionar Llenado de Formularios mediante Comando de Voz:** Permite completar formularios dinámicos a través de instrucciones dadas por voz utilizando la Web Speech API. 
+**CU12 Gestionar Extracción de Texto mediante OCR:** Facilita el llenado automático de formularios extrayendo texto a partir de imágenes o documentos escaneados usando IA. 
+**CU13 Gestionar Análisis de Cuellos de Botella mediante IA:** Evalúa los tiempos de atención por nodo usando Inteligencia Artificial, identificando bloqueos en el flujo y generando recomendaciones. 
+**CU14 Gestionar Toma de Decisiones Condicionales:** Permite al funcionario seleccionar un camino condicional dentro del flujo de trabajo cuando se encuentra en un nodo de tipo DECISIÓN. 
+**CU15 Gestionar Trazabilidad Completa del Trámite:** Registra una bitácora inmutable (EventLogs) de todas las acciones y tiempos de cada etapa para fines de auditoría. 
 
-#### 1.2 Casos de Uso
+#### 3.1.3 Priorización de casos de uso 
 
-Se identificaron **14 casos de uso** organizados por actor:
+| ID | Caso de uso | Prioridad | Actores | Ciclo |
+|----|-------------|-----------|---------|-------|
+| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2 | C1 |
+| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2 | C1 |
+| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2 | C2 |
+| CU04 | Gestionar Políticas de Negocio | Media | A1 | C1 |
+| CU05 | Gestionar Departamentos y Usuarios | Media | A1 | C1 |
+| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2 | C1 |
+| CU07 | Gestionar Reportes de Desempeño | Baja | A1 | C2 |
+| CU08 | Gestionar Motor de Workflow | Alta | A1, A2 | C2 |
+| CU09 | Gestionar Diagrama de Actividad | Alta | A1 | C2 |
+| CU10 | Gestionar Bandeja en Tiempo Real | Alta | A1, A2 | C2 |
+| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2 | C3 |
+| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2 | C3 |
+| CU13 | Gestionar Análisis de Cuellos de Botella mediante IA | Alta | A1 | C3 |
+| CU14 | Gestionar Toma de Decisiones Condicionales | Alta | A2 | C3 |
+| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2 | C3 |
 
-| ID | Caso de Uso | Actor | Prioridad |
-|----|-------------|-------|-----------|
-| CU-01 | Iniciar sesión | Ambos | Alta |
-| CU-02 | Registrar usuario | Diseñador | Alta |
-| CU-03 | Gestionar departamentos (CRUD) | Diseñador | Alta |
-| CU-04 | Crear política de negocio | Diseñador | Alta |
-| CU-05 | Diseñar diagrama de actividad UML | Diseñador | Alta |
-| CU-06 | Configurar formulario dinámico por nodo | Diseñador | Media |
-| CU-07 | Iniciar trámite desde política | Diseñador | Alta |
-| CU-08 | Consultar bandeja de tareas | Funcionario | Alta |
-| CU-09 | Completar tarea del flujo | Funcionario | Alta |
-| CU-10 | Llenar formulario con voz / OCR | Funcionario | Media |
-| CU-11 | Tomar decisión en nodo condicional | Funcionario | Alta |
-| CU-12 | Asignar funcionario a tarea | Diseñador | Alta |
-| CU-13 | Monitorear trámites en tiempo real | Ambos | Media |
-| CU-14 | Consultar analítica e insights IA | Diseñador | Media |
+**Ciclo #1** 
 
-#### 1.3 Priorizar Casos de Uso
+| ID | Caso de uso | Prioridad | Actores | Ciclo |
+|----|-------------|-----------|---------|-------|
+| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2 | C1 |
+| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2 | C1 |
+| CU04 | Gestionar Políticas de Negocio | Media | A1 | C1 |
+| CU05 | Gestionar Departamentos y Usuarios | Media | A1 | C1 |
+| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2 | C1 |
 
-La priorización se realizó utilizando el criterio **MoSCoW** (Must/Should/Could/Won't):
+**Ciclo #2** 
 
-| Prioridad | Casos de Uso | Justificación |
-|-----------|-------------|---------------|
-| **Must Have** | CU-01, CU-03, CU-04, CU-05, CU-07, CU-08, CU-09, CU-11, CU-12 | Funcionalidad core del workflow: sin estos el sistema no puede operar |
-| **Should Have** | CU-02, CU-06, CU-13 | Mejoran significativamente la usabilidad pero el sistema funciona sin ellos |
-| **Could Have** | CU-10, CU-14 | Funcionalidades avanzadas de UX e inteligencia artificial |
+| ID | Caso de uso | Prioridad | Actores | Ciclo |
+|----|-------------|-----------|---------|-------|
+| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2 | C2 |
+| CU07 | Gestionar Reportes de Desempeño | Baja | A1 | C2 |
+| CU08 | Gestionar Motor de Workflow | Alta | A1, A2 | C2 |
+| CU09 | Gestionar Diagrama de Actividad | Alta | A1 | C2 |
+| CU10 | Gestionar Bandeja en Tiempo Real | Alta | A1, A2 | C2 |
 
-**Orden de implementación por iteración:**
+**Ciclo #3** 
 
-| Iteración | Casos de Uso | Entregable |
-|-----------|-------------|------------|
-| 1 | CU-01, CU-02, CU-03 | Autenticación + Departamentos |
-| 2 | CU-04, CU-05 | Editor visual de políticas |
-| 3 | CU-07, CU-08, CU-09, CU-11, CU-12 | Motor de workflow completo |
-| 4 | CU-06, CU-10 | Formularios dinámicos + voz + OCR |
-| 5 | CU-13 | Monitor en tiempo real |
-| 6 | CU-14 | Analítica + IA |
+| ID | Caso de uso | Prioridad | Actores | Ciclo |
+|----|-------------|-----------|---------|-------|
+| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2 | C3 |
+| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2 | C3 |
+| CU13 | Gestionar Análisis de Cuellos de Botella mediante IA | Alta | A1 | C3 |
+| CU14 | Gestionar Toma de Decisiones Condicionales | Alta | A2 | C3 |
+| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2 | C3 |
 
-#### 1.4 Detallar Casos de Uso
+#### 3.1.4 Detallar Casos de Uso 
 
-##### CU-05: Diseñar Diagrama de Actividad UML
+**3.1.4.1 CU01 Gestionar Inicio de Sesión** 
 
-| Campo | Detalle |
-|-------|---------|
-| **Actor principal** | Diseñador de Procesos |
-| **Precondición** | El diseñador ha iniciado sesión y ha creado una política |
-| **Postcondición** | El diagrama se persiste en la base de datos con nodos y aristas |
-| **Flujo principal** | 1. El diseñador abre el editor visual de la política. 2. El sistema carga los nodos y aristas existentes en el canvas de React Flow. 3. El diseñador agrega nodos (Acción, Decisión, Fork, Join, Inicial, Final) desde el panel lateral. 4. El diseñador conecta nodos arrastrando aristas entre ellos. 5. El diseñador asigna departamentos a cada nodo mediante swimlanes. 6. El diseñador configura etiquetas de condición en aristas de nodos DECISION. 7. El diseñador hace clic en "Guardar". 8. El sistema persiste el grafo en una transacción (elimina anteriores, crea nuevos). |
-| **Flujo alternativo** | 7a. Si hay trámites activos, el sistema bloquea la edición con mensaje de error. |
-| **Excepciones** | Sin nodo inicial → error de validación al iniciar trámite. |
+| Caso de Uso | CU01 Gestionar Inicio de sesión |
+|---|---|
+| **Propósito** | Permitir a los usuarios acceder al sistema mediante sus credenciales registradas, garantizando autenticación y seguridad en la sesión. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Diseñador, Funcionario |
+| **Precondición** | • El Usuario debe tener una cuenta registrada.<br>• El sistema debe estar en funcionamiento.<br>• El usuario debe tener una conexión a internet. |
+| **Flujo Principal** | • El Usuario accede a la página de inicio de sesión.<br>• El sistema solicita las credenciales.<br>• El usuario ingresa sus credenciales.<br>• El sistema valida las credenciales contra la base de datos.<br>• Si son correctas, genera un token JWT e inicia sesión.<br>• El sistema habilita opciones según los permisos. |
+| **Flujo Alterno** | Si las credenciales son incorrectas, muestra error. |
+| **Postcondición** | • El usuario está autenticado y redirigido.<br>• Se almacena la sesión. |
 
-##### CU-09: Completar Tarea del Flujo
+**3.1.4.2 CU02 Gestionar Cierre de Sesión** 
 
-| Campo | Detalle |
-|-------|---------|
-| **Actor principal** | Funcionario |
-| **Precondición** | Existe un trámite en curso con una tarea en estado PENDING o IN_PROGRESS |
-| **Postcondición** | La tarea se marca como DONE, el motor avanza al siguiente nodo |
-| **Flujo principal** | 1. El funcionario abre el detalle de un trámite. 2. El sistema muestra las tareas con semáforo de estado. 3. El funcionario hace clic en "Completar" en una tarea. 4. El sistema marca la tarea como DONE y registra el evento. 5. El motor busca aristas salientes del nodo completado. 6. El motor crea tareas PENDING para los nodos destino. 7. El motor auto-avanza nodos especiales (FORK→paralelo, JOIN→sincronización, FINAL→cierre). 8. El sistema emite evento WebSocket a todos los conectados. |
-| **Flujo alternativo** | 5a. Si el nodo es DECISION, el funcionario elige un camino condicional. 5b. Si el nodo es JOIN, el motor verifica que TODOS los nodos fuente estén completados antes de avanzar. 6a. Si no hay aristas salientes (nodo FINAL), el motor cierra el trámite como COMPLETED. |
-| **Excepciones** | Tarea ya completada → BadRequestException(400). |
+| Caso de Uso | CU02 Gestionar Cierre de sesión |
+|---|---|
+| **Propósito** | Permitir finalizar la sesión de manera segura, liberando recursos. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Diseñador, Funcionario |
+| **Precondición** | El usuario debe estar logeado. |
+| **Flujo Principal** | • El usuario selecciona cerrar sesión en la interfaz.<br>• El sistema procesa el cierre invalidando el token.<br>• Redirige a la página de inicio o login.<br>• Libera recursos asociados a la sesión. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | El usuario es redirigido a login. |
 
-##### CU-10: Llenar Formulario con Voz / OCR
+**3.1.4.3 CU03 Gestionar Perfil de Usuario** 
 
-| Campo | Detalle |
-|-------|---------|
-| **Actor principal** | Funcionario |
-| **Precondición** | La tarea tiene un FormTemplate asociado configurado por el diseñador |
-| **Postcondición** | El formulario se almacena con el modo de entrada registrado (MANUAL/VOICE/AI) |
-| **Flujo principal** | 1. El funcionario expande el formulario en la tarea. 2. El sistema renderiza los campos dinámicos según el JSON Schema. 3a. **Manual:** El funcionario llena los campos con teclado. 3b. **Voz:** El funcionario hace clic en el ícono de micrófono, dicta el texto y el sistema transcribe con Web Speech API. 3c. **OCR:** El funcionario selecciona una imagen, Tesseract.js extrae el texto y lo coloca en el campo. 4. El funcionario hace clic en "Enviar". 5. El sistema almacena el payload JSON con el `inputMode` correspondiente. |
+| Caso de Uso | CU03 Gestionar Perfil de Usuario |
+|---|---|
+| **Propósito** | Visualizar y modificar información personal básica. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Diseñador, Funcionario |
+| **Precondición** | El usuario debe estar logeado. |
+| **Flujo Principal** | • El usuario accede a "Perfil de Usuario".<br>• El sistema muestra detalles (nombre, correo, rol, departamento).<br>• El usuario realiza modificaciones.<br>• El sistema valida y actualiza en la base de datos. |
+| **Flujo Alterno** | Si los datos son inválidos, muestra error. |
+| **Postcondición** | Cambios guardados con mensaje de éxito. |
 
-#### 1.5 Estructurar Modelos de Casos de Uso
+**3.1.4.4 CU04 Gestionar Políticas de Negocio** 
 
-Los casos de uso se agrupan en **5 paquetes funcionales** que reflejan los subsistemas del proyecto:
+| Caso de Uso | CU04 Gestionar Políticas de Negocio |
+|---|---|
+| **Propósito** | Crear, editar, actualizar y eliminar políticas de negocio. |
+| **Actores** | Diseñador |
+| **Iniciador** | Diseñador |
+| **Precondición** | Usuario logeado como Diseñador. |
+| **Flujo Principal** | • El usuario selecciona crear política.<br>• Ingresa nombre y descripción.<br>• El sistema valida los datos.<br>• Guarda la política en la base de datos. |
+| **Flujo Alterno** | Si hay campos faltantes, impide guardar. |
+| **Postcondición** | Nueva política guardada y mostrada en listado. |
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│                    Modelo de Casos de Uso                       │
-│                                                                │
-│  ┌──────────────────┐   ┌──────────────────┐                  │
-│  │  «paquete»       │   │  «paquete»       │                  │
-│  │  Autenticación   │   │  Organización    │                  │
-│  │  ───────────     │   │  ────────────    │                  │
-│  │  CU-01 Login     │   │  CU-02 Registro  │                  │
-│  │                  │   │  CU-03 Deptos    │                  │
-│  └──────────────────┘   └──────────────────┘                  │
-│                                                                │
-│  ┌──────────────────────────────────────────┐                  │
-│  │  «paquete»  Diseño de Políticas          │                  │
-│  │  ──────────────────────────────          │                  │
-│  │  CU-04 Crear política                    │                  │
-│  │  CU-05 Diseñar diagrama UML              │                  │
-│  │  CU-06 Configurar formularios            │                  │
-│  └──────────────────────────────────────────┘                  │
-│                                                                │
-│  ┌──────────────────────────────────────────┐                  │
-│  │  «paquete»  Ejecución de Workflow         │                  │
-│  │  ────────────────────────────────        │                  │
-│  │  CU-07 Iniciar trámite                   │                  │
-│  │  CU-08 Consultar bandeja                 │                  │
-│  │  CU-09 Completar tarea                   │                  │
-│  │  CU-10 Formulario voz/OCR               │                  │
-│  │  CU-11 Decisión condicional              │                  │
-│  │  CU-12 Asignar funcionario               │                  │
-│  └──────────────────────────────────────────┘                  │
-│                                                                │
-│  ┌──────────────────┐   ┌──────────────────┐                  │
-│  │  «paquete»       │   │  «paquete»       │                  │
-│  │  Monitoreo       │   │  Analítica       │                  │
-│  │  ─────────       │   │  ─────────       │                  │
-│  │  CU-13 Monitor   │   │  CU-14 Analytics │                  │
-│  │  WebSocket       │   │  + IA Insights   │                  │
-│  └──────────────────┘   └──────────────────┘                  │
-└────────────────────────────────────────────────────────────────┘
-```
+**3.1.4.5 CU05 Gestionar Departamentos y Usuarios** 
 
-**Relaciones entre casos de uso:**
+| Caso de Uso | CU05 Gestionar Departamentos y Usuarios |
+|---|---|
+| **Propósito** | Administrar estructura organizacional (departamentos y funcionarios). |
+| **Actores** | Diseñador |
+| **Iniciador** | Diseñador |
+| **Precondición** | Usuario logeado como Diseñador. |
+| **Flujo Principal** | • Accede al módulo de administración.<br>• Selecciona agregar departamento o usuario.<br>• Confirma creación o asignación.<br>• Sistema actualiza estructura. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | Departamento o usuario creado exitosamente. |
 
-| Relación | Desde | Hacia | Tipo |
-|----------|-------|-------|------|
-| `<<include>>` | CU-09 Completar tarea | CU-11 Decisión condicional | El motor verifica si el nodo es DECISION |
-| `<<include>>` | CU-09 Completar tarea | CU-10 Formulario voz/OCR | Opcionalmente llena formulario antes de completar |
-| `<<extend>>` | CU-13 Monitor | CU-07 Iniciar trámite | El monitor se actualiza al iniciar trámite |
-| `<<extend>>` | CU-14 Analytics | CU-09 Completar tarea | Las métricas se recalculan al completar tareas |
+**3.1.4.6 CU06 Gestionar Búsqueda de Trámites** 
 
----
+| Caso de Uso | CU06 Gestionar Búsqueda de Trámites |
+|---|---|
+| **Propósito** | Localizar trámites activos o finalizados. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Diseñador, Funcionario |
+| **Precondición** | Estar autenticado. |
+| **Flujo Principal** | • Accede a búsqueda.<br>• Ingresa ID de trámite o estado.<br>• Sistema devuelve coincidencias.<br>• Usuario selecciona el trámite. |
+| **Flujo Alterno** | Si no hay resultados, muestra mensaje vacío. |
+| **Postcondición** | Usuario visualiza trazabilidad del trámite. |
 
-### 2. Flujo de Trabajo: Análisis
+**3.1.4.7 CU07 Gestionar Reportes de Desempeño** 
 
-#### 2.1 Análisis de Arquitectura
+| Caso de Uso | CU07 Gestionar Reportes de Desempeño |
+|---|---|
+| **Propósito** | Generar reportes estadísticos de trámites en formato PDF o imagen. |
+| **Actores** | Diseñador |
+| **Iniciador** | Diseñador |
+| **Precondición** | Trámites registrados en el sistema. |
+| **Flujo Principal** | • Accede al Dashboard Analítico.<br>• Sistema carga gráficos.<br>• Selecciona generar reporte.<br>• Sistema exporta PDF o imagen. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | Reporte descargado. |
 
-La arquitectura del sistema sigue el patrón **cliente-servidor de 3 capas** con comunicación REST + WebSocket:
+**3.1.4.8 CU08 Gestionar Motor de Workflow** 
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     CAPA DE PRESENTACIÓN                        │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  React 19 + TypeScript + Vite 8                           │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  │
-│  │  │ Pages    │  │Components│  │ Context  │  │ API Layer│ │  │
-│  │  │ (10 pgs) │  │ (Layout, │  │ (Auth,   │  │ (Axios + │ │  │
-│  │  │          │  │  Toast,  │  │  Toast)  │  │  Socket) │ │  │
-│  │  │          │  │  Form)   │  │          │  │          │ │  │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                         │ HTTP :5173 → :3000  │ WS :3000        │
-└─────────────────────────┼─────────────────────┼─────────────────┘
-                          ▼                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     CAPA DE LÓGICA DE NEGOCIO                   │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  NestJS 11 — Módulos independientes con DI                │  │
-│  │  ┌─────────┐ ┌──────────┐ ┌─────────┐ ┌──────────────┐  │  │
-│  │  │  Auth   │ │ Policies │ │  Cases  │ │   Forms      │  │  │
-│  │  │ Module  │ │  Module  │ │ Module  │ │   Module     │  │  │
-│  │  │(JWT+    │ │(CRUD+    │ │(Motor   │ │(JSON Schema  │  │  │
-│  │  │ Guard)  │ │ Graph)   │ │Workflow)│ │ +Submission) │  │  │
-│  │  └─────────┘ └──────────┘ └─────────┘ └──────────────┘  │  │
-│  │  ┌──────────┐ ┌──────────┐ ┌─────────┐ ┌─────────────┐  │  │
-│  │  │  Depts   │ │ Events   │ │Analytics│ │AiAssistant  │  │  │
-│  │  │  Module  │ │ Gateway  │ │ Module  │ │  Module     │  │  │
-│  │  │(CRUD)    │ │(Socket.IO│ │(KPIs+   │ │(Insights+   │  │  │
-│  │  │          │ │ WS)      │ │Bottlen.)│ │ Recommend.) │  │  │
-│  │  └──────────┘ └──────────┘ └─────────┘ └─────────────┘  │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                         │ TCP :5432                              │
-└─────────────────────────┼───────────────────────────────────────┘
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     CAPA DE PERSISTENCIA                        │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  PostgreSQL 16 — Base: workflow_sw1                        │  │
-│  │  Prisma ORM 6.19 (migraciones + cliente tipado)           │  │
-│  │  10 tablas: users, departments, policies, policy_nodes,   │  │
-│  │  policy_edges, cases, tasks, form_templates,              │  │
-│  │  form_submissions, event_logs                             │  │
-│  │  6 enums: Role, PolicyStatus, NodeType, FlowType,         │  │
-│  │  TaskStatus, CaseStatus, InputMode                        │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Caso de Uso | CU08 Gestionar Motor de Workflow |
+|---|---|
+| **Propósito** | Iniciar trámite a partir de política y auto-asignar tareas. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Diseñador |
+| **Precondición** | Diagrama de actividad activado y validado. |
+| **Flujo Principal** | • Selecciona iniciar trámite.<br>• Motor crea el Case.<br>• Recorre desde Nodo Inicial a primera Acción.<br>• Asigna tarea al departamento correspondiente.<br>• Si hay FORK, divide el flujo en tareas paralelas. |
+| **Flujo Alterno** | Si hay error en diagrama, el motor bloquea el inicio. |
+| **Postcondición** | Trámite en curso y tareas en bandejas. |
 
-**Decisiones arquitectónicas clave:**
+**3.1.4.9 CU09 Gestionar Diagrama de Actividad** 
 
-| Decisión | Justificación |
-|----------|---------------|
-| **NestJS modular** | Cada dominio (auth, policies, cases, forms, analytics) es un módulo independiente con inyección de dependencias, favoreciendo cohesión alta y acoplamiento bajo |
-| **Prisma ORM** | Generación de tipos TypeScript automática desde el schema, migraciones versionadas, queries type-safe |
-| **JWT stateless** | Autenticación sin sesiones en servidor, escalable horizontalmente |
-| **Socket.IO** | Comunicación bidireccional servidor↔cliente para eventos en tiempo real sin polling |
-| **React Flow** | Librería especializada para editores de grafos/diagramas con drag & drop nativo |
-| **Transacciones Prisma** | La operación `saveGraph` usa `$transaction` para garantizar atomicidad al reescribir el grafo completo |
+| Caso de Uso | CU09 Gestionar Diagrama de Actividad |
+|---|---|
+| **Propósito** | Crear y modificar nodos en el lienzo interactivo. |
+| **Actores** | Diseñador |
+| **Iniciador** | Diseñador |
+| **Precondición** | Editor de política abierto. |
+| **Flujo Principal** | • Modifica nodos (acción, decisión, aristas).<br>• Confirma guardar.<br>• Sistema guarda diagrama (transacción MongoDB).<br>• Muestra mensaje de éxito. |
+| **Flujo Alterno** | Si la política tiene casos activos, bloquea edición. |
+| **Postcondición** | Diagrama guardado. |
 
-#### 2.2 Análisis de Casos de Uso
+**3.1.4.10 CU10 Gestionar Bandeja en Tiempo Real** 
 
-##### Análisis del CU-05: Diseñar Diagrama de Actividad
+| Caso de Uso | CU10 Gestionar Bandeja en Tiempo Real |
+|---|---|
+| **Propósito** | Actualizar bandeja de funcionarios vía WebSocket. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Sistema / Funcionario |
+| **Precondición** | Conexión STOMP abierta. |
+| **Flujo Principal** | • Tarea es asignada a Funcionario.<br>• Backend emite evento WS.<br>• Bandeja recibe evento instantáneo.<br>• Tarea nueva aparece resaltada. |
+| **Flujo Alterno** | Si WS cae, fallback a polling HTTP. |
+| **Postcondición** | Bandeja sincronizada en tiempo real. |
 
-**Clases de análisis identificadas:**
+**3.1.4.11 CU11 Gestionar Llenado de Formularios mediante Voz** 
 
-| Clase | Estereotipo | Responsabilidad |
-|-------|-------------|-----------------|
-| `PolicyEditorPage` | `<<boundary>>` | Interfaz visual del editor con canvas React Flow |
-| `PoliciesController` | `<<control>>` | Recibe peticiones HTTP de guardar/cargar grafo |
-| `PoliciesService` | `<<control>>` | Lógica de negocio: transacción de guardado del grafo |
-| `Policy` | `<<entity>>` | Contiene nombre, estado y relación con nodos/aristas |
-| `PolicyNode` | `<<entity>>` | Nodo del diagrama: tipo, posición, departamento |
-| `PolicyEdge` | `<<entity>>` | Arista: origen, destino, tipo de flujo, condición |
+| Caso de Uso | CU11 Gestionar Llenado de Formularios mediante Voz |
+|---|---|
+| **Propósito** | Completar campos dictando texto (Web Speech API). |
+| **Actores** | Funcionario |
+| **Iniciador** | Funcionario |
+| **Precondición** | Micrófono activado. Tarea asignada. |
+| **Flujo Principal** | • Funcionario abre formulario.<br>• Selecciona micrófono en campo de texto.<br>• Dicta la información.<br>• Sistema transcribe e inyecta texto. |
+| **Flujo Alterno** | Si falla reconocimiento, digita manualmente. |
+| **Postcondición** | Formulario llenado por voz. |
 
-**Diagrama de colaboración (secuencia simplificada):**
+**3.1.4.12 CU12 Gestionar Extracción de Texto mediante OCR** 
 
-```
-Diseñador → PolicyEditorPage → [PUT /policies/:id] → PoliciesController
-    → PoliciesService.saveGraph()
-    → Prisma.$transaction:
-        1. Verificar que no hay trámites activos
-        2. Obtener nodos existentes
-        3. Eliminar: FormSubmission → Task → FormTemplate → Edge → Node
-        4. Crear nuevos nodos con posiciones
-        5. Crear nuevas aristas con tipos de flujo
-    → Response: Política actualizada con grafo completo
-```
+| Caso de Uso | CU12 Gestionar Extracción de Texto mediante OCR |
+|---|---|
+| **Propósito** | Llenado automático desde imágenes escaneadas. |
+| **Actores** | Funcionario |
+| **Iniciador** | Funcionario |
+| **Precondición** | Tarea con soporte de carga de imagen. |
+| **Flujo Principal** | • Selecciona imagen.<br>• Clic en "Escanear OCR".<br>• Sistema usa Tesseract.js para extraer texto e inyectarlo. |
+| **Flujo Alterno** | Si imagen es borrosa, advierte baja calidad. |
+| **Postcondición** | Datos inyectados al formulario. |
 
-##### Análisis del CU-09: Completar Tarea
+**3.1.4.13 CU13 Gestionar Análisis de Cuellos de Botella mediante IA** 
 
-**Clases de análisis identificadas:**
+| Caso de Uso | CU13 Gestionar Análisis de Cuellos de Botella mediante IA |
+|---|---|
+| **Propósito** | Identificar nodos sobrecargados o lentos. |
+| **Actores** | Diseñador |
+| **Iniciador** | Sistema / Diseñador |
+| **Precondición** | Trámites registrados con tiempos históricos. |
+| **Flujo Principal** | • FastAPI evalúa tiempos de atención.<br>• Identifica excesos según umbrales.<br>• Genera alertas (Insights) sobre el cuello de botella.<br>• Diseñador visualiza recomendaciones. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | Recomendación visible en Dashboard. |
 
-| Clase | Estereotipo | Responsabilidad |
-|-------|-------------|-----------------|
-| `CaseDetailPage` | `<<boundary>>` | Muestra tareas con semáforo, botones de acción |
-| `CasesController` | `<<control>>` | Endpoint `POST /cases/tasks/:id/complete` |
-| `CasesService` | `<<control>>` | Motor de workflow: lógica de avance según tipo de nodo |
-| `EventsGateway` | `<<control>>` | Emite eventos WebSocket a clientes conectados |
-| `Task` | `<<entity>>` | Tarea con estado, nodo asociado, usuario asignado |
-| `Case` | `<<entity>>` | Trámite con estado global y nodo actual |
-| `EventLog` | `<<entity>>` | Registro de auditoría de cada evento |
+**3.1.4.14 CU14 Gestionar Toma de Decisiones Condicionales** 
 
-**Diagrama de colaboración:**
+| Caso de Uso | CU14 Gestionar Toma de Decisiones Condicionales |
+|---|---|
+| **Propósito** | Permitir avanzar el flujo por una rama específica tras una evaluación. |
+| **Actores** | Funcionario |
+| **Iniciador** | Funcionario |
+| **Precondición** | Tarea asignada sobre nodo DECISIÓN. |
+| **Flujo Principal** | • Funcionario abre tarea.<br>• Selecciona un camino (ej. Aprobado/Rechazado).<br>• Motor avanza solo por la rama seleccionada. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | Flujo bifurcado correctamente. |
 
-```
-Funcionario → CaseDetailPage → [POST /cases/tasks/:id/complete] → CasesController
-    → CasesService.completeTask(taskId, userId, chosenEdgeLabel?)
-    → Marcar tarea como DONE + registrar EventLog
-    → Buscar aristas salientes del nodo:
-        ├── nodeType=ACTION  → Crear tarea PENDING en nodo(s) destino
-        ├── nodeType=DECISION → Elegir arista según chosenEdgeLabel
-        ├── nodeType=FORK    → Crear tareas PENDING en TODOS los destinos (paralelo)
-        ├── nodeType=JOIN    → Verificar ALL fuentes DONE antes de avanzar
-        └── nodeType=FINAL   → Verificar si trámite completo → COMPLETED
-    → autoAdvanceSpecialNodes() → Loop hasta no más nodos automáticos
-    → EventsGateway.emitTaskCompleted() → WebSocket broadcast
-    → Response: Caso actualizado con estado de todas las tareas
-```
+**3.1.4.15 CU15 Gestionar Trazabilidad Completa del Trámite** 
 
-#### 2.4 Análisis de Paquetes
+| Caso de Uso | CU15 Gestionar Trazabilidad Completa del Trámite |
+|---|---|
+| **Propósito** | Mantener bitácora inmutable de eventos. |
+| **Actores** | Diseñador, Funcionario |
+| **Iniciador** | Sistema |
+| **Precondición** | Trámite activo. |
+| **Flujo Principal** | • Cada acción (iniciar tarea, completar formulario) dispara registro de EventLog.<br>• Guarda actor, tiempo y datos asociados.<br>• Sistema muestra línea de tiempo de sólo lectura. |
+| **Flujo Alterno** | N/A |
+| **Postcondición** | Trazabilidad asegurada. |
 
-El sistema se organiza en **5 paquetes de análisis** que mapean directamente a los módulos NestJS del backend y las agrupaciones de páginas del frontend:
+#### 3.1.5 Estructura de Modelo de Casos de uso EMCU 
+**Ciclo de vida #1** 
+![Diagrama EMCU Ciclo 1](/diagramas/emcu-ciclo1.png)
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                     Paquetes del Sistema                           │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────┐      │
-│  │  «paquete» Seguridad                                    │      │
-│  │  AuthModule ↔ AuthContext (frontend)                    │      │
-│  │  Clases: User, JwtStrategy, AuthGuard, LoginPage       │      │
-│  │  Dependencia: PrismaModule                              │      │
-│  └─────────────────────────────────────────────────────────┘      │
-│                           │ usa                                    │
-│                           ▼                                        │
-│  ┌─────────────────────────────────────────────────────────┐      │
-│  │  «paquete» Modelado de Procesos                         │      │
-│  │  PoliciesModule + DepartmentsModule                     │      │
-│  │  Clases: Policy, PolicyNode, PolicyEdge, Department     │      │
-│  │  UI: PolicyEditorPage (React Flow), DepartmentsPage     │      │
-│  │  Dependencia: PrismaModule                              │      │
-│  └─────────────────────────────────────────────────────────┘      │
-│                           │ usa                                    │
-│                           ▼                                        │
-│  ┌─────────────────────────────────────────────────────────┐      │
-│  │  «paquete» Ejecución de Workflow                        │      │
-│  │  CasesModule + FormsModule + EventsModule               │      │
-│  │  Clases: Case, Task, FormTemplate, FormSubmission,      │      │
-│  │          EventLog, EventsGateway                        │      │
-│  │  UI: CasesPage, CaseDetailPage, DynamicForm             │      │
-│  │  Dependencia: PrismaModule, Modelado de Procesos        │      │
-│  └─────────────────────────────────────────────────────────┘      │
-│                           │ usa                                    │
-│                           ▼                                        │
-│  ┌─────────────────────────────────────────────────────────┐      │
-│  │  «paquete» Inteligencia y Monitoreo                     │      │
-│  │  AnalyticsModule + AiAssistantModule + EventsModule     │      │
-│  │  Clases: AnalyticsService, AiAssistantService           │      │
-│  │  UI: AnalyticsPage, MonitorPage                         │      │
-│  │  Dependencia: PrismaModule, Ejecución de Workflow       │      │
-│  └─────────────────────────────────────────────────────────┘      │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────┐      │
-│  │  «paquete» Infraestructura                              │      │
-│  │  PrismaModule (singleton), ConfigModule (global)        │      │
-│  │  Docker Compose, GitHub Actions CI/CD                   │      │
-│  │  Transversal: usado por TODOS los paquetes              │      │
-│  └─────────────────────────────────────────────────────────┘      │
-└────────────────────────────────────────────────────────────────────┘
-```
+**Ciclo #2** 
+![Diagrama EMCU Ciclo 2](/diagramas/emcu-ciclo2.png)
 
-**Dependencias entre paquetes:**
+**Ciclo #3** 
+![Diagrama EMCU Ciclo 3](/diagramas/emcu-ciclo3.png)
 
-| Paquete origen | Paquete destino | Tipo de dependencia |
-|----------------|-----------------|---------------------|
-| Modelado de Procesos | Seguridad | `<<usa>>` — Solo diseñadores crean políticas |
-| Ejecución de Workflow | Modelado de Procesos | `<<usa>>` — Los trámites se basan en políticas definidas |
-| Ejecución de Workflow | Seguridad | `<<usa>>` — Tareas se asignan a usuarios autenticados |
-| Inteligencia y Monitoreo | Ejecución de Workflow | `<<usa>>` — Analiza datos de trámites y tareas |
-| Todos | Infraestructura | `<<usa>>` — Acceso a datos y configuración |
 
 ---
 
-### 3. Flujo de Trabajo: Diseño
+### 3.2 Flujo de Trabajo: Análisis
 
-#### 3.1 Arquitectura de Diseño
+#### 3.2.1 Análisis de Arquitectura
 
-##### Stack Tecnológico
+##### 3.2.1.1 Identificar Paquetes
+- Paquete de Usuario
+- Paquete de Proyectos
+- Paquete de Diagramas
 
-| Capa | Tecnología | Versión | Propósito |
-|------|-----------|---------|-----------|
-| **Frontend** | React | 19.2 | UI declarativa con componentes |
-| | TypeScript | 5.x | Tipado estático |
-| | Vite | 8.0 | Bundler y dev server |
-| | React Router | 7.14 | Enrutamiento SPA |
-| | React Flow (@xyflow/react) | 12.10 | Editor de diagramas |
-| | Lucide React | 1.7 | Iconografía SVG |
-| | Tesseract.js | 7.0 | OCR en navegador |
-| | Socket.IO Client | 4.8 | WebSocket (cliente) |
-| | Axios | 1.14 | Cliente HTTP |
-| **Backend** | NestJS | 11.0 | Framework backend modular |
-| | Prisma | 6.19 | ORM + migraciones |
-| | Passport + JWT | 11/4 | Autenticación stateless |
-| | Socket.IO | 4.8 | WebSocket (servidor) |
-| | bcrypt | 6.0 | Hashing de contraseñas |
-| | class-validator | 0.15 | Validación de DTOs |
-| **Base de Datos** | PostgreSQL | 16 | Base de datos relacional |
-| **DevOps** | Docker Compose | — | Orquestación de contenedores |
-| | GitHub Actions | — | CI/CD pipeline |
-| | Jest | 30 | Testing unitario |
-| | ESLint | 9 | Análisis estático de código |
+##### 3.2.1.2 Relacionar Paquete y Casos de uso
+- **Paquete de Gestión de Usuario**
+- **Paquete de Gestión de proyectos**
+- **Modulo de Gestión de Diagramas**
 
-##### Patrones de diseño aplicados
+##### 3.2.1.3 Vista de Casos de uso
+*(Imágenes o descripciones de vista de casos de uso)*
 
-| Patrón | Dónde se aplica | Descripción |
-|--------|-----------------|-------------|
-| **MVC** | NestJS (Controller → Service → Prisma) | Separación de responsabilidades en controladores, servicios y modelos |
-| **Inyección de Dependencias** | NestJS `@Injectable()` + constructores | Los módulos reciben sus dependencias automáticamente via el contenedor IoC |
-| **Repository** | PrismaService como singleton | Capa de acceso a datos centralizada, reutilizada por todos los servicios |
-| **Observer** | EventsGateway (Socket.IO) | Los clientes se suscriben a eventos y reciben notificaciones en tiempo real |
-| **Strategy** | Motor de workflow (switch por nodeType) | Cada tipo de nodo (ACTION, DECISION, FORK, JOIN, FINAL) tiene su estrategia de avance |
-| **State** | Task.status / Case.status (enums) | Las entidades cambian de comportamiento según su estado actual |
-| **Template Method** | `autoAdvanceSpecialNodes()` loop | Algoritmo fijo con pasos variables según el tipo de nodo |
-| **Composite** | React Components (Layout → Pages → Components) | Árbol jerárquico de componentes reutilizables |
+#### 3.2.2 Analizar Casos de uso ”Diagrama de Comunicación”
 
-#### 3.2 Diseño de Casos de Uso
+**Ciclo #1: CU04 Gestionar Proyectos**  
+**Descripción CU04 Gestionar Proyectos:**  
+Este caso de uso permite al usuario (Creador o Editor) realizar el ciclo completo de gestión de proyectos. Incluye registrar, actualizar, consultar y eliminar proyectos. Al crear un proyecto, automáticamente se genera un lienzo vacío con nodos y aristas disponibles para su posterior edición. El sistema valida la existencia del proyecto y responde con las operaciones correspondientes, garantizando el manejo básico de CRUD sobre los proyectos y su lienzo asociado.
 
-##### Diagrama de Secuencia: Completar Tarea con Avance Automático
+**Ciclo #2:**  
+**CU09 Gestionar Diagrama de clases**  
+**Descripción CU09 Gestionar Diagrama de clases:**  
+Este caso de uso permite al usuario manipular el diagrama de clases asociado a un proyecto. El usuario puede crear, modificar, mover o relacionar clases dentro del lienzo. Mediante la opción de guardar, el sistema persiste el estado actual del diagrama, de modo que al iniciar una nueva sesión se recupera el mismo tal como fue guardado previamente. Asimismo, el sistema brinda la funcionalidad de obtener el diagrama existente para continuar su edición y garantizar la persistencia de los cambios realizados.
 
-```
-┌──────────┐   ┌──────────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────┐   ┌────────────┐
-│Funcionario│   │CaseDetailPage│   │CasesController│  │CasesService │   │  Prisma  │   │EventsGateway│
-└─────┬─────┘   └──────┬───────┘   └──────┬────────┘  └──────┬──────┘   └─────┬────┘   └─────┬──────┘
-      │                │                   │                  │                │              │
-      │ click          │                   │                  │                │              │
-      │ "Completar"    │                   │                  │                │              │
-      │───────────────>│                   │                  │                │              │
-      │                │  POST /tasks/:id/ │                  │                │              │
-      │                │  complete         │                  │                │              │
-      │                │──────────────────>│                  │                │              │
-      │                │                   │ completeTask()   │                │              │
-      │                │                   │─────────────────>│                │              │
-      │                │                   │                  │ findUnique()   │              │
-      │                │                   │                  │───────────────>│              │
-      │                │                   │                  │    task        │              │
-      │                │                   │                  │<───────────────│              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ update(DONE)   │              │
-      │                │                   │                  │───────────────>│              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ create(EventLog│              │
-      │                │                   │                  │ TASK_COMPLETED)│              │
-      │                │                   │                  │───────────────>│              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ findMany       │              │
-      │                │                   │                  │ (outEdges)     │              │
-      │                │                   │                  │───────────────>│              │
-      │                │                   │                  │  edges[]       │              │
-      │                │                   │                  │<───────────────│              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ create(Task    │              │
-      │                │                   │                  │ PENDING)       │              │
-      │                │                   │                  │───────────────>│              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ autoAdvance    │              │
-      │                │                   │                  │ SpecialNodes() │              │
-      │                │                   │                  │───────┐        │              │
-      │                │                   │                  │       │ loop   │              │
-      │                │                   │                  │<──────┘        │              │
-      │                │                   │                  │                │              │
-      │                │                   │                  │ emitTask       │              │
-      │                │                   │                  │ Completed()    │              │
-      │                │                   │                  │───────────────────────────────>│
-      │                │                   │                  │                │              │
-      │                │                   │  case updated    │                │              │
-      │                │                   │<─────────────────│                │              │
-      │                │   200 OK + case   │                  │                │              │
-      │                │<──────────────────│                  │                │              │
-      │  UI actualizada│                   │                  │                │              │
-      │<───────────────│                   │                  │                │              │
-```
+**CU08 Gestionar Generación de Backend Spring Boot**  
+**Descripción CU08 Gestionar Generación de Backend Spring Boot:**  
+Este caso de uso permite al usuario generar automáticamente la estructura de un backend en Spring Boot a partir del proyecto y su diagrama. Al presionar la opción “Generar Backend”, el sistema ejecuta la lógica necesaria para crear el código base utilizando plantillas predefinidas, empaquetando el resultado en un archivo comprimido (ZIP) que contiene el backend con los métodos CRUD y listo para ser utilizado.
 
-##### Diagrama de Secuencia: Iniciar Trámite
+**Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**  
+**Descripción de CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat:**  
+Este caso de uso permite al usuario crear objetos en el diagrama utilizando comandos de voz o texto. A través de un prompt o una orden de voz, el sistema interpreta la instrucción y genera automáticamente nuevos elementos, como clases completas o clases con relaciones asociadas, siempre orientadas al proceso de creación. De esta manera, se facilita la construcción del modelo sin necesidad de manipulación manual directa, optimizando la productividad del usuario.
 
-```
-Diseñador → DashboardPage → [POST /cases {policyId}] → CasesController
-    → CasesService.startCase(policyId):
-        1. Verificar política ACTIVE con nodos
-        2. Buscar nodos INITIAL (o nodos sin aristas entrantes)
-        3. Crear Case (status=IN_PROGRESS)
-        4. Crear Task para cada startNode
-        5. Si nodo es INITIAL → auto-completar → crear tasks para nodos siguientes
-        6. Registrar EventLog(CASE_STARTED)
-        7. EventsGateway.emitCaseStarted(case) → WebSocket broadcast
-    → Response: Case con tasks iniciales
-```
+**CU15: Gestionar Generación de Sistema completo**  
+**Descripción de CU15 Gestionar Generación de Sistema completo:**  
+Este caso de uso permite al usuario ordenar mediante comandos de voz o texto la generación automática de un sistema completo. A partir del prompt ingresado y del proyecto asociado, el sistema interpreta la instrucción y produce la estructura integral del sistema, integrando los diferentes componentes necesarios. De esta manera, se facilita la creación de soluciones completas sin necesidad de construir cada elemento de forma manual.
 
-##### Diagrama de Secuencia: Monitor en Tiempo Real
+#### 3.2.3 Análisis de Clases
 
-```
-Cliente → Conectar Socket.IO con {userId}
-    → EventsGateway.handleConnection():
-        1. Registrar userId en mapa de conectados
-        2. Emitir 'users:online' → broadcast lista actualizada
+**Ciclo #1: CU04 Gestionar Proyectos**
+*(Diagrama o análisis de clases)*
 
-Funcionario completa tarea → CasesService:
-    → EventsGateway.emitTaskCompleted(case) → 'task:completed' → todos los clientes
-    → MonitorPage recibe evento:
-        1. Agregar entrada al eventFeed (tipo, hora, detalle)
-        2. Recargar lista de trámites activos
+**Ciclo #2: CU09 Gestionar Diagrama de clases**
+*(Diagrama o análisis de clases)*
 
-Cliente desconecta → EventsGateway.handleDisconnect():
-    1. Eliminar userId del mapa
-    2. Emitir 'users:online' actualizado
-```
+**CU08 Gestionar Generación de Backend Spring Boot**
+*(Diagrama o análisis de clases)*
 
-#### 3.3 Diseño de Datos
+**Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**
+*(Diagrama o análisis de clases)*
 
-##### Modelo Entidad-Relación
+**CU15: Gestionar Generación de Sistema completo**
+*(Diagrama o análisis de clases)*
 
-```
-┌──────────────────┐        ┌──────────────────┐
-│     Department    │        │      User        │
-├──────────────────┤        ├──────────────────┤
-│ PK id: UUID      │◄──────┤ PK id: UUID      │
-│    name: VARCHAR  │  1:N   │    email: VARCHAR │
-│                  │        │    name: VARCHAR  │
-│                  │        │    passwordHash   │
-│                  │        │    role: enum     │
-│                  │        │ FK departmentId   │
-└───────┬──────────┘        └──────────┬───────┘
-        │ 1:N                          │ 1:N
-        ▼                              ▼
-┌──────────────────┐        ┌──────────────────┐
-│   PolicyNode     │        │      Task        │
-├──────────────────┤        ├──────────────────┤
-│ PK id: UUID      │◄──────┤ PK id: UUID      │
-│ FK policyId      │  1:N   │ FK caseId        │
-│ FK departmentId  │        │ FK nodeId ───────┼──►│
-│    nodeType: enum│        │ FK assignedUserId│
-│    title: VARCHAR│        │    status: enum  │
-│    description   │        │    startedAt     │
-│    positionX     │        │    finishedAt    │
-│    positionY     │        │    dueAt         │
-└──┬───────────┬───┘        └──┬──────────┬────┘
-   │ 1:1       │ 1:N           │ 1:1      │
-   ▼           ▼               ▼          │
-┌──────────┐ ┌────────────┐ ┌────────────┐│
-│FormTempl.│ │PolicyEdge  │ │FormSubmis. ││
-├──────────┤ ├────────────┤ ├────────────┤│
-│PK id     │ │PK id       │ │PK id       ││
-│FK nodeId │ │FK policyId │ │FK taskId   ││
-│schemaJson│ │FK fromNodeId│ │payloadJson ││
-└──────────┘ │FK toNodeId │ │inputMode   ││
-             │flowType    │ └────────────┘│
-             │condLabel   │               │
-             │condJson    │               │
-             └────────────┘               │
-                                          │
-┌──────────────────┐    ┌──────────────────┐
-│     Policy       │    │      Case        │
-├──────────────────┤    ├──────────────────┤
-│ PK id: UUID      │◄──┤ PK id: UUID      │
-│    name: VARCHAR  │1:N│ FK policyId      │
-│    status: enum  │    │    currentNodeId │
-│    createdBy     │    │    status: enum  │
-│    createdAt     │    │    startedAt     │
-│    updatedAt     │    │    finishedAt    │
-└──────────────────┘    └───────┬──────────┘
-                                │ 1:N
-                                ▼
-                        ┌──────────────────┐
-                        │    EventLog      │
-                        ├──────────────────┤
-                        │ PK id: UUID      │
-                        │ FK caseId        │
-                        │    type: VARCHAR  │
-                        │    payloadJson   │
-                        │    createdAt     │
-                        └──────────────────┘
-```
-
-##### Enumeraciones del sistema
-
-| Enum | Valores | Uso |
-|------|---------|-----|
-| `Role` | DESIGNER, OFFICER | Rol del usuario, determina dashboard y permisos |
-| `PolicyStatus` | ACTIVE, INACTIVE | Solo políticas ACTIVE pueden instanciar trámites |
-| `NodeType` | ACTION, INITIAL, FINAL, DECISION, FORK, JOIN | Tipo de nodo UML en el diagrama de actividad |
-| `FlowType` | SEQUENTIAL, CONDITIONAL, ITERATIVE, PARALLEL | Tipo de flujo de cada arista |
-| `TaskStatus` | PENDING, IN_PROGRESS, DONE, BLOCKED | Estado de cada tarea individual |
-| `CaseStatus` | OPEN, IN_PROGRESS, COMPLETED, CANCELLED | Estado global del trámite |
-| `InputMode` | MANUAL, VOICE, AI | Modo de captura del formulario (teclado, voz, OCR) |
-
-##### Diccionario de datos — Tablas principales
-
-**Tabla `policies`**
-
-| Campo | Tipo | Restricción | Descripción |
-|-------|------|-------------|-------------|
-| id | UUID | PK, auto-gen | Identificador único |
-| name | VARCHAR | NOT NULL | Nombre de la política |
-| status | PolicyStatus | DEFAULT ACTIVE | Estado de la política |
-| created_by | VARCHAR | NOT NULL | ID del usuario creador |
-| created_at | TIMESTAMP | DEFAULT now() | Fecha de creación |
-| updated_at | TIMESTAMP | Auto-update | Última modificación |
-
-**Tabla `policy_nodes`**
-
-| Campo | Tipo | Restricción | Descripción |
-|-------|------|-------------|-------------|
-| id | UUID | PK, auto-gen | Identificador único |
-| policy_id | UUID | FK → policies, CASCADE | Política a la que pertenece |
-| department_id | UUID | FK → departments | Departamento responsable |
-| node_type | NodeType | DEFAULT ACTION | Tipo UML del nodo |
-| title | VARCHAR | NOT NULL | Nombre de la actividad |
-| description | TEXT | NULLABLE | Descripción opcional |
-| position_x | FLOAT | DEFAULT 0 | Coordenada X en el canvas |
-| position_y | FLOAT | DEFAULT 0 | Coordenada Y en el canvas |
-
-**Tabla `tasks`**
-
-| Campo | Tipo | Restricción | Descripción |
-|-------|------|-------------|-------------|
-| id | UUID | PK, auto-gen | Identificador único |
-| case_id | UUID | FK → cases | Trámite al que pertenece |
-| node_id | UUID | FK → policy_nodes | Nodo del diagrama que representa |
-| assigned_user_id | UUID | FK → users, NULLABLE | Funcionario asignado |
-| status | TaskStatus | DEFAULT PENDING | Estado actual de la tarea |
-| started_at | TIMESTAMP | DEFAULT now() | Fecha de creación |
-| finished_at | TIMESTAMP | NULLABLE | Fecha de completado |
-| due_at | TIMESTAMP | NULLABLE | Fecha límite (opcional) |
+#### 3.2.4 Análisis de Paquete
+*(Diagrama o análisis de paquetes)*
 
 ---
 
-### 4. Flujo de Trabajo: Implementación
-
-#### 4.1 Implementación de la Arquitectura del Sistema
-
-##### Estructura de directorios
-
-```
-PrimerParcialSW1/
-├── backend/
-│   ├── src/
-│   │   ├── main.ts                    # Bootstrap: CORS, ValidationPipe, puerto 3000
-│   │   ├── app.module.ts              # Módulo raíz: importa 9 módulos
-│   │   ├── prisma/
-│   │   │   ├── prisma.module.ts       # Módulo global del ORM
-│   │   │   └── prisma.service.ts      # Servicio singleton PrismaClient
-│   │   ├── auth/
-│   │   │   ├── auth.module.ts         # Passport + JWT + bcrypt
-│   │   │   ├── auth.controller.ts     # POST /login, /register, GET /profile, /users
-│   │   │   ├── auth.service.ts        # Hash, verify, sign JWT
-│   │   │   └── jwt.strategy.ts        # Passport JWT strategy + AuthGuard
-│   │   ├── departments/
-│   │   │   ├── departments.module.ts
-│   │   │   ├── departments.controller.ts  # GET, POST, DELETE
-│   │   │   └── departments.service.ts
-│   │   ├── policies/
-│   │   │   ├── policies.module.ts
-│   │   │   ├── policies.controller.ts # CRUD + PUT /:id (saveGraph)
-│   │   │   └── policies.service.ts    # findAll, findOne, create, saveGraph
-│   │   ├── cases/
-│   │   │   ├── cases.module.ts
-│   │   │   ├── cases.controller.ts    # POST /cases, /tasks/:id/complete, etc.
-│   │   │   └── cases.service.ts       # Motor de workflow (256 líneas)
-│   │   ├── forms/
-│   │   │   ├── forms.module.ts
-│   │   │   ├── forms.controller.ts    # Template CRUD + submit
-│   │   │   └── forms.service.ts
-│   │   ├── events/
-│   │   │   ├── events.module.ts
-│   │   │   └── events.gateway.ts      # Socket.IO WebSocket Gateway
-│   │   ├── analytics/
-│   │   │   ├── analytics.module.ts
-│   │   │   ├── analytics.controller.ts # GET /dashboard, /policy/:id
-│   │   │   └── analytics.service.ts    # KPIs + cuellos de botella
-│   │   └── ai-assistant/
-│   │       ├── ai-assistant.module.ts
-│   │       └── ai-assistant.service.ts # Generación de insights IA
-│   ├── prisma/
-│   │   └── schema.prisma              # 10 modelos, 6 enums
-│   ├── test/                          # 25 tests unitarios (4 suites)
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── main.tsx                   # Entry point React
-│   │   ├── App.tsx                    # Router con 12 rutas
-│   │   ├── api.ts                     # Axios instance + JWT interceptor
-│   │   ├── index.css                  # Design system (400+ líneas CSS)
-│   │   ├── context/
-│   │   │   └── AuthContext.tsx         # React Context para autenticación
-│   │   ├── components/
-│   │   │   ├── Layout.tsx             # Shell: sidebar + contenido
-│   │   │   ├── DynamicForm.tsx        # Renderizador de JSON Schema + voz + OCR
-│   │   │   ├── TrafficLight.tsx       # Indicador visual de estado
-│   │   │   ├── Toast.tsx              # Notificaciones toast
-│   │   │   ├── ToastContext.ts        # Contexto compartido
-│   │   │   └── useToast.ts           # Hook de acceso al toast
-│   │   └── pages/
-│   │       ├── LoginPage.tsx          # Login glassmorphism
-│   │       ├── RegisterPage.tsx       # Registro con departamento
-│   │       ├── DashboardPage.tsx      # KPIs + tabla de políticas (DESIGNER)
-│   │       ├── OfficerDashboardPage.tsx # Bandeja de tareas (OFFICER)
-│   │       ├── DepartmentsPage.tsx    # CRUD departamentos
-│   │       ├── PolicyEditorPage.tsx   # Editor React Flow (700+ líneas)
-│   │       ├── CasesPage.tsx          # Lista de trámites
-│   │       ├── CaseDetailPage.tsx     # Detalle: tareas + formularios + historial
-│   │       ├── MonitorPage.tsx        # Monitor WebSocket en tiempo real
-│   │       └── AnalyticsPage.tsx      # Gráficos + IA insights
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml                 # 3 servicios: db, backend, frontend
-├── .github/workflows/ci.yml          # Pipeline CI/CD (3 jobs)
-├── DOCUMENTACION.md                   # Este documento
-└── README.md                          # Guía rápida de instalación
-```
-
-##### Configuración del servidor (main.ts)
-
-```typescript
-const app = await NestFactory.create(AppModule);
-
-// CORS — permite peticiones del frontend
-app.enableCors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:5173'],
-  credentials: true,
-});
-
-// Validación global — sanitiza y valida DTOs automáticamente
-app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-
-await app.listen(process.env.PORT ?? 3000);
-```
-
-##### Registro de módulos (app.module.ts)
-
-```typescript
-@Module({
-  imports: [
-    ConfigModule.forRoot({ isGlobal: true }),   // Variables de entorno
-    PrismaModule,         // Capa de datos (singleton)
-    AuthModule,           // JWT + Passport
-    DepartmentsModule,    // CRUD organizacional
-    PoliciesModule,       // Diseño de procesos
-    CasesModule,          // Motor de workflow
-    EventsModule,         // WebSocket Gateway
-    AnalyticsModule,      // KPIs y métricas
-    FormsModule,          // Formularios dinámicos
-    AiAssistantModule,    // Insights inteligentes
-  ],
-})
-export class AppModule {}
-```
-
-#### 4.2 Implementación de la Arquitectura del Subsistema
-
-##### Subsistema: Motor de Workflow (CasesService)
-
-El motor de workflow es el componente central del sistema. Implementa la lógica de avance de trámites según la teoría de diagramas de actividad UML.
-
-**Algoritmo principal — `completeTask()`:**
-
-```
-ENTRADA: taskId, userId, chosenEdgeLabel (opcional)
-1. Buscar tarea por ID (incluir caso y nodo)
-2. Validar que la tarea no esté ya completada
-3. Marcar tarea como DONE (finishedAt = ahora)
-4. Registrar EventLog(TASK_COMPLETED)
-5. Buscar aristas salientes del nodo completado
-6. Obtener el tipo del nodo actual (nodeType)
-7. SWITCH según nodeType:
-   ├── FINAL o sin aristas salientes:
-   │   └── Si TODAS las tareas del caso son DONE → CASE COMPLETED
-   ├── DECISION:
-   │   └── Elegir arista por chosenEdgeLabel → crear 1 tarea en destino
-   ├── FORK:
-   │   └── Crear tareas para TODOS los destinos (flujo paralelo)
-   ├── JOIN:
-   │   └── Verificar que TODOS los nodos fuente estén DONE
-   │       └── Si sí → avanzar; si no → esperar
-   └── ACTION / default:
-       └── Crear tareas para nodo(s) destino
-8. Ejecutar autoAdvanceSpecialNodes() (loop)
-9. Emitir evento WebSocket
-10. Retornar caso actualizado
-```
-
-**Algoritmo de auto-avance — `autoAdvanceSpecialNodes()`:**
-
-```
-ENTRADA: caseId, policyId
-REPETIR mientras haya avances:
-  1. Buscar tareas PENDING del caso
-  2. Para cada tarea pendiente:
-     ├── INITIAL → auto-completar → crear tareas siguientes
-     ├── FORK → auto-completar → crear tareas paralelas
-     ├── JOIN → verificar todas las fuentes DONE → si sí, completar y avanzar
-     └── FINAL → auto-completar → si no quedan tareas → cerrar caso
-  3. Si se avanzó alguna → repetir; sino → salir del loop
-```
-
-##### Subsistema: Analítica con IA (AnalyticsService + AiAssistantService)
-
-**Algoritmo de detección de cuellos de botella:**
-
-```
-ENTRADA: policyId
-1. Cargar política con nodos y departamentos
-2. Cargar todos los casos con tareas
-3. Para cada nodo:
-   a. Filtrar tareas del nodo
-   b. Calcular duración promedio (completadas)
-   c. Contar tareas pendientes
-4. Calcular promedio global de duración
-5. Umbral de cuello de botella = max(promedio × 1.5, 1 minuto)
-6. Marcar como bottleneck si:
-   - Duración promedio > umbral  O
-   - Tareas pendientes >= 3
-```
-
-**Algoritmo de generación de insights IA:**
-
-```
-ENTRADA: nodeStats[], bottlenecks[], totalCases, completedCases, avgDuration
-1. Análisis de tasa de completitud:
-   ├── < 30% → CRITICAL: "Tasa crítica"
-   ├── < 60% → WARNING: "Tasa baja"
-   └── >= 60% → SUCCESS: "Tasa saludable"
-2. Si hay cuellos de botella:
-   a. Identificar el peor nodo (mayor duración promedio)
-   b. Generar recomendación con departamento y actividad específicos
-   c. Detectar sobrecarga por departamento (>=5 tareas pendientes)
-   d. Si hay >=2 cuellos de botella → "problema sistémico"
-3. Análisis de cola global:
-   └── > 10 tareas pendientes total → WARNING
-4. Detección de anomalías de duración:
-   a. Calcular media y desviación estándar
-   b. Identificar outliers (> media + 2σ)
-   c. Generar alerta por cada outlier
-SALIDA: Array de {severity, message, action}
-```
-
-##### Subsistema: WebSocket en Tiempo Real (EventsGateway)
-
-```typescript
-@WebSocketGateway({ cors: { origin: '*' } })
-export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server;
-  private connectedUsers = new Map<string, string>(); // socketId → userId
-
-  handleConnection(client: Socket) {
-    // Registrar usuario conectado y broadcast lista
-    connectedUsers.set(client.id, userId);
-    server.emit('users:online', [...connectedUsers.values()]);
-  }
-
-  handleDisconnect(client: Socket) {
-    // Eliminar y actualizar lista
-    connectedUsers.delete(client.id);
-    server.emit('users:online', [...connectedUsers.values()]);
-  }
-
-  // Métodos de emisión invocados por CasesService:
-  emitCaseStarted(caseData)    → server.emit('case:started', data)
-  emitTaskCompleted(caseData)  → server.emit('task:completed', data)
-  emitTaskAssigned(taskData)   → server.emit('task:assigned', data)
-  emitCaseCompleted(caseData)  → server.emit('case:completed', data)
-}
-```
-
-##### Subsistema: Formularios Dinámicos (DynamicForm.tsx)
-
-El componente `DynamicForm` renderiza formularios a partir de un JSON Schema almacenado en `FormTemplate`:
-
-```
-JSON Schema ejemplo:
-{
-  "fields": [
-    { "name": "nombre", "label": "Nombre completo", "type": "text", "required": true },
-    { "name": "monto", "label": "Monto solicitado", "type": "number" },
-    { "name": "observaciones", "label": "Observaciones", "type": "textarea", "fullWidth": true }
-  ]
-}
-
-Renderizado → Para cada field:
-  ├── type=text     → <input type="text"> + botón de voz
-  ├── type=number   → <input type="number">
-  ├── type=textarea → <textarea> + botón de voz
-  ├── type=date     → <input type="date">
-  └── type=select   → <select> con options
-
-Modos de entrada:
-  ├── Manual: teclado estándar
-  ├── Voz: Web Speech API (SpeechRecognition) → transcripción al campo
-  └── OCR: Tesseract.js → imagen → texto extraído al campo
-```
-
----
-
-### 5. Flujo de Trabajo: Prueba
-
-#### 5.1 Planificar Plan de Pruebas
-
-Se definió un plan de pruebas alineado con la metodología PUDS, cuyo objetivo es verificar que cada módulo del sistema cumple con los requisitos funcionales y no funcionales identificados en los flujos anteriores.
-
-**Objetivos del plan:**
-
-1. Validar la lógica de negocio de los 4 servicios core del backend (Auth, Policies, Cases, Analytics).
-2. Verificar la integridad de la compilación tanto del backend (NestJS) como del frontend (React + Vite).
-3. Asegurar la calidad de código mediante análisis estático (TypeScript strict + ESLint).
-4. Automatizar la ejecución de pruebas en cada push/PR mediante CI/CD (GitHub Actions).
-
-**Alcance y niveles de prueba:**
-
-| Nivel | Herramienta | Cobertura | Descripción |
-|-------|-------------|-----------|-------------|
-| **Unitarias** | Jest 30 | 4 servicios core | Servicios aislados con mocks de Prisma |
-| **Análisis estático** | TypeScript + ESLint | 100% del código | Detección de errores de tipo y estilo |
-| **Build validation** | `tsc -b` + `vite build` | Frontend completo | Compilación sin errores |
-| **E2E (smoke)** | Supertest | Endpoint raíz | Verificación de arranque de la aplicación |
-| **CI automatizado** | GitHub Actions | Push/PR a main | Ejecuta tests + build + Docker |
-
-**Recursos y entorno:**
-
-| Recurso | Especificación |
-|---------|---------------|
-| Framework de pruebas | Jest 30.x con ts-jest |
-| Mocking | `jest.fn()` para PrismaService y dependencias |
-| Base de datos de test | PostgreSQL 16 en contenedor (CI) / mock local |
-| Runner CI | GitHub Actions — ubuntu-latest, Node.js 20 |
-| Cobertura | `--coverage` flag habilitado en CI |
-
-**Criterios de aceptación:**
-
-- 100% de las pruebas unitarias pasan (25/25).
-- 0 errores de compilación TypeScript en backend y frontend.
-- Build de producción exitoso para ambos proyectos.
-- Imágenes Docker construidas sin errores.
-
-#### 5.2 Diseñar Pruebas
-
-Las pruebas se diseñaron siguiendo el patrón **AAA (Arrange-Act-Assert)** con aislamiento total de dependencias mediante mocks de Prisma y servicios externos.
-
-**Estructura de archivos de prueba:**
-
-```
-backend/
-├── src/
-│   ├── app.controller.spec.ts          # Suite 0: AppController (1 test)
-│   ├── auth/
-│   │   └── auth.service.spec.ts        # Suite 1: AuthService (6 tests)
-│   ├── cases/
-│   │   └── cases.service.spec.ts       # Suite 2: CasesService (10 tests)
-│   └── policies/
-│       └── policies.service.spec.ts    # Suite 3: PoliciesService (8 tests)
-└── test/
-    └── app.e2e-spec.ts                 # Suite E2E: Supertest (1 test)
-```
-
-**Patrón de diseño de pruebas — Ejemplo AuthService:**
-
-```typescript
-// Arrange: crear módulo de testing con mocks
-beforeEach(async () => {
-  prisma = {
-    user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-  };
-  jwt = { sign: jest.fn().mockReturnValue('test-token') };
-
-  const module: TestingModule = await Test.createTestingModule({
-    providers: [
-      AuthService,
-      { provide: PrismaService, useValue: prisma },
-      { provide: JwtService, useValue: jwt },
-    ],
-  }).compile();
-  service = module.get<AuthService>(AuthService);
-});
-
-// Act + Assert: validar comportamiento
-it('should return access_token for valid credentials', async () => {
-  const hash = await bcrypt.hash('123456', 10);
-  prisma.user.findUnique.mockResolvedValue({
-    id: '1', email: 'test@test.com', role: 'DESIGNER', passwordHash: hash,
-  });
-  const result = await service.login('test@test.com', '123456');
-  expect(result.access_token).toBe('test-token');
-  expect(jwt.sign).toHaveBeenCalledWith({
-    sub: '1', email: 'test@test.com', role: 'DESIGNER',
-  });
-});
-```
-
-**Catálogo completo de casos de prueba:**
-
-##### Suite 1: AuthService (6 tests)
-
-| # | Test | Qué valida |
-|---|------|------------|
-| 1 | Debe retornar access_token para credenciales válidas | Login correcto → JWT firmado |
-| 2 | Debe rechazar email inexistente | UnauthorizedException si user no existe |
-| 3 | Debe rechazar contraseña incorrecta | UnauthorizedException si bcrypt.compare falla |
-| 4 | Debe crear usuario nuevo y retornar datos | Registro con hashing bcrypt + inserción BD |
-| 5 | Debe hashear la contraseña antes de almacenar | passwordHash ≠ plaintext, bcrypt.compare = true |
-| 6 | Debe retornar todos los usuarios | findAllUsers → findMany |
-
-##### Suite 2: CasesService — Motor de Workflow (10 tests)
-
-| # | Test | Qué valida |
-|---|------|------------|
-| 7 | Debe retornar todos los trámites | findAll sin filtro |
-| 8 | Debe filtrar trámites por policyId | findAll con where policyId |
-| 9 | Debe retornar trámite con detalles | findOne con include tasks + eventLogs |
-| 10 | Debe lanzar NotFoundException si trámite no existe | findOne con ID inválido |
-| 11 | Debe rechazar inicio si política no existe | startCase → NotFoundException |
-| 12 | Debe rechazar inicio si política inactiva | startCase → BadRequestException |
-| 13 | Debe rechazar inicio si política sin nodos | startCase → BadRequestException |
-| 14 | Debe rechazar completar tarea inexistente | completeTask → NotFoundException |
-| 15 | Debe rechazar completar tarea ya terminada | completeTask status=DONE → BadRequestException |
-| 16 | Debe retornar tareas del usuario (asignadas + pending) | findTasksByUser con OR filter |
-
-##### Suite 3: PoliciesService (8 tests)
-
-| # | Test | Qué valida |
-|---|------|------------|
-| 17 | Debe listar políticas ordenadas por fecha | findAll → orderBy createdAt desc |
-| 18 | Debe obtener política con nodos y aristas | findOne con include nodes + edges |
-| 19 | Debe crear política nueva | create con name + createdBy |
-| 20 | Debe actualizar nombre de política | update con data parcial |
-| 21 | Debe desactivar política (soft delete) | remove → status INACTIVE |
-| 22 | Debe guardar grafo en transacción | saveGraph → $transaction con delete + create |
-| 23 | AssignTask rechaza tarea inexistente | assignTask → NotFoundException |
-| 24 | CancelCase rechaza trámite inexistente | cancelCase → NotFoundException |
-
-##### Suite E2E: AppController (1 test)
-
-| # | Test | Qué valida |
-|---|------|------------|
-| 25 | GET / debe retornar Hello World | Endpoint raíz responde 200 + texto correcto |
-
-#### 5.3 Implementar Pruebas
-
-Las pruebas se implementaron usando **Jest 30** con el módulo `@nestjs/testing` para crear módulos de testing aislados. Cada suite sigue la misma estructura:
-
-**Tecnologías de implementación:**
-
-| Componente | Tecnología | Propósito |
-|------------|-----------|-----------|
-| Runner | Jest 30.x | Ejecución de pruebas y assertions |
-| Testing module | `@nestjs/testing` | Inyección de dependencias mock |
-| Mocking | `jest.fn()` / `mockResolvedValue()` | Simulación de Prisma y servicios |
-| HTTP testing | Supertest | Pruebas E2E sobre endpoints |
-| Hashing | bcrypt | Verificación de hashing de passwords |
-
-**Ejemplo de implementación — CasesService spec:**
-
-```typescript
-describe('CasesService', () => {
-  let service: CasesService;
-  let prisma: any;
-  let events: any;
-
-  beforeEach(async () => {
-    prisma = {
-      case: { findMany: jest.fn(), findUnique: jest.fn(),
-              create: jest.fn(), update: jest.fn() },
-      task: { findMany: jest.fn(), findUnique: jest.fn(),
-              findFirst: jest.fn(), create: jest.fn(),
-              update: jest.fn(), count: jest.fn() },
-      policy: { findUnique: jest.fn() },
-      policyNode: { findUnique: jest.fn() },
-      policyEdge: { findMany: jest.fn() },
-      eventLog: { create: jest.fn() },
-    };
-    events = {
-      emitCaseStarted: jest.fn(),
-      emitCaseCompleted: jest.fn(),
-      emitTaskCompleted: jest.fn(),
-      emitTaskAssigned: jest.fn(),
-    };
-
-    const module = await Test.createTestingModule({
-      providers: [
-        CasesService,
-        { provide: PrismaService, useValue: prisma },
-        { provide: EventsGateway, useValue: events },
-      ],
-    }).compile();
-    service = module.get<CasesService>(CasesService);
-  });
-
-  describe('startCase', () => {
-    it('should throw NotFoundException for missing policy', async () => {
-      prisma.policy.findUnique.mockResolvedValue(null);
-      await expect(service.startCase('bad-id'))
-        .rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw BadRequestException for inactive policy', async () => {
-      prisma.policy.findUnique.mockResolvedValue({
-        id: '1', status: 'INACTIVE', nodes: [], edges: [],
-      });
-      await expect(service.startCase('1'))
-        .rejects.toThrow(BadRequestException);
-    });
-  });
-});
-```
-
-**Ejemplo de implementación — Prueba E2E:**
-
-```typescript
-describe('AppController (e2e)', () => {
-  let app: INestApplication;
-
-  beforeEach(async () => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-    app = moduleFixture.createNestApplication();
-    await app.init();
-  });
-
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
-  });
-
-  afterEach(async () => { await app.close(); });
-});
-```
-
-#### 5.4 Realizar Pruebas de Integración
-
-Las pruebas de integración se realizan a nivel de **pipeline CI/CD** mediante GitHub Actions, donde se verifica la interacción entre los componentes en un entorno controlado.
-
-**Entorno de integración — GitHub Actions:**
-
-```yaml
-# .github/workflows/ci.yml
-jobs:
-  backend-test:
-    runs-on: ubuntu-latest
-    services:
-      postgres:                          # BD real PostgreSQL 16
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: workflow_sw1_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npx prisma generate
-      - run: npx jest --passWithNoTests --ci --coverage
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workflow_sw1_test
-          JWT_SECRET: test-secret
-      - run: npm run build
-```
-
-**Verificaciones de integración:**
-
-| Verificación | Job | Qué valida |
-|-------------|-----|------------|
-| Prisma ↔ PostgreSQL | backend-test | Generación de cliente contra BD real |
-| Jest + Mocks | backend-test | 25 tests con `--ci --coverage` |
-| Build NestJS | backend-test | `npm run build` → compilación TypeScript |
-| TypeScript check | frontend-build | `npx tsc --noEmit` → 0 errores de tipo |
-| Vite build | frontend-build | `npm run build` → bundle de producción |
-| Docker backend | docker-build | `docker build ./backend` → imagen válida |
-| Docker frontend | docker-build | `docker build ./frontend` → imagen con Nginx |
-
-**Flujo de dependencias entre jobs:**
-
-```
-backend-test ──────┐
-                   ├──→ docker-build
-frontend-build ────┘
-```
-
-El job `docker-build` solo se ejecuta si ambos jobs previos pasan exitosamente (`needs: [backend-test, frontend-build]`).
-
-#### 5.5 Realizar Pruebas de Sistema
-
-Las pruebas de sistema validan el funcionamiento completo del stack desplegado con **Docker Compose**, verificando que los 3 servicios interactúan correctamente.
-
-**Despliegue del sistema completo:**
-
-```yaml
-# docker-compose.yml — 3 servicios
-services:
-  db:                              # PostgreSQL 16 Alpine
-    image: postgres:16-alpine
-    ports: ['5432:5432']
-    environment:
-      POSTGRES_DB: workflow_sw1
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    healthcheck:
-      test: pg_isready -U postgres
-    volumes: [pgdata:/var/lib/postgresql/data]
-
-  backend:                         # NestJS 11
-    build: ./backend
-    ports: ['3000:3000']
-    depends_on:
-      db: { condition: service_healthy }
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/workflow_sw1
-      JWT_SECRET: sw1-secret-key-2025
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
-
-  frontend:                        # React + Nginx
-    build:
-      context: ./frontend
-      args: { VITE_API_URL: http://localhost:3000 }
-    ports: ['5173:80']
-    depends_on: [backend]
-```
-
-**Escenarios de prueba de sistema:**
-
-| # | Escenario | Flujo | Resultado esperado |
-|---|-----------|-------|-------------------|
-| 1 | Login con credenciales válidas | POST /auth/login → JWT | Token válido, redirección al dashboard |
-| 2 | Crear política con editor visual | POST /policies → Editor UML | Política creada con nodos y aristas |
-| 3 | Iniciar trámite | POST /cases/start → Motor de workflow | Case IN_PROGRESS, tareas creadas |
-| 4 | Completar tarea con formulario | POST /forms/submit + POST /cases/complete | Avance al siguiente nodo |
-| 5 | Dashboard de analíticas | GET /analytics/dashboard + /insights | KPIs + insights IA |
-| 6 | Monitor en tiempo real | WebSocket /events | Eventos emitidos al completar tareas |
-| 7 | OCR en formulario | Tesseract.js → campo de texto | Texto extraído de imagen |
-| 8 | Entrada por voz | Web Speech API → campo de texto | Transcripción correcta |
-
-**Ejecución del sistema:**
-
-```bash
-# Levantar los 3 servicios
-docker-compose up --build
-
-# Verificar que todos están saludables
-docker-compose ps
-# NAME        STATUS         PORTS
-# db          Up (healthy)   0.0.0.0:5432->5432/tcp
-# backend     Up             0.0.0.0:3000->3000/tcp
-# frontend    Up             0.0.0.0:5173->80/tcp
-```
-
-#### 5.6 Evaluar Prueba
-
-**Resumen de resultados:**
-
-| Métrica | Resultado | Estado |
-|---------|-----------|--------|
-| Test Suites | 4 passed, 0 failed | ✅ Aprobado |
-| Tests totales | 25 passed, 0 failed | ✅ Aprobado |
-| Errores TypeScript (backend) | 0 errores | ✅ Aprobado |
-| Errores TypeScript (frontend) | 0 errores | ✅ Aprobado |
-| Build backend | Exitoso | ✅ Aprobado |
-| Build frontend (Vite) | Exitoso | ✅ Aprobado |
-| Docker build backend | Imagen construida | ✅ Aprobado |
-| Docker build frontend | Imagen construida | ✅ Aprobado |
-| Pipeline CI/CD | 3/3 jobs passing | ✅ Aprobado |
-
-**Ejecución local de pruebas:**
-
-```bash
-cd backend
-npx jest --passWithNoTests
-
-# Test Suites: 4 passed, 4 total
-# Tests:       25 passed, 25 total
-# Snapshots:   0 total
-# Time:        ~3.5s
-```
-
-**Distribución de cobertura por servicio:**
-
-| Servicio | Tests | Líneas cubiertas | Funciones testeadas |
-|----------|-------|-------------------|---------------------|
-| AuthService | 6 | login, register, findAllUsers | 3/3 |
-| CasesService | 10 | findAll, findOne, startCase, completeTask, findTasksByUser, assignTask, cancelCase | 7/7 |
-| PoliciesService | 8 | findAll, findOne, create, update, remove, saveGraph | 6/6 |
-| AppController (E2E) | 1 | GET / | 1/1 |
-
-**Conclusión de la evaluación:**
-
-- Todas las pruebas unitarias pasan exitosamente con **25/25 tests**.
-- Los servicios core están cubiertos al 100% en sus funciones públicas.
-- El pipeline CI/CD garantiza que ningún código con fallos llegue a la rama `main`.
-- El despliegue con Docker Compose ha sido verificado con los 3 servicios funcionando de forma integrada.
-- Se ha validado la integración Prisma ↔ PostgreSQL, el motor de workflow, el sistema de autenticación JWT y los eventos WebSocket.
-
----
-
-## Credenciales de Prueba
-
-| Rol | Email | Contraseña |
-|-----|-------|------------|
-| Diseñador | `admin@test.com` | `123456` |
-| Funcionario | `funcionario@test.com` | `123456` |
-
-## Instalación Rápida
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/luisfernandoAngulo28/Examen1SW1.git
-cd Examen1SW1
-
-# 2. Backend
-cd backend
-npm install
-npx prisma generate
-npx prisma migrate dev
-npm run start:dev    # http://localhost:3000
-
-# 3. Frontend (nueva terminal)
-cd frontend
-npm install
-npm run dev          # http://localhost:5173
-
-# 4. O con Docker
-docker-compose up --build
-```
-
-**Variables de entorno del backend** (`.env`):
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/workflow_sw1"
-JWT_SECRET="sw1-secret-key-2025"
-```
-
----
-
-## BIBLIOGRAFÍA
-
-1. **NestJS** — A progressive Node.js framework. Disponible en: [https://docs.nestjs.com](https://docs.nestjs.com)
-2. **React** — A JavaScript library for building user interfaces. Disponible en: [https://react.dev](https://react.dev)
-3. **Prisma** — Next-generation Node.js and TypeScript ORM. Disponible en: [https://www.prisma.io/docs](https://www.prisma.io/docs)
-4. **PostgreSQL** — The World's Most Advanced Open Source Relational Database. Disponible en: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/)
-5. **TypeScript** — JavaScript with syntax for types. Disponible en: [https://www.typescriptlang.org/docs/](https://www.typescriptlang.org/docs/)
-6. **Vite** — Next Generation Frontend Tooling. Disponible en: [https://vite.dev](https://vite.dev)
-7. **Docker** — Accelerated Container Application Development. Disponible en: [https://docs.docker.com](https://docs.docker.com)
-8. **Jest** — Delightful JavaScript Testing. Disponible en: [https://jestjs.io/docs/getting-started](https://jestjs.io/docs/getting-started)
-9. **Socket.IO** — Bidirectional and low-latency communication. Disponible en: [https://socket.io/docs/](https://socket.io/docs/)
-10. **Tesseract.js** — Pure JavaScript OCR for more than 100 languages. Disponible en: [https://tesseract.projectnaptha.com](https://tesseract.projectnaptha.com)
-11. **Lucide React** — Beautiful & consistent icon toolkit. Disponible en: [https://lucide.dev](https://lucide.dev)
-12. **bcrypt** — A library to help you hash passwords. Disponible en: [https://www.npmjs.com/package/bcrypt](https://www.npmjs.com/package/bcrypt)
-13. **JSON Web Tokens (JWT)** — Introduction to JSON Web Tokens. Disponible en: [https://jwt.io/introduction](https://jwt.io/introduction)
-14. **GitHub Actions** — Automate your workflow from idea to production. Disponible en: [https://docs.github.com/en/actions](https://docs.github.com/en/actions)
-15. **Jacobson, I., Booch, G., Rumbaugh, J.** (1999). *The Unified Software Development Process*. Addison-Wesley.
-16. **Pressman, R.** (2015). *Software Engineering: A Practitioner's Approach*. 8va edición. McGraw-Hill.
-17. **Sommerville, I.** (2016). *Software Engineering*. 10ma edición. Pearson.
-18. **OMG** — Unified Modeling Language (UML) Specification. Disponible en: [https://www.omg.org/spec/UML](https://www.omg.org/spec/UML)
-19. **ESLint** — Find and fix problems in your JavaScript code. Disponible en: [https://eslint.org/docs/latest/](https://eslint.org/docs/latest/)
-20. **Prettier** — An opinionated code formatter. Disponible en: [https://prettier.io/docs/en/](https://prettier.io/docs/en/)
-
----
-
-## ANEXOS
-
-### Anexo A: Modelo de datos completo (Prisma Schema)
-
-```prisma
-model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  passwordHash  String
-  name          String
-  role          Role     @default(OFFICER)
-  departmentId  String?
-  tasks         Task[]
-  createdAt     DateTime @default(now())
-}
-
-model Policy {
-  id        String       @id @default(uuid())
-  name      String
-  status    PolicyStatus @default(DRAFT)
-  createdBy String
-  nodes     PolicyNode[]
-  edges     PolicyEdge[]
-  cases     Case[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-}
-
-model PolicyNode {
-  id           String   @id @default(uuid())
-  policyId     String
-  policy       Policy   @relation(...)
-  type         NodeType
-  title        String
-  departmentId String?
-  positionX    Float    @default(0)
-  positionY    Float    @default(0)
-  swimlane     String?
-}
-
-model PolicyEdge {
-  id         String   @id @default(uuid())
-  policyId   String
-  policy     Policy   @relation(...)
-  fromNodeId String
-  toNodeId   String
-  label      String?
-  flowType   FlowType @default(SEQUENTIAL)
-}
-
-model Case {
-  id         String     @id @default(uuid())
-  policyId   String
-  policy     Policy     @relation(...)
-  status     CaseStatus @default(IN_PROGRESS)
-  tasks      Task[]
-  eventLogs  EventLog[]
-  startedAt  DateTime   @default(now())
-  completedAt DateTime?
-}
-
-model Task {
-  id             String     @id @default(uuid())
-  caseId         String
-  case           Case       @relation(...)
-  nodeId         String
-  assignedUserId String?
-  assignedUser   User?      @relation(...)
-  status         TaskStatus @default(PENDING)
-  formSubmission FormSubmission?
-  createdAt      DateTime   @default(now())
-  completedAt    DateTime?
-}
-
-model FormTemplate {
-  id         String @id @default(uuid())
-  nodeId     String @unique
-  schemaJson Json
-}
-
-model FormSubmission {
-  id          String @id @default(uuid())
-  taskId      String @unique
-  task        Task   @relation(...)
-  payloadJson Json
-  inputMode   InputMode @default(MANUAL)
-  submittedAt DateTime  @default(now())
-}
-
-model EventLog {
-  id        String   @id @default(uuid())
-  caseId    String
-  case      Case     @relation(...)
-  type      String
-  detail    String?
-  timestamp DateTime @default(now())
-}
-
-enum Role          { DESIGNER OFFICER }
-enum PolicyStatus  { DRAFT ACTIVE INACTIVE }
-enum NodeType      { START ACTION DECISION FORK JOIN FINAL }
-enum FlowType      { SEQUENTIAL CONDITIONAL PARALLEL }
-enum CaseStatus    { IN_PROGRESS COMPLETED CANCELLED }
-enum TaskStatus    { PENDING IN_PROGRESS DONE SKIPPED }
-enum InputMode     { MANUAL VOICE AI }
-```
-
-### Anexo B: Capturas de pantalla del sistema
-
-> Las capturas de pantalla del sistema en funcionamiento se encuentran disponibles en el repositorio del proyecto y en la presentación de defensa del examen parcial.
-
-**Páginas del sistema:**
-
-1. **Login** — Formulario glassmorphism con gradiente animado
-2. **Register** — Registro con selección de rol y departamento
-3. **Dashboard** — KPIs con tarjetas de iconos Lucide y resumen de actividad
-4. **Policy Editor** — Editor visual UML con drag & drop, swimlanes y paleta de nodos
-5. **Policy List** — Listado de políticas con estado y acciones
-6. **Cases** — Tabla de trámites activos con filtros
-7. **Case Detail** — Vista detallada del trámite con timeline de tareas
-8. **Officer Dashboard** — Panel de bandeja de tareas del funcionario
-9. **Real-Time Monitor** — Monitor WebSocket con eventos en vivo
-10. **Analytics** — Dashboard analítico con KPIs, insights IA y detección de cuellos de botella
-
-### Anexo C: Estructura del repositorio
-
-```
-Examen1SW1/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                    # Pipeline CI/CD (3 jobs)
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma             # Modelo de datos
-│   │   └── migrations/               # Migraciones de BD
-│   ├── src/
-│   │   ├── auth/                     # Módulo de autenticación
-│   │   ├── cases/                    # Motor de workflow
-│   │   ├── policies/                 # Gestión de políticas UML
-│   │   ├── analytics/                # Analíticas + IA
-│   │   ├── forms/                    # Formularios dinámicos
-│   │   ├── events/                   # WebSocket Gateway
-│   │   ├── prisma/                   # Servicio Prisma
-│   │   ├── ai-assistant/             # Asistente IA
-│   │   └── app.module.ts             # Módulo raíz
-│   ├── test/
-│   │   └── app.e2e-spec.ts           # Prueba E2E
-│   ├── Dockerfile
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── pages/                    # 10 páginas React
-│   │   ├── components/               # Componentes reutilizables
-│   │   ├── context/                  # AuthContext
-│   │   ├── services/                 # API service (Axios)
-│   │   └── App.tsx                   # Router principal
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml                # Orquestación 3 servicios
-├── DOCUMENTACION.md                  # Este documento
-└── README.md
-```
-
----
-
-## Grupo de Examen Parcial
-
-| Campo | Detalle |
-|-------|---------|
-| **Materia** | Ingeniería de Software I |
-| **Semestre** | I-2025 |
-| **Examen** | Primer Parcial |
-| **Estudiante** | Luis Fernando Angulo |
-| **Repositorio** | [https://github.com/luisfernandoAngulo28/Examen1SW1](https://github.com/luisfernandoAngulo28/Examen1SW1) |
-| **Tecnologías** | NestJS 11, React 19, PostgreSQL, Prisma, Docker |
-| **Herramienta IA** | GitHub Copilot (IDE integrado) |
-
----
-
-## Estándar de Codificación
-
-### 1. Introducción
-
-El presente estándar de codificación define las convenciones, reglas y buenas prácticas adoptadas en el desarrollo del proyecto **WorkflowSW1**. Su objetivo es garantizar la **consistencia**, **legibilidad** y **mantenibilidad** del código fuente a lo largo de todo el ciclo de vida del software.
-
-El estándar se aplica tanto al **backend** (NestJS/TypeScript) como al **frontend** (React/TypeScript), y se hace cumplir de forma automatizada mediante herramientas de análisis estático (ESLint, Prettier, TypeScript compiler).
-
-### 2. Estándares Internacionales Implementados
-
-El proyecto adopta y adapta los siguientes estándares reconocidos internacionalmente:
-
-| Estándar | Aplicación en el proyecto |
-|----------|--------------------------|
-| **ISO/IEC 25010** (Calidad del software) | Funcionalidad, fiabilidad, eficiencia, mantenibilidad, portabilidad |
-| **ISO/IEC 12207** (Procesos del ciclo de vida) | Desarrollo, pruebas, despliegue, mantenimiento |
-| **IEEE 830** (Especificación de requisitos) | Documentación de requisitos funcionales y no funcionales |
-| **Airbnb JavaScript Style Guide** | Base para reglas de ESLint en frontend |
-| **NestJS Style Guide** | Estructura modular, inyección de dependencias, decoradores |
-| **Conventional Commits** | Formato de mensajes de commit: `feat:`, `fix:`, `docs:`, `test:` |
-
-**Convenciones de nomenclatura:**
-
-| Elemento | Convención | Ejemplo |
-|----------|-----------|---------|
-| Archivos TypeScript | kebab-case | `auth.service.ts`, `policy-editor.tsx` |
-| Clases | PascalCase | `AuthService`, `CasesController` |
-| Interfaces | PascalCase con prefijo `I` opcional | `PolicyNode`, `CreatePolicyDto` |
-| Funciones/métodos | camelCase | `startCase()`, `findAllUsers()` |
-| Variables | camelCase | `accessToken`, `policyId` |
-| Constantes | UPPER_SNAKE_CASE | `JWT_SECRET`, `DATABASE_URL` |
-| Enums | PascalCase (tipo) + UPPER_SNAKE_CASE (valores) | `enum Role { DESIGNER, OFFICER }` |
-| Componentes React | PascalCase | `PolicyEditorPage`, `DashboardPage` |
-| CSS custom properties | kebab-case con prefijo `--` | `--primary-blue`, `--glass-bg` |
-
-### 3. Stack Tecnológico y Herramientas de Calidad
-
-#### 3.1 Herramientas de análisis estático
-
-| Herramienta | Versión | Propósito | Configuración |
-|-------------|---------|-----------|---------------|
-| **TypeScript** | 5.x | Tipado estático | `tsconfig.json` (strict en frontend) |
-| **ESLint** | 9.x | Linting de código | `eslint.config.mjs` / `eslint.config.js` |
-| **Prettier** | 3.x | Formateo automático | `.prettierrc` |
-| **typescript-eslint** | 8.x | Reglas TypeScript para ESLint | Integrado en config ESLint |
-
-#### 3.2 Configuración ESLint — Backend
-
-```javascript
-// backend/eslint.config.mjs
-export default tseslint.config(
-  eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  eslintPluginPrettierRecommended,
-  {
-    languageOptions: {
-      globals: { ...globals.node, ...globals.jest },
-      sourceType: 'commonjs',
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-  },
-  {
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      'prettier/prettier': ['error', { endOfLine: 'auto' }],
-    },
-  },
+### 3.3 Flujo de Trabajo: Diseño
+
+#### 3.3.1 Diseño de arquitectura
+
+##### 3.3.1.1 Diseño Físico - Diagrama de Despliegue
+*(Diagrama de despliegue)*
+
+##### 3.3.1.2 Diseño Lógico – Diagrama Organizado en capas
+*(Diagrama de capas)*
+
+#### 3.3.2 Diagramas de Secuencia
+
+- **Ciclo #1: CU04 Gestionar Proyectos**
+- **Ciclo #2: CU09 Gestionar Diagrama de clases**
+- **CU08 Gestionar Generación de Backend Spring Boot**
+- **Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**
+- **CU15: Gestionar Generación de Sistema completo**
+
+#### 3.3.3 Diseño de Datos
+
+##### 3.3.3.1 Diseño Lógico
+*(Diagrama lógico)*
+
+##### 3.3.3.2 Mapeo
+
+**Usuario**
+| pk | | | | |
+|---|---|---|---|---|
+| id | email | username | password | profile_icon |
+
+**Lienzo**
+| pk | | fk |
+|---|---|---|
+| id | diagrama | proyecto_id |
+
+**Proyecto**
+| pk | | |
+|---|---|---|
+| id | nombre | descripcion |
+
+**Integrante**
+| pk | | fk | fk |
+|---|---|---|---|
+| id | rol | proyecto_id | usuario_id |
+
+##### 3.3.3.3 Diseño Físico
+
+**Tabla de Volumen Usuario: USUARIO**
+| Atributo | Llave | Tipo de Dato | Amplitud | Nulo | Descripción |
+|---|---|---|---|---|---|
+| id | PK | Int | – | NO | Identificador único del usuario |
+| username | Unique | VarChar | 50 | NO | Nombre de usuario (único) |
+| email | Unique | String | – | NO | Correo electrónico del usuario (único) |
+| password | | String | – | NO | Contraseña cifrada del usuario |
+| profile_icon | | String | – | SÍ | Ruta o URL del ícono de perfil |
+
+**Proyecto: PROYECTO**
+| Atributo | Llave | Tipo de Dato | Amplitud | Nulo | Descripción |
+|---|---|---|---|---|---|
+| id | PK | UUID (String) | – | NO | Identificador único del proyecto |
+| nombre | | String | – | NO | Nombre del proyecto |
+| descripcion | | String | – | SÍ | Descripción breve del proyecto |
+
+**Integrante: INTEGRANTE**
+| Atributo | Llave | Tipo de Dato | Amplitud | Nulo | Descripción |
+|---|---|---|---|---|---|
+| id | PK | Int | – | NO | Identificador único del integrante |
+| rol | | String | – | NO | Rol del integrante en el proyecto |
+| proyecto_id | FK | UUID (String) | – | NO | Referencia al proyecto (proyectos.id) |
+| usuario_id | FK | Int | – | NO | Referencia al usuario (usuarios.id) |
+
+**Lienzo: LIENZO**
+| Atributo | Llave | Tipo de Dato | Amplitud | Nulo | Descripción |
+|---|---|---|---|---|---|
+| id | PK | Int | – | NO | Identificador único del lienzo |
+| diagrama | | JSON | – | NO | Representación del diagrama (nodos y aristas) |
+| proyecto_id | FK, Unique | UUID (String) | – | NO | Referencia única al proyecto (proyectos.id) |
+
+##### 3.3.3.4 Script
+```sql
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    profile_icon TEXT, 
+    is_deleted BOOLEAN DEFAULT FALSE 
+); 
+
+CREATE TABLE proyectos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nombre TEXT NOT NULL, 
+    descripcion TEXT,     
+    is_deleted BOOLEAN DEFAULT FALSE 
+); 
+
+CREATE TABLE integrantes (
+    id SERIAL PRIMARY KEY,
+    rol TEXT NOT NULL,
+    proyecto_id UUID NOT NULL,
+    usuario_id INT NOT NULL, 
+    CONSTRAINT fk_proyecto FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE, 
+    CONSTRAINT fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE 
+); 
+
+CREATE TABLE lienzos (
+    id SERIAL PRIMARY KEY,
+    diagrama JSON NOT NULL,
+    proyecto_id UUID UNIQUE NOT NULL, 
+    CONSTRAINT fk_proyecto_lienzo FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE CASCADE 
 );
 ```
 
-#### 3.3 Configuración ESLint — Frontend
+---
 
-```javascript
-// frontend/eslint.config.js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-    },
-  },
-]);
-```
+### 3.4 Flujo de Trabajo: Implementación
 
-#### 3.4 Configuración Prettier
+#### 3.4.1 Implementación de la arquitectura de sistema
+*(Diagrama o detalles de implementación)*
 
-```json
-// backend/.prettierrc
-{
-  "singleQuote": true,
-  "trailingComma": "all"
-}
-```
-
-#### 3.5 Configuración TypeScript — Backend
-
-```json
-// backend/tsconfig.json — Opciones clave
-{
-  "compilerOptions": {
-    "target": "ES2023",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "strictNullChecks": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "./dist"
-  }
-}
-```
-
-#### 3.6 Configuración TypeScript — Frontend
-
-```json
-// frontend/tsconfig.app.json — Opciones clave
-{
-  "compilerOptions": {
-    "target": "ES2023",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "jsx": "react-jsx"
-  }
-}
-```
-
-### 4. Configuración del Entorno de Desarrollo
-
-#### 4.1 IDE recomendado
-
-- **Visual Studio Code** (VS Code) con las siguientes extensiones:
-  - ESLint — Integración de linting en tiempo real
-  - Prettier — Formateo automático al guardar
-  - Prisma — Sintaxis y autocompletado para schema.prisma
-  - GitHub Copilot — Asistencia de IA para desarrollo
-  - Thunder Client / REST Client — Pruebas de API
-
-#### 4.2 Requisitos del entorno
-
-| Requisito | Versión mínima |
-|-----------|---------------|
-| Node.js | 20.x LTS |
-| npm | 10.x |
-| PostgreSQL | 16.x |
-| Docker | 24.x |
-| Docker Compose | 2.x |
-| Git | 2.40+ |
-
-#### 4.3 Variables de entorno
-
-```env
-# backend/.env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/workflow_sw1"
-JWT_SECRET="sw1-secret-key-2025"
-```
-
-### 5. Flujo de Trabajo y Métricas
-
-#### 5.1 Flujo de desarrollo
-
-```
-1. Crear rama feature/*
-2. Desarrollar funcionalidad
-3. Ejecutar pruebas locales: npx jest
-4. Verificar linting: npx eslint .
-5. Commit con formato convencional: git commit -m "feat: descripción"
-6. Push a GitHub → CI/CD automático
-7. PR hacia main → Review + merge
-```
-
-#### 5.2 Pipeline CI/CD automático
-
-Cada push o PR a `main` ejecuta automáticamente:
-
-| Job | Verificaciones |
-|-----|---------------|
-| **backend-test** | `npm ci` → `prisma generate` → `jest --ci --coverage` → `npm run build` |
-| **frontend-build** | `npm ci` → `tsc --noEmit` → `vite build` |
-| **docker-build** | `docker build ./backend` → `docker build ./frontend` |
-
-#### 5.3 Métricas de calidad
-
-| Métrica | Valor actual | Umbral |
-|---------|-------------|--------|
-| Tests pasando | 25/25 (100%) | ≥ 95% |
-| Errores TypeScript | 0 | 0 |
-| Warnings ESLint | 0 críticos | 0 críticos |
-| Build exitoso | ✅ Backend + Frontend | Siempre |
-| Cobertura de servicios | 4/4 servicios | 100% core |
-
-### 6. Conclusión
-
-El estándar de codificación implementado en **WorkflowSW1** asegura:
-
-1. **Consistencia**: Prettier formatea automáticamente todo el código con comillas simples y trailing commas.
-2. **Calidad**: ESLint con reglas `recommendedTypeChecked` detecta errores potenciales en tiempo de desarrollo.
-3. **Seguridad de tipos**: TypeScript strict en frontend y `strictNullChecks` en backend previenen errores en tiempo de ejecución.
-4. **Automatización**: El pipeline CI/CD ejecuta linting, pruebas y builds en cada push, garantizando que solo código validado llega a producción.
-5. **Mantenibilidad**: La estructura modular de NestJS y la organización por features en React facilitan la evolución del sistema.
-6. **Trazabilidad**: Conventional Commits y GitHub Actions proporcionan un historial claro de cambios y verificaciones.
+#### 3.4.2 Implementación de la arquitectura de subsistema
+- **Subsistema de Gestion de Usuario**
+  #COMPLETAR 
+- **Subsistema de Gestion de Proyectos**
+  #COMPLETAR
+- **Subsistema de Gestion de Diagramas**
+  #COMPLETAR
 
 ---
 
-> **Nota:** Esta documentación fue generada con asistencia de GitHub Copilot (IA integrada en el IDE) como parte de la demostración del uso de inteligencia artificial aplicada al desarrollo de software.
+### 3.5 Flujo de Trabajo: Pruebas
+
+**PF-1: Gestionar Inicio de sesión**
+- **Condición:** 
+  - El Usuario debe tener una cuenta registrada en el sistema. 
+  - El sistema debe estar en funcionamiento y accesible a través de una interfaz web o móvil. 
+  - El usuario debe tener una conexión a internet activa. 
+- **Proceso:** 
+  - El usuario accede a la página de inicio de sesión. 
+  - El sistema solicita las credenciales (usuario o email y contraseña). 
+  - El usuario ingresa sus credenciales. 
+  - El sistema valida las credenciales ingresadas contra la base de datos. 
+  - Si las credenciales son correctas, el sistema inicia sesión y redirige al usuario a la página principal del sistema. 
+
+**PF-2: Gestionar Cierre de Sesión**
+- **Condición:** El usuario debe estar logeado o haber realizado el inicio de sesión previamente. 
+- **Proceso:** 
+  - El usuario selecciona la opción de cerrar sesión en la interfaz. 
+  - El sistema procesa el cierre de sesión. 
+  - El sistema finaliza la sesión del usuario y lo redirige a la página de inicio o de login. 
+  - El sistema libera los recursos asociados a la sesión y protege la información del usuario. 
+
+#COMPLETAR 
+
+#### 3.5.1 Tablero JIRA
+*(Enlace o imagen del tablero JIRA)*
+
+---
+
+### 3.6 Conclusiones
+- El desarrollo del sistema permitió integrar en un solo entorno la gestión de proyectos, la manipulación de diagramas de clases y la generación automática de componentes de software, logrando un flujo de trabajo más eficiente y organizado. 
+- La arquitectura definida, basada en un frontend desplegado en Vercel y un backend en Render con base de datos PostgreSQL, garantiza una separación clara de responsabilidades y escalabilidad futura. 
+- La utilización de casos de uso detallados y diagramas de secuencia facilitó la comprensión de los procesos principales, permitiendo una comunicación clara entre los actores del sistema y los módulos involucrados. 
+- La persistencia de diagramas y la capacidad de generar sistemas completos a partir de instrucciones de voz o texto muestran la aplicabilidad de la inteligencia artificial en la automatización del ciclo de vida del software. 
+- El diseño de la base de datos mediante Prisma y su traducción a SQL proporcionaron una estructura consistente y normalizada, que facilita la mantenibilidad y asegura la integridad referencial entre entidades. 
+
+### 3.7 Recomendaciones
+- Ampliar las pruebas unitarias e integrales para cubrir los escenarios de error en los casos de uso más complejos, como la generación de backend y de sistemas completos. 
+- Implementar mecanismos de control de versiones en los diagramas persistidos, de manera que los usuarios puedan consultar y restaurar estados anteriores. 
+- Considerar la incorporación de seguridad adicional en el manejo de credenciales y datos sensibles, aplicando cifrado robusto y autenticación multifactor. 
+- Extender la funcionalidad del sistema para permitir la edición colaborativa en tiempo real de diagramas, lo que incrementaría el valor en entornos de trabajo multiusuario. 
+- Evaluar la posibilidad de integrar un sistema de reportes más avanzado, que permita obtener métricas sobre proyectos, diagramas y generación de código, aportando información útil para la toma de decisiones. 
+
+### 3.8 Bibliografía
+- https://www.postman.com/  
+- https://visualstudio.microsoft.com/es/  
+- https://www.mysql.com/products/workbench/  
+- https://www.jetbrains.com/es-es/idea/features/ 
+- https://tailwindcss.com/  
+- https://getbootstrap.com/  
+- https://www.typescriptlang.org/docs/ 
+- https://www.typescriptlang.org/docs/handbook/react.html 
+- https://react-typescript-cheatsheet.netlify.app/ 
+- https://es.react.dev/ 
+- https://docs.python.org/3/ 
+- https://flask.palletsprojects.com/ 
+- https://flask.palletsprojects.com/en/latest/quickstart/ 
+- https://www.sqlalchemy.org/ 
+- https://www.postgresql.org/docs/ 
+- https://clasesiupsm.wordpress.com/wp-content/uploads/2014/10/metodologc3ada-orientada-aobjetos-omt-james-rumbaugh.pdf 
+- https://darjelingsilva.wordpress.com/wp-content/uploads/2018/05/4-metd-omt.pdf 
+- https://fastapi.tiangolo.com 
+- https://docs.spring.io/spring-boot/index.html 
+- https://expressjs.com/es 
+- https://www.prisma.io/docs/orm 
+- https://nextjs.org/docs 
+
+### 3.9 ANEXOS
+
+#### Arquitectura FASTApi 
+La arquitectura utilizada en este proyecto realizado en Python FastAPI sigue un patrón por capas que organiza el código en diferentes directorios según su responsabilidad.  
+- En la carpeta `routes` se definen los endpoints HTTP que serán expuestos a los clientes.  
+- Los controladores ubicados en `controllers` son los encargados de coordinar la ejecución de cada caso de uso, recibiendo las solicitudes validadas y gestionando la lógica necesaria.  
+- En `services` se concentra la lógica de negocio y la comunicación con los servicios de inteligencia artificial, incluyendo whisper.cpp para el procesamiento de audio.  
+- Los modelos en `models` cumplen la función de validar y estructurar los datos de entrada y salida, generalmente mediante Pydantic o dtos.  
+- La carpeta `config` contiene la configuración del sistema, cargando variables de entorno y parámetros. En `errors` se centraliza el manejo de excepciones para asegurar respuestas uniformes.  
+- La carpeta `utils` guarda funciones auxiliares de uso general y `tmp` se emplea para almacenamiento temporal de archivos como audios o transcripciones.  
+- El archivo `main.py` es el punto de entrada de la aplicación donde se inicializa FastAPI y se registran rutas y middlewares.  
+- Los archivos `Dockerfile` y `docker-compose.yml` permiten la contenedorización y despliegue del proyecto, mientras que `requirements.txt` lista las dependencias de Python necesarias. 
+
+Respecto al uso de `snake_case`, se sigue la convención de Python. Esto implica que los nombres de archivos, módulos, funciones y variables se escriben en minúsculas separadas por guiones bajos, como por ejemplo `generate_text`, `transcribe_audio`, `audio_path` o `user_id`. Los campos de los modelos y las estructuras JSON también se mantienen en `snake_case` para asegurar consistencia entre el backend y los datos que se exponen. En el caso de las variables de entorno, se utiliza mayúscula con snake_case, como `OPENAI_API_KEY` o `WHISPER_MODEL_PATH`. 
+
+El objetivo principal de este backend es servir como puente entre las aplicaciones cliente, ya sean móviles o web, y los servicios de inteligencia artificial. Se encarga de ofrecer endpoints para generación de texto, embeddings, clasificación, resumen y transcripción de audio, permitiendo que la comunicación con modelos de lenguaje y procesamiento de voz se realice de manera controlada y estandarizada. 
+
+#### Arquitectura NodeJs 
+La arquitectura de este backend hecho en Node.js sigue un enfoque basado en Domain Driven Design (DDD), donde el código se organiza en capas y módulos que representan tanto la lógica del dominio como los elementos de infraestructura y presentación. 
+- La carpeta `domain` contiene los elementos centrales de la lógica de negocio, incluyendo entidades, reglas de dominio, objetos de valor y los dto que se encargan de definir la forma de los datos que entran y salen del dominio. En `errors` se definen las excepciones específicas que permiten manejar los flujos de error de forma controlada. 
+- La carpeta `infraestructura` implementa las dependencias externas necesarias para que el dominio funcione. En `config` se definen las configuraciones globales del sistema, en `middlewares` se ubican las funciones de Express o frameworks equivalentes que interceptan peticiones para validaciones, logs o seguridad, y en `socket` se maneja la lógica relacionada con comunicación en tiempo real. 
+- La capa `presentation` contiene los controladores y módulos responsables de recibir las solicitudes de los clientes, validarlas y transformarlas en comandos o queries que el dominio pueda procesar. Aquí se encuentran submódulos como `auth` para autenticación, `usuario` para gestión de usuarios, `proyecto`, `integrante` o incluso integración con `springboot`. También se incluye `router.ts` que agrupa y expone todas las rutas HTTP de la aplicación. 
+- La carpeta `shared` contiene utilidades y elementos transversales que pueden ser reutilizados en varias capas. En `enums` se definen constantes tipadas, en `utils` se implementan funciones genéricas, mientras que archivos como `authUtils.ts`, `JWTUtils.ts`, `FechaUtils.ts` o `pagination.ts` encapsulan lógicas comunes relacionadas con seguridad, fechas o paginación. 
+- La carpeta `types` centraliza definiciones de tipos o interfaces TypeScript, lo que aporta robustez y consistencia al tipado en toda la aplicación. 
+- Este diseño modular basado en DDD permite mantener el dominio independiente de los detalles de infraestructura, facilitando que la lógica de negocio no se mezcle con las tecnologías externas como bases de datos, frameworks o protocolos de comunicación. La separación en capas ayuda a la escalabilidad, testeo y mantenimiento, manteniendo el backend preparado para evolucionar con nuevas funcionalidades o integraciones sin romper la estructura principal. 
+
+En cuanto a la convención de nombres, se emplea `camelCase` para métodos, funciones y variables, mientras que `snake_case` se utiliza en algunos atributos de las interfaces y estructuras de datos que se comunican con la base de datos o con servicios externos. Esto permite mantener consistencia interna en el código y, al mismo tiempo, adaptarse a los estándares de interoperabilidad en los datos expuestos. 
+
+#### Arquitectura Frontend 
+La arquitectura de este proyecto desarrollado en Next.js con React se organiza en capas y módulos claramente diferenciados para cubrir tanto la parte visual como la lógica de comunicación con servicios externos. 
+- En la carpeta `app` y `components` se encuentran los componentes de interfaz de usuario que construyen las diferentes vistas, incluyendo elementos reutilizables. 
+- La carpeta `Auth` agrupa toda la lógica relacionada con la autenticación, incluyendo `guard` para protección de rutas, `layout` para estructuras visuales específicas, `pages` para vistas concretas y `shared` para utilidades comunes. 
+- Los módulos `Home`, `Proyect` y `UML` representan secciones o funcionalidades principales de la aplicación, cada uno con sus propios componentes y controladores. 
+- La carpeta `ui` centraliza estilos, componentes gráficos y elementos de diseño reutilizables. 
+- En `hooks` se definen funciones personalizadas de React que encapsulan lógica de estado y efectos reutilizables en la aplicación. 
+- La carpeta `lib` contiene librerías y funciones de apoyo generales, mientras que `middleware` agrupa funciones que interceptan peticiones para validación, autenticación o control de acceso. 
+- La carpeta `services` concentra la lógica de comunicación con APIs y servicios externos. Aquí se encuentran submódulos como `Auth` para autenticación, `Config` para parámetros globales, `Diagrama` y `UML` para la lógica de diagramación, `FastAPI` para integración directa con el backend en Python, y `Proyectos` para gestión de entidades del sistema. 
+- En `shared` se guardan funciones y utilidades transversales, en `tmp` datos temporales, y en `Usuarios` la lógica vinculada a la gestión de usuarios. 
+
+En cuanto a la convención de nombres, se utiliza `camelCase` para variables, funciones y métodos en el código de React y TypeScript, mientras que `snake_case` se emplea en las interfaces de datos, atributos provenientes del backend y en la comunicación con la base de datos. Esto asegura consistencia en el código del frontend, al mismo tiempo que mantiene interoperabilidad con la API en Python FastAPI que también utiliza `snake_case`.

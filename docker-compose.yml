@@ -1,50 +1,64 @@
-version: '3.8'
-
 services:
-  db:
-    image: postgres:16-alpine
+  mongodb:
+    image: mongo:7
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: workflow_sw1
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     ports:
-      - '5432:5432'
+      - '27017:27017'
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mongodata:/data/db
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
-      interval: 5s
-      timeout: 3s
+      test: ['CMD', 'mongosh', '--eval', 'db.adminCommand("ping")']
+      interval: 10s
+      timeout: 5s
       retries: 5
 
+  # ── Microservicio Python/FastAPI — Inteligencia Artificial ──────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    environment:
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    healthcheck:
+      test: ['CMD', 'python', '-c',
+             'import urllib.request; urllib.request.urlopen("http://localhost:8000/health")']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── Spring Boot — Motor de Workflow (núcleo central) ────────────────────────
   backend:
     build:
-      context: ./backend
+      context: ./workflow-engine
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - '8080:8080'
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/workflow_sw1?schema=public
-      JWT_SECRET: workflow_sw1_secret_key_2026
+      MONGODB_URI: mongodb://mongodb:27017/workflow_sw1
+      JWT_SECRET: sw1-workflow-engine-secret-key-2026
+      SERVER_PORT: 8080
+      AI_SERVICE_URL: http://ai-service:8000
     depends_on:
-      db:
+      mongodb:
         condition: service_healthy
-    command: >
-      sh -c "npx prisma migrate deploy && node dist/main.js"
+      ai-service:
+        condition: service_healthy
 
+  # ── Angular + Nginx — Frontend ──────────────────────────────────────────────
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend-ng
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:3000
     restart: unless-stopped
     ports:
-      - '5173:80'
+      - '4200:80'
     depends_on:
       - backend
 
 volumes:
-  pgdata:
+  mongodata:

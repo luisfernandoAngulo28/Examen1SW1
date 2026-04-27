@@ -3,14 +3,15 @@ package com.workflow.engine.dto;
 import com.workflow.engine.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
+public class UserDto {
     private String id;
-    private String email;
     private String name;
+    private String email;
     private Role role;
     private String departmentId;
 }

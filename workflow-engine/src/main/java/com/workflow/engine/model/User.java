@@ -23,4 +23,7 @@ public class User {
 
     @CreatedDate
     private Instant createdAt;
+
+    /** FCM device token — updated by the mobile app after login */
+    private String fcmToken;
 }

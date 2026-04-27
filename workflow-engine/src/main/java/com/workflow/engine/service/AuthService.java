@@ -31,7 +31,7 @@ public class AuthService {
         user = userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
-        return new AuthResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole());
+        return new AuthResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole(), user.getDepartmentId());
     }
 
     public AuthResponse login(LoginRequest req) {
@@ -43,6 +43,30 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail(), user.getRole().name());
-        return new AuthResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole());
+        return new AuthResponse(token, user.getId(), user.getEmail(), user.getName(), user.getRole(), user.getDepartmentId());
+    }
+
+    public UserDto getMe(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return new UserDto(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getDepartmentId());
+    }
+
+    public java.util.List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> new UserDto(u.getId(), u.getName(), u.getEmail(), u.getRole(), u.getDepartmentId()))
+                .toList();
+    }
+
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
+    }
+
+    /** Store (or refresh) the FCM device token for a user. Called by the mobile app after login. */
+    public void updateFcmToken(String userId, String fcmToken) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setFcmToken(fcmToken);
+        userRepository.save(user);
     }
 }

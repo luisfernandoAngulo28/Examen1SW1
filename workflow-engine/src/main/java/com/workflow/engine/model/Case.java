@@ -17,6 +17,9 @@ public class Case {
     private String currentNodeId;
     private CaseStatus status = CaseStatus.OPEN;
 
+    /** Id del cliente (role=CLIENT) que inició este trámite, puede ser null si fue creado internamente */
+    private String clientId;
+
     private List<Task> tasks = new ArrayList<>();
     private List<EventLog> eventLogs = new ArrayList<>();
 
