@@ -39,6 +39,15 @@ Start-Process powershell -ArgumentList @(
 
 Write-Host "   Ventana frontend abierta. Espera ~10s a que diga 'Application bundle generation complete'" -ForegroundColor DarkYellow
 
+# ─── 4. AI Service Python (nueva ventana PowerShell) ─────────────────────────
+Write-Host "`n► Iniciando AI Service (FastAPI :8000)..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList @(
+    "-NoExit",
+    "-Command",
+    "Set-Location '$ROOT\ai-service'; if (-not (Test-Path '.venv')) { python -m venv .venv }; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt -q; uvicorn main:app --reload --port 8000"
+) -WindowStyle Normal
+Write-Host "   Ventana AI abierta. Espera ~15s. Health: http://localhost:8000/health" -ForegroundColor DarkYellow
+
 # ─── 4. Instrucciones ────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "=====================================" -ForegroundColor Cyan
@@ -52,10 +61,12 @@ Write-Host "2. Abre el navegador:" -ForegroundColor White
 Write-Host "   http://localhost:4200" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "3. Usuarios para el demo:" -ForegroundColor White
-Write-Host "   Admin/Diseñador : diseñador@demo.com  / Admin1234!" -ForegroundColor Green
+Write-Host "   Admin principal  : admin@demo.com       / Admin1234!" -ForegroundColor Green
+Write-Host "   Diseñadora      : disenador@demo.com  / Admin1234!" -ForegroundColor Green
 Write-Host "   Funcionario RRHH: rrhh@demo.com       / Admin1234!" -ForegroundColor Green
 Write-Host "   Funcionario Legal: legal@demo.com     / Admin1234!" -ForegroundColor Green
 Write-Host "   Finanzas        : finanzas@demo.com   / Admin1234!" -ForegroundColor Green
+Write-Host "   Cliente         : cliente@demo.com    / Admin1234!" -ForegroundColor Green
 Write-Host ""
 Write-Host "GUIÓN RÁPIDO DEL DEMO:" -ForegroundColor Cyan
 Write-Host "  [Tab 1 - diseñador] Login → Dashboard → Nueva Política → Editor (prompt AI + voz)" -ForegroundColor White
