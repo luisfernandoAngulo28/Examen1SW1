@@ -6,7 +6,8 @@ import '../models/models.dart';
 /// Central API client — talks to Spring Boot backend on [baseUrl].
 class ApiService {
   // ── Change this to your local IP or cloud URL ──────────────────────────
-  static const String _defaultBase = 'http://192.168.0.2:8080/api'; // dispositivo fisico WiFi
+  static const String _defaultBase = 'http://localhost:8080/api'; // Flutter web / mismo equipo
+  // Para dispositivo fisico en WiFi: 'http://192.168.0.2:8080/api'
   // Para emulador Android: 'http://10.0.2.2:8080/api'
   // For cloud deployment: 'https://your-backend.onrender.com/api'
 
