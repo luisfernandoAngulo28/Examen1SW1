@@ -1,0 +1,40 @@
+@startuml CU01_Inicio_Sesion
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU01 — Gestionar Inicio de Sesión
+
+' ── Actores especializados extienden Usuario ──
+actor "Diseñador"   as DESIGNER
+actor "Funcionario" as OFFICER
+actor "Cliente"     as CLIENT
+actor "Usuario"     as USER
+
+DESIGNER  --|> USER
+OFFICER   --|> USER
+CLIENT    --|> USER
+
+' ── Casos de uso ──
+usecase "Registrarse en\nel sistema"     as UC_REG
+usecase "Iniciar sesión\n(JWT)"          as UC_LOGIN
+usecase "Cerrar sesión"                  as UC_LOGOUT
+
+' ── Relaciones ──
+USER --> UC_LOGIN
+USER --> UC_LOGOUT
+DESIGNER --> UC_REG
+
+' ── include ──
+UC_LOGIN  ..> UC_REG : <<extend>>
+
+note right of UC_LOGIN
+  Genera token JWT con
+  expiración de 24 h.
+  Almacenado en
+  SecureStorage (mobile).
+end note
+
+@enduml

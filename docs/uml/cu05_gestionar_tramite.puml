@@ -1,0 +1,51 @@
+@startuml CU05_Gestionar_Tramite
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU05 — Gestionar Trámite (Cliente)
+
+' ── Actores ──
+actor "Cliente"    as CLIENT
+actor "Diseñador"  as DESIGNER
+actor "Usuario"    as USER
+
+CLIENT   --|> USER
+DESIGNER --|> USER
+
+' ── Casos de uso ──
+usecase "Iniciar nuevo\ntrámite"               as UC_START
+usecase "Ver mis trámites\nen curso"           as UC_MY
+usecase "Ver detalle del\ntrámite"             as UC_DETAIL
+usecase "Ver línea de tiempo\n(historial)"     as UC_TIMELINE
+usecase "Ver estado actual\n(semáforo visual)" as UC_STATUS
+usecase "Cancelar trámite"                     as UC_CANCEL
+usecase "Ver todos los\ntrámites (admin)"      as UC_ALL
+
+' ── Relaciones ──
+CLIENT   --> UC_START
+CLIENT   --> UC_MY
+CLIENT   --> UC_DETAIL
+CLIENT   --> UC_CANCEL
+DESIGNER --> UC_ALL
+
+UC_MY     ..> UC_DETAIL   : <<include>>
+UC_DETAIL ..> UC_TIMELINE : <<include>>
+UC_DETAIL ..> UC_STATUS   : <<include>>
+
+note right of UC_START
+  El motor selecciona el
+  primer nodo ACTION de la
+  política y crea la primera
+  tarea (PENDING).
+end note
+
+note right of UC_STATUS
+  Verde  = COMPLETED
+  Amarillo = IN_PROGRESS
+  Rojo   = PENDING / OPEN
+end note
+
+@enduml

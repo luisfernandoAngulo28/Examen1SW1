@@ -1,0 +1,52 @@
+@startuml CU04_Asistente_IA
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU04 — Asistente IA para Diseño
+
+' ── Actores ──
+actor "Diseñador"  as DESIGNER
+actor "Funcionario" as OFFICER
+actor "Usuario"    as USER
+actor "Sistema IA\n(FastAPI)" as AI
+
+DESIGNER --|> USER
+OFFICER  --|> USER
+
+' ── Casos de uso ──
+usecase "Enviar prompt\npor texto"          as UC_TEXT
+usecase "Dictar comando\npor voz"           as UC_VOICE
+usecase "Cargar imagen\n(OCR / Tesseract)"  as UC_IMAGE
+usecase "Interpretar comando\nde diseño"    as UC_INTERPRET
+usecase "Sugerir nodos\ny flujo"            as UC_SUGGEST
+usecase "Rellenar formulario\nasistido"     as UC_FILL
+
+' ── Relaciones ──
+DESIGNER --> UC_TEXT
+DESIGNER --> UC_VOICE
+DESIGNER --> UC_IMAGE
+OFFICER  --> UC_TEXT
+OFFICER  --> UC_VOICE
+OFFICER  --> UC_FILL
+
+UC_TEXT   ..> UC_INTERPRET : <<include>>
+UC_VOICE  ..> UC_INTERPRET : <<include>>
+UC_IMAGE  ..> UC_INTERPRET : <<include>>
+UC_INTERPRET ..> UC_SUGGEST : <<extend>>
+UC_INTERPRET ..> UC_FILL    : <<extend>>
+
+AI ..> UC_INTERPRET : procesa
+AI ..> UC_SUGGEST   : genera
+AI ..> UC_FILL      : autocompleta
+
+note right of AI
+  Servicio Python / FastAPI
+  en puerto :8000.
+  NLP rule-based + opcional
+  OpenAI o ElevenLabs.
+end note
+
+@enduml

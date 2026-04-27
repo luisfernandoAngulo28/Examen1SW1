@@ -1,0 +1,53 @@
+@startuml CU10_Notificaciones_Push
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU10 — Notificaciones Push (Móvil)
+
+' ── Actores ──
+actor "Cliente"     as CLIENT
+actor "Funcionario" as OFFICER
+actor "Usuario"     as USER
+actor "Firebase\nFCM"      as FCM
+actor "Sistema\nBackend"   as BACKEND
+
+CLIENT  --|> USER
+OFFICER --|> USER
+
+' ── Casos de uso ──
+usecase "Registrar token\nFCM del dispositivo"              as UC_REG
+usecase "Recibir notificación\n'Tarea asignada'"             as UC_TASK_NOTIF
+usecase "Recibir notificación\n'Trámite avanzó'"             as UC_ADV_NOTIF
+usecase "Recibir notificación\n'Trámite completado'"         as UC_DONE_NOTIF
+usecase "Ver notificación\ncomo alerta local"               as UC_LOCAL
+usecase "Detectar nueva tarea\n(polling cada 15 s)"         as UC_POLL
+
+' ── Relaciones ──
+OFFICER --> UC_REG
+CLIENT  --> UC_REG
+OFFICER --> UC_TASK_NOTIF
+CLIENT  --> UC_ADV_NOTIF
+CLIENT  --> UC_DONE_NOTIF
+
+UC_TASK_NOTIF ..> UC_LOCAL : <<include>>
+UC_ADV_NOTIF  ..> UC_LOCAL : <<include>>
+UC_DONE_NOTIF ..> UC_LOCAL : <<include>>
+UC_POLL       ..> UC_LOCAL : <<extend>>
+
+BACKEND ..> UC_TASK_NOTIF : dispara
+BACKEND ..> UC_ADV_NOTIF  : dispara
+BACKEND ..> UC_DONE_NOTIF : dispara
+FCM     ..> UC_TASK_NOTIF : entrega (push real)
+FCM     ..> UC_ADV_NOTIF  : entrega (push real)
+
+note right of UC_POLL
+  Fallback sin Firebase:
+  polling HTTP cada 15 s.
+  Detecta tareas nuevas y
+  muestra notificación local.
+end note
+
+@enduml

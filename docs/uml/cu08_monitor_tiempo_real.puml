@@ -1,0 +1,50 @@
+@startuml CU08_Monitor_Tiempo_Real
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU08 — Monitor en Tiempo Real
+
+' ── Actores ──
+actor "Diseñador"   as DESIGNER
+actor "Funcionario" as OFFICER
+actor "Usuario"     as USER
+actor "Sistema\nWebSocket" as WS
+
+DESIGNER --|> USER
+OFFICER  --|> USER
+
+' ── Casos de uso ──
+usecase "Ver trámites\nactivos"                       as UC_LIVE
+usecase "Ver semáforo\nde estado\n(verde/amarillo/rojo)" as UC_LIGHT
+usecase "Ver feed de\neventos en vivo"                as UC_FEED
+usecase "Recibir evento\nWebSocket STOMP"             as UC_EVENT
+usecase "Ver detalle\ndel trámite"                    as UC_DETAIL
+usecase "Ver bandeja\nen tiempo real"                 as UC_INBOX
+
+' ── Relaciones ──
+DESIGNER --> UC_LIVE
+DESIGNER --> UC_FEED
+OFFICER  --> UC_INBOX
+OFFICER  --> UC_FEED
+
+UC_LIVE   ..> UC_LIGHT  : <<include>>
+UC_LIVE   ..> UC_DETAIL : <<extend>>
+UC_FEED   ..> UC_EVENT  : <<include>>
+UC_INBOX  ..> UC_EVENT  : <<include>>
+
+WS ..> UC_EVENT : notifica
+
+note right of WS
+  Spring Boot publica eventos
+  STOMP en /topic/events.
+  Angular y Flutter se
+  suscriben al iniciar.
+  Eventos: CASE_STARTED,
+  TASK_COMPLETED,
+  CASE_COMPLETED.
+end note
+
+@enduml

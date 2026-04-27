@@ -1,0 +1,39 @@
+@startuml CU11_Gestionar_Departamentos
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU11 — Gestionar Departamentos
+
+' ── Actores ──
+actor "Diseñador"    as DESIGNER
+actor "Administrador" as ADMIN
+actor "Usuario"      as USER
+
+DESIGNER --|> USER
+ADMIN    --|> USER
+
+' ── Casos de uso ──
+usecase "Crear departamento"       as UC_CREATE
+usecase "Listar departamentos"     as UC_LIST
+usecase "Asignar departamento\na actividad de política" as UC_ASSIGN
+usecase "Asignar funcionario\na departamento"           as UC_STAFF
+
+' ── Relaciones ──
+DESIGNER --> UC_CREATE
+DESIGNER --> UC_LIST
+DESIGNER --> UC_ASSIGN
+ADMIN    --> UC_STAFF
+
+UC_ASSIGN ..> UC_LIST : <<include>>
+
+note right of UC_CREATE
+  Un departamento no puede
+  eliminarse si tiene
+  actividades asignadas en
+  políticas activas.
+end note
+
+@enduml

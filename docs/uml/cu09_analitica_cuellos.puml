@@ -1,0 +1,53 @@
+@startuml CU09_Analitica_Cuellos
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU09 — Analítica e Identificación de Cuellos de Botella
+
+' ── Actores ──
+actor "Diseñador"    as DESIGNER
+actor "Administrador" as ADMIN
+actor "Usuario"      as USER
+actor "Sistema IA"   as AI
+
+DESIGNER --|> USER
+ADMIN    --|> USER
+
+' ── Casos de uso ──
+usecase "Ver KPIs\ngenerales"                            as UC_KPI
+usecase "Ver carga\npor departamento"                    as UC_DEPT_LOAD
+usecase "Seleccionar política\npara análisis"            as UC_SELECT
+usecase "Ver estadísticas\npor nodo/actividad"           as UC_NODE_STAT
+usecase "Detectar cuello\nde botella"                    as UC_BOTTLENECK
+usecase "Ver recomendación\nIA en lenguaje natural"      as UC_RECOMMEND
+usecase "Ver tasa de\ncompletitud"                       as UC_RATE
+usecase "Ver duración\npromedio por etapa"               as UC_DURATION
+
+' ── Relaciones ──
+DESIGNER --> UC_KPI
+DESIGNER --> UC_DEPT_LOAD
+DESIGNER --> UC_SELECT
+ADMIN    --> UC_KPI
+
+UC_SELECT     ..> UC_NODE_STAT  : <<include>>
+UC_NODE_STAT  ..> UC_BOTTLENECK : <<include>>
+UC_BOTTLENECK ..> UC_RECOMMEND  : <<include>>
+UC_NODE_STAT  ..> UC_RATE       : <<include>>
+UC_NODE_STAT  ..> UC_DURATION   : <<include>>
+
+AI ..> UC_BOTTLENECK : analiza
+AI ..> UC_RECOMMEND  : genera
+
+note right of UC_BOTTLENECK
+  Criterios de detección:
+  - pendingTasks >= 2
+  - avgDuration > globalAvg * 1.5
+  - pendingRatio >= 40% del total
+  Insights con severidad:
+  critical / warning / info / success
+end note
+
+@enduml

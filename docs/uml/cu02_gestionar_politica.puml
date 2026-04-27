@@ -1,0 +1,42 @@
+@startuml CU02_Gestionar_Politica
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU02 — Gestionar Política de Negocio
+
+' ── Actores ──
+actor "Administrador" as ADMIN
+actor "Diseñador"     as DESIGNER
+actor "Usuario"       as USER
+
+ADMIN    --|> USER
+DESIGNER --|> USER
+
+' ── Casos de uso ──
+usecase "Crear política\nde negocio"        as UC_CREATE
+usecase "Consultar lista\nde políticas"     as UC_LIST
+usecase "Activar política"                  as UC_ACTIVATE
+usecase "Desactivar política"               as UC_DEACTIVATE
+usecase "Eliminar política"                 as UC_DELETE
+
+' ── Relaciones ──
+DESIGNER --> UC_CREATE
+DESIGNER --> UC_LIST
+DESIGNER --> UC_ACTIVATE
+DESIGNER --> UC_DEACTIVATE
+ADMIN    --> UC_DELETE
+
+UC_ACTIVATE   ..> UC_LIST : <<include>>
+UC_DEACTIVATE ..> UC_LIST : <<include>>
+
+note right of UC_DEACTIVATE
+  Una política con trámites
+  activos NO puede editarse.
+  Solo se puede desactivar
+  para nuevos trámites.
+end note
+
+@enduml

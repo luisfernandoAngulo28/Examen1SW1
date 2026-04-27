@@ -1,0 +1,49 @@
+@startuml CU03_Diseniar_Diagrama
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU03 — Diseñar Diagrama de Actividades
+
+' ── Actores ──
+actor "Diseñador" as DESIGNER
+actor "Usuario"   as USER
+actor "Sistema IA" as AI
+
+DESIGNER --|> USER
+
+' ── Casos de uso ──
+usecase "Agregar nodo\nal diagrama"                    as UC_NODE
+usecase "Configurar tipo de nodo\n(ACTION / DECISION /\nFORK / JOIN / INITIAL / FINAL)" as UC_NODE_TYPE
+usecase "Conectar nodos\n(aristas / flujos)"           as UC_EDGE
+usecase "Configurar tipo de flujo\n(Secuencial / Condicional /\nIterativo / Paralelo)"  as UC_FLOW
+usecase "Asignar departamento\na actividad"            as UC_DEPT
+usecase "Asignar formulario\na actividad"              as UC_FORM
+usecase "Guardar diagrama\n(grafo JSON)"               as UC_SAVE
+usecase "Visualizar diagrama\nen swimlanes"            as UC_VIEW
+
+' ── Relaciones ──
+DESIGNER --> UC_NODE
+DESIGNER --> UC_EDGE
+DESIGNER --> UC_DEPT
+DESIGNER --> UC_FORM
+DESIGNER --> UC_SAVE
+DESIGNER --> UC_VIEW
+
+UC_NODE ..> UC_NODE_TYPE : <<include>>
+UC_EDGE ..> UC_FLOW      : <<include>>
+UC_SAVE ..> UC_VIEW      : <<include>>
+
+' ── Asistente IA extiende el diseño ──
+AI ..> UC_NODE : <<extend>>\nasistido por IA
+AI ..> UC_EDGE : <<extend>>\nasistido por IA
+
+note bottom of UC_SAVE
+  Protegido: si la política
+  tiene trámites en curso,
+  el guardado es rechazado.
+end note
+
+@enduml

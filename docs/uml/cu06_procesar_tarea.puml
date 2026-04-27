@@ -1,0 +1,46 @@
+@startuml CU06_Procesar_Tarea
+!theme plain
+skinparam actorStyle default
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+
+title CU06 — Procesar Tarea (Funcionario)
+
+' ── Actores ──
+actor "Funcionario" as OFFICER
+actor "Diseñador"   as DESIGNER
+actor "Usuario"     as USER
+
+OFFICER  --|> USER
+DESIGNER --|> USER
+
+' ── Casos de uso ──
+usecase "Ver bandeja\nde tareas"              as UC_INBOX
+usecase "Filtrar tareas\n(pendiente / mías)"  as UC_FILTER
+usecase "Tomar tarea\n(IN_PROGRESS)"          as UC_TAKE
+usecase "Asignar tarea\na funcionario"        as UC_ASSIGN
+usecase "Completar tarea"                     as UC_COMPLETE
+usecase "Tomar decisión\n(nodo DECISION)"     as UC_DECIDE
+usecase "Enrutar siguiente\nactividad"        as UC_ROUTE
+
+' ── Relaciones ──
+OFFICER  --> UC_INBOX
+OFFICER  --> UC_FILTER
+OFFICER  --> UC_TAKE
+OFFICER  --> UC_COMPLETE
+OFFICER  --> UC_DECIDE
+DESIGNER --> UC_ASSIGN
+
+UC_INBOX    ..> UC_FILTER   : <<include>>
+UC_COMPLETE ..> UC_ROUTE    : <<include>>
+UC_DECIDE   ..> UC_COMPLETE : <<include>>
+
+note right of UC_ROUTE
+  El motor avanza al
+  siguiente nodo según
+  el tipo: SEQUENTIAL,
+  DECISION, FORK, JOIN.
+end note
+
+@enduml
