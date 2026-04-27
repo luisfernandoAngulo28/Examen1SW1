@@ -1,0 +1,196 @@
+@startuml 06_despliegue
+!theme plain
+skinparam nodeBackgroundColor #ECF0F1
+skinparam nodeBorderColor #2C3E50
+skinparam artifactBackgroundColor #D5E8D4
+skinparam artifactBorderColor #27AE60
+skinparam componentBackgroundColor #AED6F1
+skinparam componentBorderColor #2980B9
+skinparam databaseBackgroundColor #F8BBD0
+skinparam databaseBorderColor #C0392B
+skinparam packageBackgroundColor #FDFEFE
+skinparam packageBorderColor #5D6D7E
+skinparam arrowColor #2C3E50
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #F9A825
+skinparam cloudBackgroundColor #E8EAF6
+skinparam cloudBorderColor #3F51B5
+
+title Diagrama de Despliegue — Sistema de Gestión de Trámites y Workflows\n(UML 2.5 — Arquitectura de Producción con Docker y Servicios en la Nube)
+
+' ════════════════════════════════════════════
+'  DISPOSITIVOS CLIENTE
+' ════════════════════════════════════════════
+
+node "Navegador Web\n(Chrome / Firefox / Edge)" as BROWSER {
+    artifact "React SPA\n(dist/ servida por CDN)" as ReactApp
+    note right of ReactApp
+      Generado con:
+      npm run build
+      → dist/index.html
+    end note
+}
+
+node "Dispositivo Android\n(Android 8.0+)" as ANDROID {
+    artifact "Flutter App\napp-debug.apk / app-release.apk" as FlutterAPK
+    component "Firebase Messaging\nSDK (FCM Client)" as FCMClient
+    note right of FlutterAPK
+      Instalación directa APK o
+      futura distribución por
+      Firebase App Distribution
+    end note
+}
+
+' ════════════════════════════════════════════
+'  CDN / HOSTING FRONTEND
+' ════════════════════════════════════════════
+
+cloud "Vercel CDN\n(vercel.com)" as VERCEL #E8F5E9 {
+    node "Edge Network\n(Global)" as VERCEL_NODE {
+        artifact "React SPA\n(build estático)" as VercelApp
+        note right of VercelApp
+          URL: https://workflow-sw1.vercel.app
+          Build: npm run build
+          Framework: Vite (detectado auto)
+          Variables de entorno: VITE_API_URL
+        end note
+    }
+}
+
+' ════════════════════════════════════════════
+'  SERVIDOR BACKEND — Railway / Render
+' ════════════════════════════════════════════
+
+cloud "Railway.app / Render.com\n(Servidor Backend)" as CLOUD_BACKEND #E3F2FD {
+
+    node "Docker Container\nworkflow-engine" as DOCKER_BACKEND {
+        component "JVM 17 (Temurin)\nSpring Boot 3.5.0" as JVM
+        artifact "workflow-engine.jar\n(fat JAR)" as JAR
+        note right of JAR
+          Generado con:
+          ./mvnw package -DskipTests
+          Puerto interno: 8080
+          Expuesto: $PORT (por plataforma)
+        end note
+    }
+
+    node "WebSocket STOMP\n(mismo proceso)" as WS_NODE {
+        component "STOMP Broker\n/ws endpoint" as STOMPBroker
+    }
+
+    note right of CLOUD_BACKEND
+      Dockerfile (workflow-engine/):
+      FROM eclipse-temurin:17-jre-alpine
+      COPY target/*.jar app.jar
+      EXPOSE 8080
+      ENTRYPOINT ["java", "-jar", "/app.jar"]
+
+      Variables de entorno requeridas:
+      - SPRING_DATA_MONGODB_URI
+      - JWT_SECRET
+      - OPENAI_API_KEY
+      - (opcional) FIREBASE_key JSON
+    end note
+}
+
+' ════════════════════════════════════════════
+'  BASE DE DATOS — MongoDB Atlas
+' ════════════════════════════════════════════
+
+cloud "MongoDB Atlas\n(atlas.mongodb.com)" as MONGO_CLOUD #FCE4EC {
+    database "Cluster M0 (Free Tier)\nDB: workflow_sw1" as MongoAtlas {
+        component "Collection: cases" as ColCases
+        component "Collection: policies" as ColPolicies
+        component "Collection: users" as ColUsers
+        component "Collection: departments" as ColDepts
+    }
+    note right of MongoAtlas
+      Connection String:
+      mongodb+srv://<user>:<pass>
+        @cluster0.xxxxx.mongodb.net
+        /workflow_sw1
+      IP Allowlist: 0.0.0.0/0 (o Railway IP)
+    end note
+}
+
+' ════════════════════════════════════════════
+'  SERVICIOS EXTERNOS (APIs de terceros)
+' ════════════════════════════════════════════
+
+cloud "Firebase\n(firebase.google.com)" as FIREBASE #FCE4EC {
+    node "Firebase Cloud\nMessaging (FCM)" as FCM_SVC {
+        component "Push API v1\n/fcm/send" as FCM_API
+    }
+    note right of FCM_SVC
+      Backend → Admin SDK → FCM
+      Móvil → FCM Client SDK recibe
+      token registrado en MongoDB
+    end note
+}
+
+cloud "OpenAI\n(api.openai.com)" as OPENAI #E8EAF6 {
+    node "GPT-4o API" as GPT_NODE {
+        component "POST /v1/chat/completions\n(text + vision)" as GPT_API
+    }
+    note right of GPT_NODE
+      Header: Authorization: Bearer $OPENAI_API_KEY
+      Usado en: AiAssistantController
+      y AnalyticsService (bottleneck)
+    end note
+}
+
+' ════════════════════════════════════════════
+'  ENTORNO DE DESARROLLO LOCAL (Docker Compose)
+' ════════════════════════════════════════════
+
+node "Máquina de Desarrollo\n(Windows / Linux / Mac)" as LOCAL {
+
+    node "Docker Compose\ndocker-compose up" as COMPOSE {
+        node "Container: workflow-engine\n(puerto 8080)" as LOCAL_BACKEND {
+            component "Spring Boot\n(modo dev con hot-reload)" as LOCAL_SVC
+        }
+        node "Container: frontend\n(puerto 5173)" as LOCAL_FRONTEND {
+            component "Vite Dev Server\n(React HMR)" as LOCAL_REACT
+        }
+        node "Container: mongodb\n(puerto 27017)" as LOCAL_MONGO {
+            database "MongoDB 7.0\nworkflow_sw1" as LOCAL_DB
+        }
+    }
+
+    node "Flutter SDK 3.x\n(flutter run -d emulator)" as LOCAL_FLUTTER {
+        artifact "Flutter Debug Build\n(JIT - hot reload)" as LOCAL_APK
+    }
+
+    note right of COMPOSE
+      docker-compose.yml en raíz del proyecto.
+      Variables en .env o docker-compose.yml.
+      Seed de datos: scripts/seed-demo.ps1
+    end note
+}
+
+' ════════════════════════════════════════════
+'  CONEXIONES — PRODUCCIÓN
+' ════════════════════════════════════════════
+
+BROWSER         --> VERCEL_NODE       : HTTPS :443
+ReactApp        --> DOCKER_BACKEND    : REST HTTPS\n:443 → :8080
+ReactApp        --> WS_NODE           : WSS /ws\n(WebSocket TLS)
+FlutterAPK      --> DOCKER_BACKEND    : REST HTTPS :443
+FlutterAPK      --> FCMClient         : registra token local
+FCMClient       --> FCM_SVC           : token registration\n+ recepción push
+DOCKER_BACKEND  --> MongoAtlas        : mongodb+srv://
+DOCKER_BACKEND  --> FCM_API           : Admin SDK HTTPS
+DOCKER_BACKEND  --> GPT_API           : HTTPS POST
+JVM             --> JAR               : runs
+JAR             --> STOMPBroker       : configura STOMP
+
+' ════════════════════════════════════════════
+'  CONEXIONES — DESARROLLO LOCAL
+' ════════════════════════════════════════════
+
+LOCAL_REACT     --> LOCAL_BACKEND     : HTTP :8080
+LOCAL_FLASK     --> LOCAL_DB          : no existe; solo Mongo
+LOCAL_APK       --> LOCAL_BACKEND     : HTTP 10.0.2.2:8080\n(emulador Android)
+LOCAL_BACKEND   --> LOCAL_DB          : mongodb://localhost:27017
+
+@enduml

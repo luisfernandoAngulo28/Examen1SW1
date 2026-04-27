@@ -1,0 +1,197 @@
+@startuml 04_secuencia
+!theme plain
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 5
+skinparam sequenceParticipantBorderColor #2C3E50
+skinparam sequenceParticipantBackgroundColor #ECF0F1
+skinparam sequenceActorBorderColor #2C3E50
+skinparam sequenceActorBackgroundColor #D5E8D4
+skinparam sequenceLifeLineBorderColor #2C3E50
+skinparam sequenceGroupBorderColor #5D6D7E
+skinparam sequenceGroupBackgroundColor #FDFEFE
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #F9A825
+
+title Diagrama de Secuencia — Flujo Completo de un Trámite\n(Inicio por Cliente → Procesamiento por Funcionario → Notificación)\n(UML 2.5)
+
+' ═══════════════════════════════════════════
+' PARTICIPANTES
+' ═══════════════════════════════════════════
+
+actor        "Cliente\n(App Móvil)"         as CLIENT
+participant  "Flutter App"                  as APP          #BDE3FF
+participant  "REST API\n/api/cases"          as API          #C8E6C9
+participant  "JwtAuthFilter\n+ SecurityConfig" as SEC        #FFE0B2
+participant  "CaseController"               as CTRL         #D5E8D4
+participant  "CaseService"                  as SVC          #D5E8D4
+participant  "PolicyService"                as PSVC         #D5E8D4
+participant  "MongoDB"                      as DB           #F8BBD0
+participant  "EventPublisher\n(WebSocket)"  as WS           #E8D5F5
+participant  "NotificationService\n(FCM)"   as NOTIF        #F8BBD0
+participant  "Firebase\nCloud Messaging"    as FCM          #FFCCBC
+actor        "Funcionario\n(Web / App)"     as OFFICER      #FFF9C4
+
+' ═══════════════════════════════════════════
+' FASE 1 — AUTENTICACIÓN DEL CLIENTE
+' ═══════════════════════════════════════════
+
+group Fase 1: Autenticación [POST /api/auth/login]
+    CLIENT -> APP         : ingresa email + contraseña
+    APP    -> API         : POST /api/auth/login\n{email, password}
+    API    -> SEC         : valida credenciales
+    SEC    -> DB          : UserRepository.findByEmail()
+    DB     --> SEC        : User{role=CLIENT}
+    SEC    --> API        : genera JWT token
+    API    --> APP        : AuthResponse{token, role=CLIENT, userId}
+    APP    -> APP         : guarda token en SecureStorage
+    note right of APP
+      flutter_secure_storage
+      para JWT persistente
+    end note
+end group
+
+' ═══════════════════════════════════════════
+' FASE 2 — REGISTRO TOKEN FCM
+' ═══════════════════════════════════════════
+
+group Fase 2: Registro Token Push [PATCH /api/users/fcm-token]
+    APP    -> FCM         : FirebaseMessaging.getToken()
+    FCM    --> APP        : fcmToken (device token)
+    APP    -> API         : PATCH /api/users/fcm-token\nAuthorization: Bearer <JWT>\n{token: "fcm-device-token"}
+    API    -> DB          : userRepository.updateFcmToken(userId, token)
+    DB     --> API        : OK
+    API    --> APP        : 200 OK
+end group
+
+' ═══════════════════════════════════════════
+' FASE 3 — CLIENTE INICIA EL TRÁMITE
+' ═══════════════════════════════════════════
+
+group Fase 3: Inicio de Trámite [POST /api/cases]
+    CLIENT -> APP         : selecciona política y confirma inicio
+    APP    -> API         : POST /api/cases\nAuthorization: Bearer <JWT>\n{policyId: "pol-instalacion-001"}
+    API    -> SEC         : valida JWT + extrae User principal
+    SEC    --> API        : User{id=clientId, role=CLIENT}
+    API    -> CTRL        : startCase(policyId, clientId)
+    CTRL   -> SVC         : startMyCase(clientId, policyId)
+
+    SVC    -> PSVC        : findById(policyId)
+    PSVC   -> DB          : policyRepository.findById(policyId)
+    DB     --> PSVC       : Policy{nodes[], edges[]}
+    PSVC   --> SVC        : Policy
+
+    SVC    -> SVC         : identifica nodo INITIAL\nnavega al primer nodo ACTION
+    SVC    -> SVC         : asigna Task PENDING\nal usuario del dpto. correspondiente
+    SVC    -> DB          : caseRepository.save(Case{\n  policyId, clientId,\n  status=OPEN,\n  tasks=[Task{PENDING}]\n})
+    DB     --> SVC        : Case{id="case-001"}
+
+    SVC    -> WS          : publish("CASE_CREATED", caseId)
+    note right of WS
+      STOMP broker /topic/cases
+      Panel del funcionario se actualiza
+      automáticamente (tiempo real)
+    end note
+    WS     -> OFFICER     : WebSocket event\n"CASE_CREATED"
+
+    SVC    -> NOTIF       : sendToOfficer(assignedUserId, caseId, taskId)
+    NOTIF  -> DB          : userRepository.findById(assignedUserId)
+    DB     --> NOTIF      : User{fcmToken="device-abc"}
+    NOTIF  -> FCM         : FirebaseMessaging.send(\n  token=device-abc,\n  title="Nueva tarea asignada",\n  data={caseId, taskId}\n)
+    FCM    --> OFFICER    : push notification
+
+    SVC    --> CTRL       : Case
+    CTRL   -> API         : ResponseEntity<CaseDetailDto>
+    API    --> APP        : 201 Created\nCaseDetailDto{caseId, status=OPEN, ...}
+    APP    --> CLIENT     : muestra trámite iniciado\ncon estado en tiempo real
+end group
+
+' ═══════════════════════════════════════════
+' FASE 4 — FUNCIONARIO PROCESA LA TAREA
+' ═══════════════════════════════════════════
+
+group Fase 4: Funcionario procesa tarea [PUT /api/cases/:id/tasks/:taskId/advance]
+    OFFICER -> API        : GET /api/cases/my-tasks\nAuthorization: Bearer <JWT>
+    API     -> CTRL       : getMyTasks()
+    CTRL    -> SVC        : findAll() + filter by assignedUserId
+    SVC     -> DB         : caseRepository.findAll()
+    DB      --> SVC       : [Case{tasks=[Task{PENDING}]}]
+    SVC     --> CTRL      : [MyTaskDto{...}]
+    CTRL    --> OFFICER   : 200 OK — lista de tareas pendientes
+
+    note over OFFICER
+      Funcionario ve semáforo visual:
+      PENDING → AMARILLO
+      IN_PROGRESS → VERDE
+      DONE → GRIS
+      BLOCKED → ROJO
+    end note
+
+    OFFICER -> API        : PUT /api/cases/case-001/tasks/task-001/advance\n{payload: {campo1: "valor"}, inputMode: "VOICE"}
+    API     -> SEC        : valida JWT
+    SEC     --> API       : User{role=OFFICER}
+    API     -> CTRL       : advanceTask(caseId, taskId, payload, inputMode)
+    CTRL    -> SVC        : advanceTask(caseId, taskId, userId, payload)
+
+    SVC     -> DB         : findById("case-001")
+    DB      --> SVC       : Case
+
+    SVC     -> SVC        : marca Task{status=DONE,\nformSubmission={payload, VOICE}}
+    SVC     -> SVC        : routeNextStep(case, completedNodeId)
+
+    alt Siguiente nodo es ACTION (SEQUENTIAL)
+        SVC  -> SVC       : crea nueva Task PENDING\npara siguiente departamento
+        SVC  -> DB        : caseRepository.save(Case actualizado)
+        SVC  -> WS        : publish("TASK_COMPLETED", {caseId, nextNodeId})
+        WS   -> OFFICER   : update panel en tiempo real
+        SVC  -> NOTIF     : sendToOfficer(nextUserId, caseId, newTaskId)
+        NOTIF -> FCM      : push al siguiente funcionario
+
+    else Siguiente nodo es DECISION (CONDITIONAL)
+        SVC  -> SVC       : evalúa conditionJson del edge
+        SVC  -> SVC       : selecciona rama TRUE o FALSE
+        SVC  -> SVC       : crea Task para el nodo resultante
+
+    else Siguiente nodo es FORK (PARALLEL)
+        SVC  -> SVC       : crea N Tasks simultáneas\n(una por cada rama outgoing)
+        SVC  -> NOTIF     : sendToOfficer (×N funcionarios)
+
+    else Siguiente nodo es JOIN (sincronización)
+        SVC  -> SVC       : verifica si todas las\nramas paralelas están DONE
+        alt Todas ramas DONE
+            SVC -> SVC    : avanza al nodo post-JOIN
+        else Ramas pendientes
+            SVC -> DB     : guarda estado y espera
+        end alt
+
+    else Siguiente nodo es FINAL
+        SVC  -> SVC       : case.status = COMPLETED\ncase.finishedAt = now()
+        SVC  -> DB        : caseRepository.save(Case{COMPLETED})
+        SVC  -> NOTIF     : sendToClient(clientId, caseId, "COMPLETED")
+        NOTIF -> FCM      : push "Tu trámite fue completado"
+        FCM  -> CLIENT    : notificación push\n"Trámite completado"
+    end alt
+
+    DB      --> SVC       : Case guardado
+    SVC     --> CTRL      : Case actualizado
+    CTRL    --> OFFICER   : 200 OK — CaseDetailDto
+
+end group
+
+' ═══════════════════════════════════════════
+' FASE 5 — CLIENTE VE EL RESULTADO
+' ═══════════════════════════════════════════
+
+group Fase 5: Cliente consulta estado [GET /api/cases/my-cases]
+    CLIENT -> APP         : abre App → TrackingScreen
+    APP    -> API         : GET /api/cases/my-cases\nAuthorization: Bearer <JWT>
+    API    -> CTRL        : getMyCases()
+    CTRL   -> SVC         : findByClientId(clientId)
+    SVC    -> DB          : caseRepository.findByClientId(clientId)
+    DB     --> SVC        : [Case{status=COMPLETED, eventLogs=[...]}]
+    SVC    -> SVC         : CaseViewService.toDetailList(cases)
+    SVC    --> API        : [CaseDetailDto{status=COMPLETED, ...}]
+    API    --> APP        : 200 OK
+    APP    --> CLIENT     : muestra trámite completado\ncon línea de tiempo (EventLogs)
+end group
+
+@enduml

@@ -1,0 +1,785 @@
+import { Component, inject, OnInit, OnDestroy, NgZone, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { Subject } from 'rxjs';
+import { NgxGraphModule, Edge, Node } from '@swimlane/ngx-graph';
+import { DynamicFormComponent } from '../../components/dynamic-form/dynamic-form.component';
+import { ToastService } from '../../services/toast.service';
+import { Client } from '@stomp/stompjs';
+import { API_BASE } from '../../api';
+
+const WS_BASE = API_BASE.replace('/api', '').replace('http://', 'ws://').replace('https://', 'wss://');
+import { createWorker } from 'tesseract.js';
+
+// Extend window type for SpeechRecognition
+declare global {
+  interface Window { SpeechRecognition: any; webkitSpeechRecognition: any; }
+}
+
+interface Dept { id: string; name: string; }
+interface PolicyNode { id: string; title: string; nodeType: string; departmentId: string; positionX: number; positionY: number; department?: { name: string }; }
+interface PolicyEdge { id: string; fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; }
+interface AiResponse { action: string; suggestion: string; nodes?: { title: string; department: string }[]; connections?: { from: string; to: string; flowType: string }[]; }
+
+function nodeColor(type: string) {
+  const map: Record<string, string> = { INITIAL: '#52c41a', FINAL: '#ff4d4f', DECISION: '#faad14', FORK: '#722ed1', JOIN: '#13c2c2', ACTION: '#1677ff' };
+  return map[type] || '#1677ff';
+}
+
+@Component({
+  selector: 'app-policy-editor',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, NgxGraphModule, DynamicFormComponent],
+  template: `
+    <div class="page-header">
+      <div>
+        <a routerLink="/" style="font-size:13px">← Dashboard</a>
+        <h1 style="margin-top:4px">Editor: {{ policyName }}</h1>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge" [class]="wsConnected ? 'badge-green' : 'badge-red'" style="font-size:11px;padding:3px 8px">
+          {{ wsConnected ? '● En vivo' : '○ Sin WS' }}
+        </span>
+        <button (click)="save()" class="btn btn-primary" [disabled]="saving">{{ saving ? 'Guardando...' : '💾 Guardar' }}</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:260px 1fr 300px;gap:0;height:calc(100vh - 120px)">
+
+      <!-- Left panel: node controls -->
+      <div style="background:var(--bg-secondary);border-right:1px solid var(--border);padding:16px;overflow-y:auto">
+        <h3 style="font-size:13px;font-weight:700;margin-bottom:12px">Agregar Nodo</h3>
+        <div style="margin-bottom:10px">
+          <label class="form-label">Tipo</label>
+          <select [(ngModel)]="newNodeType" class="form-input">
+            <option value="ACTION">Actividad (ACTION)</option>
+            <option value="DECISION">Decisión (DECISION)</option>
+            <option value="FORK">Fork (paralelo)</option>
+            <option value="JOIN">Join (unión)</option>
+            <option value="INITIAL">Inicio</option>
+            <option value="FINAL">Fin</option>
+          </select>
+        </div>
+        @if (!isAutoName) {
+          <div style="margin-bottom:10px">
+            <label class="form-label">Nombre</label>
+            <div style="display:flex;gap:4px">
+              <input [(ngModel)]="newNodeTitle" class="form-input" placeholder="Nombre de la actividad" style="flex:1" />
+              <button type="button" (click)="voiceNodeTitle()" class="btn btn-ghost btn-sm"
+                [style.color]="listeningNodeTitle ? '#ff4d4f' : ''"
+                [style.border]="listeningNodeTitle ? '1px solid #ff4d4f' : ''"
+                title="Dictar nombre por voz">
+                {{ listeningNodeTitle ? '🔴' : '🎤' }}
+              </button>
+            </div>
+          </div>
+        }
+        <div style="margin-bottom:12px">
+          <label class="form-label">Departamento</label>
+          <select [(ngModel)]="selectedDept" class="form-input">
+            @for (d of departments; track d.id) { <option [value]="d.id">{{ d.name }}</option> }
+          </select>
+        </div>
+        <button (click)="addNode()" class="btn btn-primary btn-sm" style="width:100%">+ Agregar</button>
+
+        <hr style="margin:16px 0;border-color:var(--border)">
+
+        <h3 style="font-size:13px;font-weight:700;margin-bottom:8px">Tipo de Conexión</h3>
+        <select [(ngModel)]="selectedFlowType" class="form-input" style="margin-bottom:10px">
+          <option value="SEQUENTIAL">Secuencial</option>
+          <option value="CONDITIONAL">Condicional</option>
+          <option value="PARALLEL">Paralelo</option>
+        </select>
+        <p style="font-size:11px;color:var(--text-secondary)">Selecciona tipo antes de conectar nodos arrastrando en el diagrama.</p>
+
+        <hr style="margin:16px 0;border-color:var(--border)">
+
+        <h3 style="font-size:13px;font-weight:700;margin-bottom:8px">Leyenda</h3>
+        @for (t of nodeTypes; track t.type) {
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px">
+            <span [style.background]="t.color" style="display:inline-block;width:12px;height:12px;border-radius:2px"></span>{{ t.type }}
+          </div>
+        }
+      </div>
+
+      <!-- Graph area -->
+      <div style="background:#f8fafc;height:100%;display:flex;flex-direction:column">
+
+        <!-- View toggle bar -->
+        <div style="flex-shrink:0;display:flex;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);background:var(--bg-secondary)">
+          <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Vista:</span>
+          <button [class]="'btn btn-sm '+(viewMode==='lanes'?'btn-primary':'btn-ghost')" (click)="viewMode='lanes'">🏊 Calles</button>
+          <button [class]="'btn btn-sm '+(viewMode==='graph'?'btn-primary':'btn-ghost')" (click)="viewMode='graph';graphUpdate$.next(true)">🔀 Grafo libre</button>
+        </div>
+
+        <!-- Swim lane view -->
+        @if (viewMode === 'lanes') {
+          <div style="flex:1;overflow:auto">
+            @if (!laneViewData) {
+              <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--text-secondary)">
+                <div style="font-size:48px">📋</div><p>Agrega nodos desde el panel izquierdo</p>
+              </div>
+            } @else {
+              <svg [attr.width]="laneViewData.svgW" [attr.height]="laneViewData.svgH" style="display:block">
+                <defs>
+                  <marker id="arrowhl" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+                  </marker>
+                </defs>
+                @for (dept of laneViewData.depts; track dept; let i = $index) {
+                  <rect [attr.x]="0" [attr.y]="i * laneViewData.LANE_H" [attr.width]="laneViewData.svgW" [attr.height]="laneViewData.LANE_H" [attr.fill]="i % 2 === 0 ? '#f8fafc' : '#eef2f7'" stroke="#cbd5e1" stroke-width="1"/>
+                  <rect [attr.x]="0" [attr.y]="i * laneViewData.LANE_H" [attr.width]="laneViewData.HDR_W" [attr.height]="laneViewData.LANE_H" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+                  <text [attr.x]="laneViewData.HDR_W / 2" [attr.y]="i * laneViewData.LANE_H + laneViewData.LANE_H / 2" text-anchor="middle" dominant-baseline="middle" fill="white" font-size="12" font-weight="600" style="font-family:sans-serif">{{ dept }}</text>
+                  <line [attr.x1]="laneViewData.HDR_W" [attr.y1]="i * laneViewData.LANE_H" [attr.x2]="laneViewData.HDR_W" [attr.y2]="(i+1) * laneViewData.LANE_H" stroke="#475569" stroke-width="2"/>
+                }
+                @for (e of laneViewData.edges; track e.id) {
+                  <path [attr.d]="e.d" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowhl)"/>
+                  @if (e.label) {
+                    <text [attr.x]="e.midX" [attr.y]="e.midY - 6" text-anchor="middle" font-size="10" fill="#475569" style="font-family:sans-serif">{{ e.label }}</text>
+                  }
+                }
+                @for (n of laneViewData.nodes; track n.id) {
+                  @if (n.nodeType === 'INITIAL') {
+                    <circle [attr.cx]="n.cx" [attr.cy]="n.cy" r="22" fill="#52c41a"/>
+                    <text [attr.x]="n.cx" [attr.y]="n.cy" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="14" style="font-family:sans-serif">▶</text>
+                  } @else if (n.nodeType === 'FINAL') {
+                    <circle [attr.cx]="n.cx" [attr.cy]="n.cy" r="22" fill="#ff4d4f"/>
+                    <circle [attr.cx]="n.cx" [attr.cy]="n.cy" r="14" fill="none" stroke="white" stroke-width="3"/>
+                  } @else if (n.nodeType === 'DECISION') {
+                    <polygon [attr.points]="n.cx+','+(n.cy-26)+' '+(n.cx+54)+','+n.cy+' '+n.cx+','+(n.cy+26)+' '+(n.cx-54)+','+n.cy" fill="#faad14"/>
+                    <text [attr.x]="n.cx" [attr.y]="n.cy" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="10" font-weight="600" style="font-family:sans-serif">{{ n.label | slice:0:12 }}</text>
+                  } @else if (n.nodeType === 'FORK' || n.nodeType === 'JOIN') {
+                    <rect [attr.x]="n.cx-52" [attr.y]="n.cy-12" width="104" height="24" [attr.fill]="n.nodeType==='FORK'?'#722ed1':'#13c2c2'" rx="4"/>
+                    <text [attr.x]="n.cx" [attr.y]="n.cy" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="10" font-weight="600" style="font-family:sans-serif">{{ n.nodeType }}</text>
+                  } @else {
+                    <rect [attr.x]="n.x" [attr.y]="n.y" width="140" height="46" fill="#1677ff" rx="6"/>
+                    <text [attr.x]="n.cx" [attr.y]="n.cy" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="12" font-weight="600" style="font-family:sans-serif">{{ n.label | slice:0:16 }}</text>
+                  }
+                }
+              </svg>
+            }
+          </div>
+        }
+
+        <!-- Free graph (ngx-graph) -->
+        @if (viewMode === 'graph') {
+          <div style="flex:1;position:relative;overflow:hidden">
+            <ngx-graph
+                [links]="graphLinks"
+                [nodes]="graphNodes"
+                [update$]="graphUpdate$"
+                [autoCenter]="true"
+                [autoZoom]="true"
+                [enableZoom]="true"
+                [draggingEnabled]="true"
+                layout="dagre"
+                (select)="onNodeSelect($event)"
+                style="width:100%;height:100%">
+              <ng-template #nodeTemplate let-node>
+                <svg:g class="node">
+                  <svg:rect
+                    [attr.width]="node.dimension?.width || 140"
+                    [attr.height]="node.dimension?.height || 50"
+                    [attr.fill]="nodeColor(node.data?.nodeType)"
+                    rx="8" ry="8" opacity="0.9" />
+                  <svg:text
+                    [attr.x]="(node.dimension?.width || 140) / 2"
+                    [attr.y]="(node.dimension?.height || 50) / 2"
+                    dominant-baseline="middle"
+                    text-anchor="middle"
+                    fill="white" font-size="12" font-weight="600">
+                    {{ node.label | slice:0:20 }}
+                  </svg:text>
+                  <svg:text
+                    [attr.x]="(node.dimension?.width || 140) / 2"
+                    [attr.y]="(node.dimension?.height || 50) - 8"
+                    text-anchor="middle"
+                    fill="rgba(255,255,255,0.75)" font-size="9">
+                    {{ node.data?.deptName }}
+                  </svg:text>
+                </svg:g>
+              </ng-template>
+              <ng-template #linkTemplate let-link>
+                <svg:g class="edge">
+                  <svg:path [attr.d]="link.line" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+                  @if (link.label) {
+                    <svg:text font-size="10" fill="#555">
+                      <svg:textPath [attr.href]="'#' + link.id">{{ link.label }}</svg:textPath>
+                    </svg:text>
+                  }
+                </svg:g>
+              </ng-template>
+            </ngx-graph>
+            @if (graphNodes.length === 0) {
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--text-secondary);pointer-events:none">
+                <div style="font-size:48px">📋</div>
+                <p>Agrega nodos desde el panel izquierdo</p>
+              </div>
+            }
+            @if (selectedNodeId) {
+              <div style="position:absolute;top:16px;right:16px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+                <p style="font-size:13px;font-weight:600;margin-bottom:10px">Nodo seleccionado</p>
+                <button (click)="deleteNode()" class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px">🗑 Eliminar nodo</button>
+                <button (click)="openFormEditor()" class="btn btn-ghost btn-sm" style="width:100%">📝 Editar formulario</button>
+                <button (click)="selectedNodeId=''" class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px">✕ Deseleccionar</button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Right panel: AI + Form editor -->
+      <div style="border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid var(--border)">
+          <button [class]="'btn btn-sm ' + (rightTab==='ai' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0" (click)="rightTab='ai'">🤖 AI</button>
+          <button [class]="'btn btn-sm ' + (rightTab==='form' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0" (click)="rightTab='form'">📝 Formulario</button>
+        </div>
+
+        <!-- AI Panel -->
+        @if (rightTab === 'ai') {
+          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px">
+            @for (msg of aiMessages; track $index; let idx = $index) {
+              <div [style.text-align]="msg.role === 'user' ? 'right' : 'left'">
+                <div [style.background]="msg.role === 'user' ? 'var(--primary)' : '#f1f5f9'"
+                     [style.color]="msg.role === 'user' ? '#fff' : '#222'"
+                     style="display:inline-block;padding:8px 12px;border-radius:10px;max-width:85%;font-size:13px">
+                  {{ msg.text }}
+                </div>
+                @if (msg.role === 'ai') {
+                  <div style="margin-top:3px">
+                    <button (click)="speakMessage(msg.text, idx)" class="btn btn-ghost btn-sm"
+                      style="padding:1px 7px;font-size:11px;border-radius:4px"
+                      [title]="speakingIdx === idx ? 'Detener (ElevenLabs TTS)' : 'Escuchar respuesta (ElevenLabs TTS)'">
+                      {{ speakingIdx === idx ? '⏹ Detener' : '🔊 Escuchar' }}
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div style="padding:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px">
+            <textarea [(ngModel)]="aiPrompt" rows="3" class="form-input" placeholder="Describe el proceso o dicta por voz..." style="resize:none;font-size:13px"></textarea>
+            <div style="display:flex;gap:6px">
+              <button (click)="startVoiceAi()" class="btn btn-sm"
+                [class]="listeningAi ? 'btn-danger' : 'btn-ghost'"
+                [title]="listeningAi ? 'Grabando... clic para parar' : 'Dictar por voz'"
+                style="padding:6px 12px">
+                {{ listeningAi ? '🔴 Grabando...' : '🎤 Voz' }}
+              </button>
+              <button (click)="fileInput.click()" class="btn btn-ghost btn-sm"
+                [disabled]="ocrLoading"
+                title="Subir imagen o foto de diagrama (OCR)"
+                style="padding:6px 12px">
+                {{ ocrLoading ? '🔄 ' + ocrProgress + '%' : '📷 OCR' }}
+              </button>
+              <input #fileInput type="file" accept="image/*" style="display:none" (change)="uploadImage($event)" />
+              <button (click)="sendAiPrompt()" class="btn btn-primary btn-sm" [disabled]="aiLoading || ocrLoading" style="flex:1">{{ aiLoading ? '...' : '✈ Enviar' }}</button>
+            </div>
+            @if (voiceError) {
+              <p style="font-size:11px;color:var(--danger);margin:0">{{ voiceError }}</p>
+            }
+            @if (ocrLoading) {
+              <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:8px;font-size:12px;color:#0369a1">
+                🔍 Leyendo imagen con OCR... {{ ocrProgress }}%
+                <div style="background:#e0f2fe;border-radius:4px;height:4px;margin-top:4px">
+                  <div [style.width.%]="ocrProgress" style="background:#0284c7;height:4px;border-radius:4px;transition:width 0.3s"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Form editor -->
+        @if (rightTab === 'form') {
+          <div style="flex:1;overflow-y:auto;padding:14px">
+            @if (!selectedNodeId) {
+              <p style="color:var(--text-secondary);font-size:13px;text-align:center;margin-top:32px">Selecciona un nodo del diagrama para editar su formulario</p>
+            } @else {
+              <h4 style="font-size:13px;font-weight:700;margin-bottom:12px">Formulario para: {{ selectedNodeTitle }}</h4>
+              <div style="margin-bottom:10px">
+                @for (field of formFields; track $index; let i = $index) {
+                  <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;background:#f8fafc;padding:8px;border-radius:6px">
+                    <input [(ngModel)]="field.label" placeholder="Etiqueta" class="form-input" style="flex:2;font-size:12px" />
+                    <select [(ngModel)]="field.type" class="form-input" style="flex:1;font-size:11px">
+                      <option value="text">Texto</option>
+                      <option value="number">Número</option>
+                      <option value="date">Fecha</option>
+                      <option value="textarea">Párrafo</option>
+                      <option value="select">Selección</option>
+                    </select>
+                    <button (click)="removeField(i)" class="btn btn-danger btn-sm" style="padding:4px 8px">✕</button>
+                  </div>
+                }
+              </div>
+              <button (click)="addField()" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px">+ Campo</button>
+              <button (click)="saveForm()" class="btn btn-primary btn-sm" [disabled]="savingForm" style="width:100%">{{ savingForm ? 'Guardando...' : '💾 Guardar formulario' }}</button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  `
+})
+export class PolicyEditorComponent implements OnInit, OnDestroy {
+  policyName = '';
+  departments: Dept[] = [];
+  graphNodes: Node[] = [];
+  graphLinks: Edge[] = [];
+  newNodeType = 'ACTION';
+  newNodeTitle = '';
+  selectedDept = '';
+  saving = false;
+  selectedNodeId = '';
+  selectedNodeTitle = '';
+  formFields: { name: string; label: string; type: string; required: boolean }[] = [];
+  savingForm = false;
+  rightTab: 'ai' | 'form' = 'ai';
+  aiPrompt = '';
+  aiMessages: { role: 'user' | 'ai'; text: string }[] = [];
+  aiLoading = false;
+  ocrLoading = false;
+  ocrProgress = 0;
+  selectedFlowType = 'SEQUENTIAL';
+  listeningAi = false;
+  listeningNodeTitle = false;
+  voiceError = '';
+  graphUpdate$ = new Subject<boolean>();
+  viewMode: 'graph' | 'lanes' = 'lanes';
+  laneViewData: any = null;
+  wsConnected = false;
+  speakingIdx: number | null = null;
+  private stompClient?: Client;
+  private currentAudio: HTMLAudioElement | null = null;
+
+  readonly nodeTypes = [
+    { type: 'ACTION', color: '#1677ff' }, { type: 'DECISION', color: '#faad14' },
+    { type: 'FORK', color: '#722ed1' }, { type: 'JOIN', color: '#13c2c2' },
+    { type: 'INITIAL', color: '#52c41a' }, { type: 'FINAL', color: '#ff4d4f' },
+  ];
+
+  get isAutoName() { return ['INITIAL', 'FINAL', 'FORK', 'JOIN'].includes(this.newNodeType); }
+
+  private policyId = '';
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private toast = inject(ToastService);
+  private zone = inject(NgZone);
+  private recognition: any = null;
+
+  nodeColor = nodeColor;
+
+  ngOnInit() {
+    this.policyId = this.route.snapshot.paramMap.get('id')!;
+    this.connectEditorWs();
+    this.http.get<Dept[]>(`${API_BASE}/departments`).subscribe(d => { this.departments = d; if (d.length) this.selectedDept = d[0].id; });
+    this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe(p => {
+      this.policyName = p.name;
+      this.graphNodes = (p.nodes || []).map((n: any) => ({
+        id: n.id,
+        label: n.title,
+        data: { nodeType: n.nodeType, deptName: n.department?.name || '', departmentId: n.departmentId, positionX: n.positionX, positionY: n.positionY },
+        dimension: { width: 140, height: 50 },
+      }));
+      this.graphLinks = (p.edges || []).map((e: any) => ({
+        id: e.id,
+        source: e.fromNodeId,
+        target: e.toNodeId,
+        label: e.conditionLabel || (e.flowType !== 'SEQUENTIAL' ? e.flowType : ''),
+        data: { flowType: e.flowType, conditionLabel: e.conditionLabel },
+      }));
+      // Force ngx-graph to recompute layout once data arrives
+      this.laneViewData = this.computeLaneView();
+      setTimeout(() => this.graphUpdate$.next(true), 50);
+    });
+  }
+
+  addNode() {
+    const defaults: Record<string, string> = { INITIAL: 'Inicio', FINAL: 'Fin', FORK: 'Fork', JOIN: 'Join' };
+    const title = this.newNodeTitle.trim() || defaults[this.newNodeType] || '';
+    if (!title) { this.toast.show('Ingresa un nombre para el nodo', 'error'); return; }
+    const dept = this.departments.find(d => d.id === this.selectedDept);
+    const id = crypto.randomUUID();
+    const newNode: Node = {
+      id,
+      label: title,
+      data: { nodeType: this.newNodeType, deptName: dept?.name || '', departmentId: this.selectedDept, positionX: 100, positionY: 100 },
+      dimension: { width: 140, height: 50 },
+    };
+    this.graphNodes = [...this.graphNodes, newNode];
+    this.newNodeTitle = '';
+    this.laneViewData = this.computeLaneView();
+    setTimeout(() => this.graphUpdate$.next(true), 50);
+  }
+
+  deleteNode() {
+    if (!this.selectedNodeId) return;
+    this.graphNodes = this.graphNodes.filter(n => n.id !== this.selectedNodeId);
+    this.graphLinks = this.graphLinks.filter(l => l.source !== this.selectedNodeId && l.target !== this.selectedNodeId);
+    this.selectedNodeId = '';
+    this.selectedNodeTitle = '';
+    this.laneViewData = this.computeLaneView();
+  }
+
+  onNodeSelect(node: any) {
+    if (!node?.id) return;
+    this.selectedNodeId = node.id;
+    this.selectedNodeTitle = node.label;
+    const n = this.graphNodes.find(g => g.id === node.id);
+    if (n?.data?.['nodeId']) {
+      this.http.get<any>(`${API_BASE}/forms/template/${n.id}`).subscribe({ next: t => { if (t?.schemaJson) this.parseFormSchema(t.schemaJson); }, error: () => {} });
+    }
+  }
+
+  openFormEditor() { this.rightTab = 'form'; }
+
+  addField() { this.formFields.push({ name: `field_${Date.now()}`, label: '', type: 'text', required: false }); }
+  removeField(i: number) { this.formFields.splice(i, 1); }
+
+  saveForm() {
+    if (!this.selectedNodeId) return;
+    this.savingForm = true;
+    const schema = { fields: this.formFields.map(f => ({ ...f, name: f.label.toLowerCase().replace(/\s+/g, '_') || f.name })) };
+    this.http.put(`${API_BASE}/forms/template/${this.selectedNodeId}`, { schemaJson: JSON.stringify(schema) }).subscribe({
+      next: () => { this.toast.show('Formulario guardado', 'success'); this.savingForm = false; },
+      error: () => { this.toast.show('Error al guardar formulario', 'error'); this.savingForm = false; }
+    });
+  }
+
+  parseFormSchema(schemaJson: any) {
+    try {
+      const s = typeof schemaJson === 'string' ? JSON.parse(schemaJson) : schemaJson;
+      this.formFields = (s.fields || []).map((f: any) => ({ name: f.name, label: f.label, type: f.type || 'text', required: !!f.required }));
+    } catch { this.formFields = []; }
+  }
+
+  save() {
+    this.saving = true;
+    const nodes = this.graphNodes.map((n, i) => ({
+      id: n.id.length === 36 ? undefined : n.id,
+      title: n.label,
+      nodeType: n.data?.['nodeType'] || 'ACTION',
+      departmentId: n.data?.['departmentId'],
+      positionX: n.position?.x ?? i * 200,
+      positionY: n.position?.y ?? 100,
+    }));
+    const edges = this.graphLinks.map(l => ({
+      fromNodeId: l.source,
+      toNodeId: l.target,
+      flowType: l.data?.['flowType'] || 'SEQUENTIAL',
+      conditionLabel: l.data?.['conditionLabel'] || undefined,
+    }));
+    this.http.put(`${API_BASE}/policies/${this.policyId}/graph`, { nodes, edges }).subscribe({
+      next: () => { this.toast.show('Diagrama guardado', 'success'); this.saving = false; },
+      error: () => { this.toast.show('Error al guardar', 'error'); this.saving = false; }
+    });
+  }
+
+  // ──────────── Swim lane layout ────────────
+  private computeLaneView(): any {
+    if (!this.graphNodes.length) return null;
+    const LANE_H = 110, NODE_W = 140, NODE_H = 46, HDR_W = 145, STEP_X = 188;
+    const outAdj = new Map<string, string[]>();
+    const inAdj = new Map<string, string[]>();
+    this.graphNodes.forEach(n => { outAdj.set(n.id, []); inAdj.set(n.id, []); });
+    this.graphLinks.forEach(e => {
+      outAdj.get(e.source)?.push(e.target);
+      inAdj.get(e.target)?.push(e.source);
+    });
+    // Kahn's topological sort
+    const inDeg = new Map<string, number>();
+    this.graphNodes.forEach(n => inDeg.set(n.id, (inAdj.get(n.id) || []).length));
+    const topo: string[] = [];
+    let queue = this.graphNodes.filter(n => inDeg.get(n.id) === 0).map(n => n.id);
+    if (!queue.length) queue = [this.graphNodes[0].id];
+    while (queue.length) {
+      const next: string[] = [];
+      queue.forEach(id => {
+        topo.push(id);
+        (outAdj.get(id) || []).forEach(t => {
+          const d = (inDeg.get(t) ?? 1) - 1; inDeg.set(t, d);
+          if (d === 0) next.push(t);
+        });
+      });
+      queue = next;
+    }
+    this.graphNodes.forEach(n => { if (!topo.includes(n.id)) topo.push(n.id); });
+    // Longest-path column assignment
+    const colMap = new Map<string, number>();
+    topo.forEach(id => {
+      const preds = inAdj.get(id) || [];
+      colMap.set(id, preds.length ? Math.max(...preds.map(p => (colMap.get(p) ?? 0) + 1)) : 0);
+    });
+    // Collect unique deptsn in topo order
+    const depts: string[] = [];
+    const deptSeen = new Set<string>();
+    topo.forEach(id => {
+      const d = (this.graphNodes.find(x => x.id === id)?.data as any)?.deptName || 'General';
+      if (!deptSeen.has(d)) { deptSeen.add(d); depts.push(d); }
+    });
+    const deptIdx = new Map(depts.map((d, i) => [d, i]));
+    const halfW = (t: string) => t === 'INITIAL' || t === 'FINAL' ? 22 : t === 'DECISION' ? 54 : t === 'FORK' || t === 'JOIN' ? 52 : 70;
+    // Place nodes
+    const slotCounter = new Map<string, number>();
+    const posNodes = topo.map(id => {
+      const n = this.graphNodes.find(x => x.id === id)!;
+      const col = colMap.get(id) ?? 0;
+      const deptName = (n.data as any)?.deptName || 'General';
+      const row = deptIdx.get(deptName) ?? 0;
+      const slotKey = `${col}-${row}`;
+      const slot = slotCounter.get(slotKey) ?? 0;
+      slotCounter.set(slotKey, slot + 1);
+      const cx = HDR_W + col * STEP_X + STEP_X / 2;
+      const cy = row * LANE_H + LANE_H / 2 + (slot === 0 ? 0 : slot % 2 === 1 ? -28 : 28);
+      const nodeType = (n.data as any)?.nodeType as string;
+      return { id, label: n.label as string, nodeType, cx, cy, x: cx - NODE_W / 2, y: cy - NODE_H / 2, hw: halfW(nodeType) };
+    });
+    const posMap = new Map(posNodes.map(n => [n.id, n]));
+    const maxCol = Math.max(...Array.from(colMap.values()), 0);
+    const svgW = HDR_W + (maxCol + 1) * STEP_X + 20;
+    const svgH = depts.length * LANE_H;
+    const edges = this.graphLinks.map(e => {
+      const s = posMap.get(e.source); const t = posMap.get(e.target);
+      if (!s || !t) return null;
+      const x1 = s.cx + s.hw, y1 = s.cy, x2 = t.cx - t.hw, y2 = t.cy;
+      const dx = Math.max(40, Math.abs(x2 - x1) * 0.4);
+      const d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+      return { id: e.id, d, label: (e.label as string) || '', midX: (x1 + x2) / 2, midY: (y1 + y2) / 2 };
+    }).filter(Boolean) as { id: string; d: string; label: string; midX: number; midY: number }[];
+    return { depts, nodes: posNodes, edges, svgW, svgH, LANE_H, HDR_W, NODE_W, NODE_H };
+  }
+
+  // ──────────── Voice helpers ────────────
+  private getSpeechRecognition(): any {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) { this.voiceError = 'Voz no soportada en este navegador. Usa Chrome.'; return null; }
+    this.voiceError = '';
+    const r = new SpeechRecognition();
+    r.lang = 'es-ES';
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    return r;
+  }
+
+  startVoiceAi() {
+    if (this.listeningAi) { this.recognition?.stop(); return; }
+    const r = this.getSpeechRecognition();
+    if (!r) return;
+    this.recognition = r;
+    this.listeningAi = true;
+    r.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      this.zone.run(() => { this.aiPrompt = (this.aiPrompt + ' ' + transcript).trim(); this.listeningAi = false; });
+    };
+    r.onerror = (e: any) => this.zone.run(() => { this.voiceError = 'Error de voz: ' + e.error; this.listeningAi = false; });
+    r.onend = () => this.zone.run(() => this.listeningAi = false);
+    r.start();
+  }
+
+  voiceNodeTitle() {
+    if (this.listeningNodeTitle) { this.recognition?.stop(); return; }
+    const r = this.getSpeechRecognition();
+    if (!r) return;
+    this.recognition = r;
+    this.listeningNodeTitle = true;
+    r.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      this.zone.run(() => { this.newNodeTitle = transcript; this.listeningNodeTitle = false; });
+    };
+    r.onerror = (e: any) => this.zone.run(() => { this.voiceError = 'Error: ' + e.error; this.listeningNodeTitle = false; });
+    r.onend = () => this.zone.run(() => this.listeningNodeTitle = false);
+    r.start();
+  }
+  // ─────────────────────────────────────────
+
+  async uploadImage(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.ocrLoading = true;
+    this.ocrProgress = 0;
+    this.voiceError = '';
+    this.aiMessages = [...this.aiMessages, { role: 'user', text: `📷 Imagen: ${file.name}` }];
+    try {
+      const worker = await createWorker('spa', 1, {
+        logger: (m: any) => {
+          if (m.status === 'recognizing text') {
+            this.zone.run(() => this.ocrProgress = Math.round(m.progress * 100));
+          }
+        }
+      });
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
+      const extracted = text.trim();
+      if (!extracted) {
+        this.aiMessages = [...this.aiMessages, { role: 'ai', text: 'No se pudo extraer texto de la imagen. Intenta con una imagen más nítida.' }];
+        this.ocrLoading = false;
+        return;
+      }
+      this.aiMessages = [...this.aiMessages, { role: 'ai', text: `Texto extraído: "${extracted.slice(0, 120)}${extracted.length > 120 ? '...' : ''}"` }];
+      // Send extracted text to AI backend
+      this.http.post<AiResponse>(`${API_BASE}/ai-assistant/image`, { extractedText: extracted }).subscribe({
+        next: (res) => {
+          this.zone.run(() => {
+            this.ocrLoading = false;
+            this.aiMessages = [...this.aiMessages, { role: 'ai', text: res.suggestion }];
+            this._applyAiResult(res);
+          });
+        },
+        error: () => this.zone.run(() => {
+          this.ocrLoading = false;
+          this.aiMessages = [...this.aiMessages, { role: 'ai', text: 'Error al procesar la imagen con IA.' }];
+        })
+      });
+    } catch (err: any) {
+      this.zone.run(() => {
+        this.ocrLoading = false;
+        this.voiceError = 'Error OCR: ' + (err?.message || 'desconocido');
+      });
+    }
+  }
+
+  sendAiPrompt() {
+    if (!this.aiPrompt.trim()) return;
+    const userMsg = this.aiPrompt;
+    this.aiMessages = [...this.aiMessages, { role: 'user', text: userMsg }];
+    this.aiPrompt = '';
+    this.aiLoading = true;
+    this.http.post<AiResponse>(`${API_BASE}/ai-assistant/prompt`, { prompt: userMsg }).subscribe({
+      next: (res) => {
+        this.aiLoading = false;
+        this.aiMessages = [...this.aiMessages, { role: 'ai', text: res.suggestion }];
+        this._applyAiResult(res);
+      },
+      error: () => {
+        this.aiLoading = false;
+        this.aiMessages = [...this.aiMessages, { role: 'ai', text: 'Error al procesar el prompt.' }];
+      }
+    });
+  }
+
+  /** Applies nodes and connections returned by any AI endpoint to the local diagram. */
+  private _applyAiResult(res: AiResponse) {
+    let addedNodes = 0;
+    let addedEdges = 0;
+    if (res.nodes?.length) {
+      res.nodes.forEach((n, i) => {
+        // Skip if a node with this label already exists
+        if (this.graphNodes.some(g => (g.label as string)?.toLowerCase() === n.title?.toLowerCase())) return;
+        const dept = this.departments.find(d => d.name.toLowerCase().includes(n.department?.toLowerCase() || ''));
+        const nd: Node = {
+          id: crypto.randomUUID(),
+          label: n.title,
+          data: { nodeType: 'ACTION', deptName: dept?.name || '', departmentId: dept?.id || '', positionX: 200 + i * 200, positionY: 100 },
+          dimension: { width: 140, height: 50 },
+        };
+        this.graphNodes = [...this.graphNodes, nd];
+        addedNodes++;
+      });
+    }
+    if (res.connections?.length) {
+      res.connections.forEach(c => {
+        const src = this.graphNodes.find(g => (g.label as string)?.toLowerCase().includes(c.from?.toLowerCase() || ''));
+        const tgt = this.graphNodes.find(g => (g.label as string)?.toLowerCase().includes(c.to?.toLowerCase() || ''));
+        if (!src || !tgt) return;
+        // Skip duplicate edges
+        if (this.graphLinks.some(l => l.source === src.id && l.target === tgt.id)) return;
+        const flowType = c.flowType || 'SEQUENTIAL';
+        const edge: Edge = {
+          id: crypto.randomUUID(),
+          source: src.id,
+          target: tgt.id,
+          label: flowType !== 'SEQUENTIAL' ? flowType : undefined,
+          data: { flowType, conditionLabel: flowType !== 'SEQUENTIAL' ? flowType : '' },
+        };
+        this.graphLinks = [...this.graphLinks, edge];
+        addedEdges++;
+      });
+    }
+    if (addedNodes || addedEdges) {
+      this.laneViewData = this.computeLaneView();
+      setTimeout(() => this.graphUpdate$.next(true), 50);
+      const parts: string[] = [];
+      if (addedNodes) parts.push(`${addedNodes} nodo(s)`);
+      if (addedEdges) parts.push(`${addedEdges} conexión(es)`);
+      this.toast.show(`IA agregó: ${parts.join(' y ')}`, 'success');
+    }
+  }
+
+  // ──────────── REQ-10: Collaborative real-time editing ──────────────────────
+  private connectEditorWs() {
+    this.stompClient = new Client({
+      brokerURL: `${WS_BASE}/ws/websocket`,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        this.zone.run(() => this.wsConnected = true);
+        this.stompClient!.subscribe('/topic/events', (msg) => {
+          const payload = JSON.parse(msg.body);
+          if (payload.type === 'policy:updated' && payload.data?.policyId === this.policyId) {
+            this.zone.run(() => {
+              this.toast.show('🔄 Diagrama actualizado por un colaborador', 'info');
+              // Reload graph from server
+              this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe(p => {
+                this.graphNodes = (p.nodes || []).map((n: any) => ({
+                  id: n.id, label: n.title,
+                  data: { nodeType: n.nodeType, deptName: n.department?.name || '', departmentId: n.departmentId, positionX: n.positionX, positionY: n.positionY },
+                  dimension: { width: 140, height: 50 },
+                }));
+                this.graphLinks = (p.edges || []).map((e: any) => ({
+                  id: e.id, source: e.fromNodeId, target: e.toNodeId,
+                  label: e.conditionLabel || (e.flowType !== 'SEQUENTIAL' ? e.flowType : ''),
+                  data: { flowType: e.flowType, conditionLabel: e.conditionLabel },
+                }));
+                this.laneViewData = this.computeLaneView();
+                setTimeout(() => this.graphUpdate$.next(true), 50);
+              });
+            });
+          }
+        });
+      },
+      onDisconnect: () => this.zone.run(() => this.wsConnected = false),
+    });
+    this.stompClient.activate();
+  }
+
+  ngOnDestroy() {
+    this.stompClient?.deactivate();
+    this.currentAudio?.pause();
+    window.speechSynthesis?.cancel();
+  }
+
+  // ──────────── REQ-13: ElevenLabs TTS ────────────────────────────────────────
+  speakMessage(text: string, idx: number) {
+    if (this.speakingIdx === idx) {
+      this.currentAudio?.pause();
+      window.speechSynthesis?.cancel();
+      this.speakingIdx = null;
+      return;
+    }
+    this.speakingIdx = idx;
+    this.http.post(`${API_BASE}/ai-assistant/tts`, { text }, { responseType: 'blob' }).subscribe({
+      next: (blob: any) => {
+        if (!blob || blob.size === 0) { this.browserSpeak(text, idx); return; }
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        this.currentAudio = audio;
+        audio.play();
+        audio.onended = () => this.zone.run(() => { this.speakingIdx = null; URL.revokeObjectURL(url); });
+        audio.onerror = () => this.zone.run(() => { this.speakingIdx = null; this.browserSpeak(text, idx); });
+      },
+      error: () => this.browserSpeak(text, idx),
+    });
+  }
+
+  private browserSpeak(text: string, idx: number) {
+    if (!window.speechSynthesis) { this.speakingIdx = null; return; }
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'es-ES';
+    utt.rate = 0.95;
+    utt.onend = () => this.zone.run(() => this.speakingIdx = null);
+    this.speakingIdx = idx;
+    window.speechSynthesis.speak(utt);
+  }
+}

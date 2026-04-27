@@ -326,12 +326,16 @@ Java ## 3. Parte II — Proceso de Desarrollo
 **Actores:** 
 • Diseñador de Procesos
 • Funcionario 
+• Cliente
  
 **A1. Diseñador de Procesos** 
 Actor responsable de la creación y administración de políticas de negocio, con la capacidad de gestionar la información general, los diagramas de actividad y los departamentos asociados. 
 
 **A2. Funcionario** 
 Actor que participa en la ejecución del contenido de las políticas, con énfasis en la resolución de tareas asignadas dentro de su bandeja de entrada. 
+
+**A3. Cliente** 
+Actor externo que inicia los trámites, proporciona la información requerida (pudiendo usar comandos de voz o subir imágenes para OCR) y puede consultar el estado o la trazabilidad de sus procesos activos o finalizados.
 
 #### 3.1.2 Casos de uso 
 **CU01 Gestionar Inicio de Sesión:** Permite a los usuarios acceder al sistema mediante credenciales registradas, garantizando autenticación y seguridad. 
@@ -354,39 +358,39 @@ Actor que participa en la ejecución del contenido de las políticas, con énfas
 
 | ID | Caso de uso | Prioridad | Actores | Ciclo |
 |----|-------------|-----------|---------|-------|
-| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2 | C1 |
-| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2 | C1 |
-| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2 | C2 |
+| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2, A3 | C1 |
+| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2, A3 | C1 |
+| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2, A3 | C2 |
 | CU04 | Gestionar Políticas de Negocio | Media | A1 | C1 |
 | CU05 | Gestionar Departamentos y Usuarios | Media | A1 | C1 |
-| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2 | C1 |
+| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2, A3 | C1 |
 | CU07 | Gestionar Reportes de Desempeño | Baja | A1 | C2 |
-| CU08 | Gestionar Motor de Workflow | Alta | A1, A2 | C2 |
+| CU08 | Gestionar Motor de Workflow | Alta | A1, A2, A3 | C2 |
 | CU09 | Gestionar Diagrama de Actividad | Alta | A1 | C2 |
 | CU10 | Gestionar Bandeja en Tiempo Real | Alta | A1, A2 | C2 |
-| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2 | C3 |
-| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2 | C3 |
+| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2, A3 | C3 |
+| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2, A3 | C3 |
 | CU13 | Gestionar Análisis de Cuellos de Botella mediante IA | Alta | A1 | C3 |
 | CU14 | Gestionar Toma de Decisiones Condicionales | Alta | A2 | C3 |
-| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2 | C3 |
+| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2, A3 | C3 |
 
 **Ciclo #1** 
 
 | ID | Caso de uso | Prioridad | Actores | Ciclo |
 |----|-------------|-----------|---------|-------|
-| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2 | C1 |
-| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2 | C1 |
+| CU01 | Gestionar Inicio de Sesión | Alta | A1, A2, A3 | C1 |
+| CU02 | Gestionar Cierre de Sesión | Alta | A1, A2, A3 | C1 |
 | CU04 | Gestionar Políticas de Negocio | Media | A1 | C1 |
 | CU05 | Gestionar Departamentos y Usuarios | Media | A1 | C1 |
-| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2 | C1 |
+| CU06 | Gestionar Búsqueda de Trámites | Media | A1, A2, A3 | C1 |
 
 **Ciclo #2** 
 
 | ID | Caso de uso | Prioridad | Actores | Ciclo |
 |----|-------------|-----------|---------|-------|
-| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2 | C2 |
+| CU03 | Gestionar Perfil de Usuario | Baja | A1, A2, A3 | C2 |
 | CU07 | Gestionar Reportes de Desempeño | Baja | A1 | C2 |
-| CU08 | Gestionar Motor de Workflow | Alta | A1, A2 | C2 |
+| CU08 | Gestionar Motor de Workflow | Alta | A1, A2, A3 | C2 |
 | CU09 | Gestionar Diagrama de Actividad | Alta | A1 | C2 |
 | CU10 | Gestionar Bandeja en Tiempo Real | Alta | A1, A2 | C2 |
 
@@ -394,11 +398,11 @@ Actor que participa en la ejecución del contenido de las políticas, con énfas
 
 | ID | Caso de uso | Prioridad | Actores | Ciclo |
 |----|-------------|-----------|---------|-------|
-| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2 | C3 |
-| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2 | C3 |
+| CU11 | Gestionar Llenado de Formularios mediante Voz | Alta | A2, A3 | C3 |
+| CU12 | Gestionar Extracción de Texto mediante OCR | Alta | A2, A3 | C3 |
 | CU13 | Gestionar Análisis de Cuellos de Botella mediante IA | Alta | A1 | C3 |
 | CU14 | Gestionar Toma de Decisiones Condicionales | Alta | A2 | C3 |
-| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2 | C3 |
+| CU15 | Gestionar Trazabilidad Completa del Trámite | Medio | A1, A2, A3 | C3 |
 
 #### 3.1.4 Detallar Casos de Uso 
 

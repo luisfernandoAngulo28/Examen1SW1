@@ -1,0 +1,155 @@
+@startuml 01_casos_de_uso
+!theme plain
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam actorBorderColor #2C3E50
+skinparam arrowColor #2C3E50
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #F9A825
+
+title Diagrama de Casos de Uso — Sistema de Gestión de Trámites y Workflows\n(UML 2.5)
+
+' ───── ACTORES ─────
+actor "Cliente"         as CLIENT   #LightBlue
+actor "Funcionario"     as OFFICER  #LightGreen
+actor "Diseñador /\nAdministrador" as DESIGNER #LightSalmon
+actor "Sistema IA\n(OpenAI GPT-4o)" as AI       #LightYellow
+actor "Firebase\nCloud Messaging"  as FCM      #LightPink
+
+' ───── SISTEMA PRINCIPAL ─────
+rectangle "Sistema de Gestión de Trámites y Workflows" {
+
+    ' -- GESTIÓN DE USUARIOS Y AUTENTICACIÓN --
+    package "Autenticación y Seguridad" {
+        usecase "Registrarse en\nel sistema"      as UC_REG
+        usecase "Iniciar sesión\n(login JWT)"     as UC_LOGIN
+        usecase "Cerrar sesión"                   as UC_LOGOUT
+    }
+
+    ' -- GESTIÓN DE POLÍTICAS DE NEGOCIO (DESIGNER) --
+    package "Diseño de Políticas de Negocio" {
+        usecase "Crear política\nde negocio"       as UC_POL_CREATE
+        usecase "Diseñar diagrama\nde actividades\n(swimlanes + nodos)" as UC_POL_DESIGN
+        usecase "Definir tipos de\nnodo (ACTION,\nDECISION, FORK,\nJOIN, INITIAL, FINAL)" as UC_NODE
+        usecase "Configurar flujos\n(Secuencial,\nCondicional,\nIterativo, Paralelo)" as UC_FLOW
+        usecase "Configurar formulario\npor actividad" as UC_FORM_TPL
+        usecase "Activar / desactivar\npolítica"   as UC_POL_STATUS
+        usecase "Consultar políticas\nexistentes"  as UC_POL_LIST
+        usecase "Diseño colaborativo\nasistido por IA" as UC_AI_DESIGN
+    }
+
+    ' -- GESTIÓN DE TRÁMITES (CLIENTE) --
+    package "Inicio y Seguimiento de Trámites" {
+        usecase "Iniciar un nuevo\ntrámite"         as UC_CASE_START
+        usecase "Ver mis trámites\nen curso"         as UC_MY_CASES
+        usecase "Ver línea de tiempo\nde un trámite" as UC_CASE_TIMELINE
+        usecase "Recibir notificación\npush de avance" as UC_PUSH_RCV
+    }
+
+    ' -- PROCESAMIENTO DE TAREAS (FUNCIONARIO) --
+    package "Procesamiento de Tareas" {
+        usecase "Ver bandeja de\ntareas pendientes" as UC_TASKS
+        usecase "Tomar tarea\n(IN_PROGRESS)"        as UC_TASK_TAKE
+        usecase "Completar tarea\ncon formulario"   as UC_TASK_DONE
+        usecase "Ingresar datos\nde forma manual"   as UC_INPUT_MANUAL
+        usecase "Ingresar datos\npor voz"           as UC_INPUT_VOICE
+        usecase "Ingresar datos\nasistido por IA"   as UC_INPUT_AI
+        usecase "Consultar tareas\nen tiempo real\n(WebSocket STOMP)" as UC_WS
+    }
+
+    ' -- MOTOR DE WORKFLOW (SISTEMA) --
+    package "Motor de Ejecución de Workflow" {
+        usecase "Enrutar automáticamente\nsiguiente paso"  as UC_ROUTE
+        usecase "Evaluar condición\n(nodo DECISION)"      as UC_DECISION
+        usecase "Paralelizar ramas\n(nodo FORK)"           as UC_FORK
+        usecase "Sincronizar ramas\n(nodo JOIN)"           as UC_JOIN
+        usecase "Detectar cuello\nde botella"              as UC_BOTTLENECK
+    }
+
+    ' -- ANALÍTICA E IA --
+    package "Analítica e Inteligencia Artificial" {
+        usecase "Ver KPIs del\nsistema"                    as UC_KPI
+        usecase "Analizar cuellos\nde botella con IA"      as UC_AI_ANALYTICS
+        usecase "Asistente IA\npor texto"                  as UC_AI_TEXT
+        usecase "Asistente IA\npor voz"                    as UC_AI_VOICE
+        usecase "Asistente IA\npor imagen"                 as UC_AI_IMAGE
+    }
+
+    ' -- GESTIÓN DE DEPARTAMENTOS --
+    package "Gestión de Departamentos" {
+        usecase "Crear / listar\ndepartamentos"            as UC_DEPT
+    }
+}
+
+' ───── ASOCIACIONES: CLIENTE ─────
+CLIENT --> UC_LOGIN
+CLIENT --> UC_LOGOUT
+CLIENT --> UC_CASE_START
+CLIENT --> UC_MY_CASES
+CLIENT --> UC_MY_CASES
+CLIENT --> UC_CASE_TIMELINE
+CLIENT ..> UC_PUSH_RCV : <<include>>
+
+' ───── ASOCIACIONES: FUNCIONARIO ─────
+OFFICER --> UC_LOGIN
+OFFICER --> UC_LOGOUT
+OFFICER --> UC_TASKS
+OFFICER --> UC_TASK_TAKE
+OFFICER --> UC_TASK_DONE
+OFFICER --> UC_INPUT_MANUAL
+OFFICER --> UC_INPUT_VOICE
+OFFICER --> UC_INPUT_AI
+OFFICER --> UC_WS
+OFFICER --> UC_AI_TEXT
+OFFICER --> UC_AI_VOICE
+OFFICER --> UC_AI_IMAGE
+
+' ───── ASOCIACIONES: DISEÑADOR ─────
+DESIGNER --> UC_LOGIN
+DESIGNER --> UC_LOGOUT
+DESIGNER --> UC_POL_CREATE
+DESIGNER --> UC_POL_DESIGN
+DESIGNER --> UC_NODE
+DESIGNER --> UC_FLOW
+DESIGNER --> UC_FORM_TPL
+DESIGNER --> UC_POL_STATUS
+DESIGNER --> UC_POL_LIST
+DESIGNER --> UC_DEPT
+DESIGNER --> UC_KPI
+DESIGNER --> UC_AI_ANALYTICS
+DESIGNER --> UC_AI_DESIGN
+DESIGNER --> UC_REG
+
+' ───── INCLUDE / EXTEND ─────
+UC_TASK_DONE ..> UC_ROUTE   : <<include>>
+UC_ROUTE      ..> UC_DECISION : <<extend>>
+UC_ROUTE      ..> UC_FORK    : <<extend>>
+UC_ROUTE      ..> UC_JOIN    : <<extend>>
+UC_POL_DESIGN ..> UC_NODE    : <<include>>
+UC_POL_DESIGN ..> UC_FLOW    : <<include>>
+UC_AI_DESIGN  ..> UC_POL_DESIGN : <<extend>>
+UC_INPUT_VOICE ..> UC_INPUT_MANUAL : <<extend>>
+UC_INPUT_AI    ..> UC_INPUT_MANUAL : <<extend>>
+UC_AI_ANALYTICS ..> UC_BOTTLENECK : <<include>>
+
+' ───── ACTORES EXTERNOS ─────
+AI  ..> UC_AI_DESIGN     : proporciona sugerencias
+AI  ..> UC_AI_ANALYTICS  : analiza datos
+AI  ..> UC_AI_TEXT       : responde queries
+AI  ..> UC_INPUT_AI      : asiste entrada
+FCM ..> UC_PUSH_RCV      : entrega notificación
+
+note bottom of AI
+  OpenAI GPT-4o
+  Vision + Text + Audio
+end note
+
+note bottom of FCM
+  Firebase Cloud Messaging
+  Notificaciones push en
+  tiempo real al móvil
+end note
+
+@enduml

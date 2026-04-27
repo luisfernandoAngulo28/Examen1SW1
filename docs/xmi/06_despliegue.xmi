@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><XMI xmlns:UML="href://org.omg/UML/1.3" xmi.version="1.1">
+    <XMI.header>
+        <XMI.metamodel xmi.name="UML" xmi.version="1.3"/>
+    </XMI.header>
+    <XMI.content>
+        <UML:Model name="PlantUML" xmi.id="model1">
+            <UML:Namespace.ownedElement>
+                <UML:Component name="Navegador Web" namespace="model1" xmi.id="cl0002">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="React SPA" namespace="model1" xmi.id="cl0003">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                    <UML:Component name="Generado con:" namespace="model1" xmi.id="cl0005">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="Dispositivo Android" namespace="model1" xmi.id="cl0007">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Flutter App" namespace="model1" xmi.id="cl0008">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                    <UML:Component name="Firebase Messaging" namespace="model1" xmi.id="cl0009">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                    <UML:Component name="InstalaciÃ³n directa APK o" namespace="model1" xmi.id="cl0011">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="Vercel CDN" namespace="model1" xmi.id="cl0013">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Edge Network" namespace="model1" xmi.id="cl0014">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="React SPA" namespace="model1" xmi.id="cl0015">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="URL: https://workflow-sw1.vercel.app" namespace="model1" xmi.id="cl0017">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="Railway.app / Render.com" namespace="model1" xmi.id="cl0019">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Docker Container" namespace="model1" xmi.id="cl0020">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="JVM 17 (Temurin)" namespace="model1" xmi.id="cl0021">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="workflow-engine.jar" namespace="model1" xmi.id="cl0022">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="Generado con:" namespace="model1" xmi.id="cl0024">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="WebSocket STOMP" namespace="model1" xmi.id="cl0026">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="STOMP Broker" namespace="model1" xmi.id="cl0027">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="Dockerfile (workflow-engine/):" namespace="model1" xmi.id="cl0029">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="MongoDB Atlas" namespace="model1" xmi.id="cl0031">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Cluster M0 (Free Tier)" namespace="model1" xmi.id="cl0032">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="Collection: cases" namespace="model1" xmi.id="cl0033">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="Collection: policies" namespace="model1" xmi.id="cl0034">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="Collection: users" namespace="model1" xmi.id="cl0035">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                        <UML:Component name="Collection: departments" namespace="model1" xmi.id="cl0036">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="Connection String:" namespace="model1" xmi.id="cl0038">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="Firebase" namespace="model1" xmi.id="cl0040">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Firebase Cloud" namespace="model1" xmi.id="cl0041">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="Push API v1" namespace="model1" xmi.id="cl0042">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="Backend â†’ Admin SDK â†’ FCM" namespace="model1" xmi.id="cl0044">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="OpenAI" namespace="model1" xmi.id="cl0046">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="GPT-4o API" namespace="model1" xmi.id="cl0047">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="POST /v1/chat/completions" namespace="model1" xmi.id="cl0048">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="Header: Authorization: Bearer $OPENAI_API_KEY" namespace="model1" xmi.id="cl0050">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="MÃ¡quina de Desarrollo" namespace="model1" xmi.id="cl0052">
+                    <UML:Classifier.feature/>
+                    <UML:Component name="Docker Compose" namespace="model1" xmi.id="cl0053">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="Container: workflow-engine" namespace="model1" xmi.id="cl0054">
+                            <UML:Classifier.feature/>
+                            <UML:Component name="Spring Boot" namespace="model1" xmi.id="cl0055">
+                                <UML:Classifier.feature/>
+                            </UML:Component>
+                        </UML:Component>
+                        <UML:Component name="Container: frontend" namespace="model1" xmi.id="cl0056">
+                            <UML:Classifier.feature/>
+                            <UML:Component name="Vite Dev Server" namespace="model1" xmi.id="cl0057">
+                                <UML:Classifier.feature/>
+                            </UML:Component>
+                        </UML:Component>
+                        <UML:Component name="Container: mongodb" namespace="model1" xmi.id="cl0058">
+                            <UML:Classifier.feature/>
+                            <UML:Component name="MongoDB 7.0" namespace="model1" xmi.id="cl0059">
+                                <UML:Classifier.feature/>
+                            </UML:Component>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="Flutter SDK 3.x" namespace="model1" xmi.id="cl0060">
+                        <UML:Classifier.feature/>
+                        <UML:Component name="Flutter Debug Build" namespace="model1" xmi.id="cl0061">
+                            <UML:Classifier.feature/>
+                        </UML:Component>
+                    </UML:Component>
+                    <UML:Component name="docker-compose.yml en raÃ­z del proyecto." namespace="model1" xmi.id="cl0063">
+                        <UML:Classifier.feature/>
+                    </UML:Component>
+                </UML:Component>
+                <UML:Component name="LOCAL_FLASK" namespace="model1" xmi.id="cl0077">
+                    <UML:Classifier.feature/>
+                </UML:Component>
+                <UML:Association namespace="model1" xmi.id="ass84">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass84" type="cl0003" xmi.id="end85">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass84" type="cl0005" xmi.id="end86">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass87">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass87" type="cl0008" xmi.id="end88">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass87" type="cl0011" xmi.id="end89">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass90">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass90" type="cl0015" xmi.id="end91">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass90" type="cl0017" xmi.id="end92">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass93">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass93" type="cl0022" xmi.id="end94">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass93" type="cl0024" xmi.id="end95">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass96">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass96" type="cl0019" xmi.id="end97">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass96" type="cl0029" xmi.id="end98">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass99">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass99" type="cl0032" xmi.id="end100">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass99" type="cl0038" xmi.id="end101">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass102">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass102" type="cl0041" xmi.id="end103">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass102" type="cl0044" xmi.id="end104">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass105">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass105" type="cl0047" xmi.id="end106">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass105" type="cl0050" xmi.id="end107">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass108">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass108" type="cl0053" xmi.id="end109">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass108" type="cl0063" xmi.id="end110">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="HTTPS  443" namespace="model1" xmi.id="ass111">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass111" type="cl0002" xmi.id="end112">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass111" type="cl0014" xmi.id="end113">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="REST HTTPS" namespace="model1" xmi.id="ass114">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass114" type="cl0003" xmi.id="end115">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass114" type="cl0020" xmi.id="end116">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="WSS /ws" namespace="model1" xmi.id="ass117">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass117" type="cl0003" xmi.id="end118">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass117" type="cl0026" xmi.id="end119">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="REST HTTPS  443" namespace="model1" xmi.id="ass120">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass120" type="cl0008" xmi.id="end121">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass120" type="cl0020" xmi.id="end122">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="registra token local" namespace="model1" xmi.id="ass123">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass123" type="cl0008" xmi.id="end124">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass123" type="cl0009" xmi.id="end125">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="token registration" namespace="model1" xmi.id="ass126">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass126" type="cl0009" xmi.id="end127">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass126" type="cl0041" xmi.id="end128">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="mongodb+srv //" namespace="model1" xmi.id="ass129">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass129" type="cl0020" xmi.id="end130">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass129" type="cl0032" xmi.id="end131">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="Admin SDK HTTPS" namespace="model1" xmi.id="ass132">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass132" type="cl0020" xmi.id="end133">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass132" type="cl0042" xmi.id="end134">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="HTTPS POST" namespace="model1" xmi.id="ass135">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass135" type="cl0020" xmi.id="end136">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass135" type="cl0048" xmi.id="end137">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="runs" namespace="model1" xmi.id="ass138">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass138" type="cl0021" xmi.id="end139">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass138" type="cl0022" xmi.id="end140">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="configura STOMP" namespace="model1" xmi.id="ass141">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass141" type="cl0022" xmi.id="end142">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass141" type="cl0027" xmi.id="end143">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="HTTP  8080" namespace="model1" xmi.id="ass144">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass144" type="cl0057" xmi.id="end145">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass144" type="cl0054" xmi.id="end146">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="no existe; solo Mongo" namespace="model1" xmi.id="ass147">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass147" type="cl0077" xmi.id="end148">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass147" type="cl0059" xmi.id="end149">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="HTTP 10.0.2.2 8080" namespace="model1" xmi.id="ass150">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass150" type="cl0061" xmi.id="end151">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass150" type="cl0054" xmi.id="end152">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association name="mongodb //localhost 27017" namespace="model1" xmi.id="ass153">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass153" type="cl0054" xmi.id="end154">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass153" type="cl0059" xmi.id="end155">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass156">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass156" type="cl0033" xmi.id="end157">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass156" type="cl0034" xmi.id="end158">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass159">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass159" type="cl0033" xmi.id="end160">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass159" type="cl0035" xmi.id="end161">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+                <UML:Association namespace="model1" xmi.id="ass162">
+                    <UML:Association.connection>
+                        <UML:AssociationEnd association="ass162" type="cl0035" xmi.id="end163">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                        <UML:AssociationEnd association="ass162" type="cl0036" xmi.id="end164">
+                            <UML:AssociationEnd.participant/>
+                        </UML:AssociationEnd>
+                    </UML:Association.connection>
+                </UML:Association>
+            </UML:Namespace.ownedElement>
+        </UML:Model>
+    </XMI.content>
+</XMI>

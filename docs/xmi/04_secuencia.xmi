@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?><uml:Model xmlns:uml="http://www.omg.org/spec/UML/20110701" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmi:id="b6b1f4e3_49b2a47d" xmi:version="2.1">
+    <packagedElement xmi:id="d15475f2_49b2a47d" xmi:type="uml:Interaction">
+        <nestedClassifier xmi:id="4bd32a25_49b2a47d" xmi:type="uml:Collaboration"/>
+        <lifeline name="Cliente&#10;(App MÃ³vil)" xmi:id="393d80f0_13e39c73"/>
+        <lifeline name="Flutter App" xmi:id="393d80f0_64cd705f"/>
+        <lifeline name="REST API&#10;/api/cases" xmi:id="393d80f0_30ee2816"/>
+        <lifeline name="JwtAuthFilter&#10;+ SecurityConfig" xmi:id="393d80f0_635eaaf1"/>
+        <lifeline name="CaseController" xmi:id="393d80f0_5c30a9b0"/>
+        <lifeline name="CaseService" xmi:id="393d80f0_1ddf84b8"/>
+        <lifeline name="PolicyService" xmi:id="393d80f0_1139b2f3"/>
+        <lifeline name="MongoDB" xmi:id="393d80f0_7a69b07"/>
+        <lifeline name="EventPublisher&#10;(WebSocket)" xmi:id="393d80f0_5e82df6a"/>
+        <lifeline name="NotificationService&#10;(FCM)" xmi:id="393d80f0_3f197a46"/>
+        <lifeline name="Firebase&#10;Cloud Messaging" xmi:id="393d80f0_636be97c"/>
+        <lifeline name="Funcionario&#10;(Web / App)" xmi:id="393d80f0_50a638b5"/>
+        <fragment covered="393d80f0_64cd705f 393d80f0_635eaaf1 393d80f0_13e39c73 393d80f0_7a69b07 393d80f0_30ee2816" interactionOperator="Fase 1: AutenticaciÃ³n " xmi:id="883b6095_757277dc" xmi:type="uml:CombinedFragment">
+            <operand xmi:id="b4b708c9_757277dc">
+                <guard xmi:id="5e21ea5_757277dc">
+                    <specification value="POST /api/auth/login" xmi:id="17841d80_757277dc" xmi:type="uml:LiteralString"/>
+                </guard>
+                <fragment covered="393d80f0_13e39c73" message="9c2397e7_687e99d8" xmi:id="2a27f2_687e99d8" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_687e99d8" xmi:id="d0946577_687e99d8" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_e4487af" xmi:id="2a27f2_e4487af" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_e4487af" xmi:id="d0946577_e4487af" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_6aaceffd" xmi:id="2a27f2_6aaceffd" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_6aaceffd" xmi:id="d0946577_6aaceffd" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_c86b9e3" xmi:id="2a27f2_c86b9e3" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_c86b9e3" xmi:id="d0946577_c86b9e3" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_10aa41f2" xmi:id="2a27f2_10aa41f2" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_10aa41f2" xmi:id="d0946577_10aa41f2" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_3af9c5b7" xmi:id="2a27f2_3af9c5b7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_3af9c5b7" xmi:id="d0946577_3af9c5b7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_37271612" xmi:id="2a27f2_37271612" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_37271612" xmi:id="d0946577_37271612" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_ed7f8b4" xmi:id="2a27f2_ed7f8b4" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_ed7f8b4" xmi:id="d0946577_ed7f8b4" xmi:type="uml:MessageOccurrenceSpecification"/>
+            </operand>
+        </fragment>
+        <message name="ingresa email + contraseÃ±a" receiveEvent="d0946577_687e99d8" sendEvent="2a27f2_687e99d8" xmi:id="9c2397e7_687e99d8" xmi:type="uml:Message"/>
+        <message name="POST /api/auth/login&#10;{email, password}" receiveEvent="d0946577_e4487af" sendEvent="2a27f2_e4487af" xmi:id="9c2397e7_e4487af" xmi:type="uml:Message"/>
+        <message name="valida credenciales" receiveEvent="d0946577_6aaceffd" sendEvent="2a27f2_6aaceffd" xmi:id="9c2397e7_6aaceffd" xmi:type="uml:Message"/>
+        <message name="UserRepository.findByEmail()" receiveEvent="d0946577_c86b9e3" sendEvent="2a27f2_c86b9e3" xmi:id="9c2397e7_c86b9e3" xmi:type="uml:Message"/>
+        <message name="User{role=CLIENT}" receiveEvent="d0946577_10aa41f2" sendEvent="2a27f2_10aa41f2" xmi:id="9c2397e7_10aa41f2" xmi:type="uml:Message"/>
+        <message name="genera JWT token" receiveEvent="d0946577_3af9c5b7" sendEvent="2a27f2_3af9c5b7" xmi:id="9c2397e7_3af9c5b7" xmi:type="uml:Message"/>
+        <message name="AuthResponse{token, role=CLIENT, userId}" receiveEvent="d0946577_37271612" sendEvent="2a27f2_37271612" xmi:id="9c2397e7_37271612" xmi:type="uml:Message"/>
+        <message name="guarda token en SecureStorage" receiveEvent="d0946577_ed7f8b4" sendEvent="2a27f2_ed7f8b4" xmi:id="9c2397e7_ed7f8b4" xmi:type="uml:Message"/>
+        <ownedComment annotatedElement="393d80f0_64cd705f" xmi:id="9bde863f_4c309d4d" xmi:type="uml:Comment">
+            <body>flutter_secure_storage
+para JWT persistente</body>
+        </ownedComment>
+        <fragment covered="393d80f0_64cd705f 393d80f0_7a69b07 393d80f0_636be97c 393d80f0_30ee2816" interactionOperator="Fase 2: Registro Token Push " xmi:id="883b6095_37883b97" xmi:type="uml:CombinedFragment">
+            <operand xmi:id="b4b708c9_37883b97">
+                <guard xmi:id="5e21ea5_37883b97">
+                    <specification value="PATCH /api/users/fcm-token" xmi:id="17841d80_37883b97" xmi:type="uml:LiteralString"/>
+                </guard>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_6ab778a" xmi:id="2a27f2_6ab778a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_636be97c" message="9c2397e7_6ab778a" xmi:id="d0946577_6ab778a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_636be97c" message="9c2397e7_4e3958e7" xmi:id="2a27f2_4e3958e7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_4e3958e7" xmi:id="d0946577_4e3958e7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_77f80c04" xmi:id="2a27f2_77f80c04" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_77f80c04" xmi:id="d0946577_77f80c04" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_1dac5ef" xmi:id="2a27f2_1dac5ef" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_1dac5ef" xmi:id="d0946577_1dac5ef" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_5c90e579" xmi:id="2a27f2_5c90e579" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_5c90e579" xmi:id="d0946577_5c90e579" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_58ea606c" xmi:id="2a27f2_58ea606c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_58ea606c" xmi:id="d0946577_58ea606c" xmi:type="uml:MessageOccurrenceSpecification"/>
+            </operand>
+        </fragment>
+        <message name="FirebaseMessaging.getToken()" receiveEvent="d0946577_6ab778a" sendEvent="2a27f2_6ab778a" xmi:id="9c2397e7_6ab778a" xmi:type="uml:Message"/>
+        <message name="fcmToken (device token)" receiveEvent="d0946577_4e3958e7" sendEvent="2a27f2_4e3958e7" xmi:id="9c2397e7_4e3958e7" xmi:type="uml:Message"/>
+        <message name="PATCH /api/users/fcm-token&#10;Authorization: Bearer &lt;JWT&gt;&#10;{token: &quot;fcm-device-token&quot;}" receiveEvent="d0946577_77f80c04" sendEvent="2a27f2_77f80c04" xmi:id="9c2397e7_77f80c04" xmi:type="uml:Message"/>
+        <message name="userRepository.updateFcmToken(userId, token)" receiveEvent="d0946577_1dac5ef" sendEvent="2a27f2_1dac5ef" xmi:id="9c2397e7_1dac5ef" xmi:type="uml:Message"/>
+        <message name="OK" receiveEvent="d0946577_5c90e579" sendEvent="2a27f2_5c90e579" xmi:id="9c2397e7_5c90e579" xmi:type="uml:Message"/>
+        <message name="200 OK" receiveEvent="d0946577_58ea606c" sendEvent="2a27f2_58ea606c" xmi:id="9c2397e7_58ea606c" xmi:type="uml:Message"/>
+        <fragment covered="393d80f0_5e82df6a 393d80f0_3f197a46 393d80f0_50a638b5 393d80f0_64cd705f 393d80f0_1139b2f3 393d80f0_635eaaf1 393d80f0_13e39c73 393d80f0_5c30a9b0 393d80f0_7a69b07 393d80f0_1ddf84b8 393d80f0_636be97c 393d80f0_30ee2816" interactionOperator="Fase 3: Inicio de TrÃ¡mite " xmi:id="883b6095_38e79ae3" xmi:type="uml:CombinedFragment">
+            <operand xmi:id="b4b708c9_38e79ae3">
+                <guard xmi:id="5e21ea5_38e79ae3">
+                    <specification value="POST /api/cases" xmi:id="17841d80_38e79ae3" xmi:type="uml:LiteralString"/>
+                </guard>
+                <fragment covered="393d80f0_13e39c73" message="9c2397e7_63070bab" xmi:id="2a27f2_63070bab" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_63070bab" xmi:id="d0946577_63070bab" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_68e5eea7" xmi:id="2a27f2_68e5eea7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_68e5eea7" xmi:id="d0946577_68e5eea7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_291b4bf5" xmi:id="2a27f2_291b4bf5" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_291b4bf5" xmi:id="d0946577_291b4bf5" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_2d2ffcb7" xmi:id="2a27f2_2d2ffcb7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_2d2ffcb7" xmi:id="d0946577_2d2ffcb7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_762ef0ea" xmi:id="2a27f2_762ef0ea" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_762ef0ea" xmi:id="d0946577_762ef0ea" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_31f9b85e" xmi:id="2a27f2_31f9b85e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_31f9b85e" xmi:id="d0946577_31f9b85e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_424e1977" xmi:id="2a27f2_424e1977" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1139b2f3" message="9c2397e7_424e1977" xmi:id="d0946577_424e1977" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1139b2f3" message="9c2397e7_10d68fcd" xmi:id="2a27f2_10d68fcd" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_10d68fcd" xmi:id="d0946577_10d68fcd" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_117e949d" xmi:id="2a27f2_117e949d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1139b2f3" message="9c2397e7_117e949d" xmi:id="d0946577_117e949d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1139b2f3" message="9c2397e7_6db9f5a4" xmi:id="2a27f2_6db9f5a4" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6db9f5a4" xmi:id="d0946577_6db9f5a4" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_5f8edcc5" xmi:id="2a27f2_5f8edcc5" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_5f8edcc5" xmi:id="d0946577_5f8edcc5" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7b02881e" xmi:id="2a27f2_7b02881e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7b02881e" xmi:id="d0946577_7b02881e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_1ebd319f" xmi:id="2a27f2_1ebd319f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_1ebd319f" xmi:id="d0946577_1ebd319f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_3c0be339" xmi:id="2a27f2_3c0be339" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_3c0be339" xmi:id="d0946577_3c0be339" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_15ca7889" xmi:id="2a27f2_15ca7889" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5e82df6a" message="9c2397e7_15ca7889" xmi:id="d0946577_15ca7889" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5e82df6a" message="9c2397e7_d21a74c" xmi:id="2a27f2_d21a74c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_d21a74c" xmi:id="d0946577_d21a74c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6e509ffa" xmi:id="2a27f2_6e509ffa" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_3f197a46" message="9c2397e7_6e509ffa" xmi:id="d0946577_6e509ffa" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_3f197a46" message="9c2397e7_2898ac89" xmi:id="2a27f2_2898ac89" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_2898ac89" xmi:id="d0946577_2898ac89" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_683dbc2c" xmi:id="2a27f2_683dbc2c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_3f197a46" message="9c2397e7_683dbc2c" xmi:id="d0946577_683dbc2c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_3f197a46" message="9c2397e7_68267da0" xmi:id="2a27f2_68267da0" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_636be97c" message="9c2397e7_68267da0" xmi:id="d0946577_68267da0" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_636be97c" message="9c2397e7_2638011" xmi:id="2a27f2_2638011" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_2638011" xmi:id="d0946577_2638011" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6ff29830" xmi:id="2a27f2_6ff29830" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_6ff29830" xmi:id="d0946577_6ff29830" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_6a2b953e" xmi:id="2a27f2_6a2b953e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_6a2b953e" xmi:id="d0946577_6a2b953e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_313b2ea6" xmi:id="2a27f2_313b2ea6" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_313b2ea6" xmi:id="d0946577_313b2ea6" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_2f465398" xmi:id="2a27f2_2f465398" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_13e39c73" message="9c2397e7_2f465398" xmi:id="d0946577_2f465398" xmi:type="uml:MessageOccurrenceSpecification"/>
+            </operand>
+        </fragment>
+        <message name="selecciona polÃ­tica y confirma inicio" receiveEvent="d0946577_63070bab" sendEvent="2a27f2_63070bab" xmi:id="9c2397e7_63070bab" xmi:type="uml:Message"/>
+        <message name="POST /api/cases&#10;Authorization: Bearer &lt;JWT&gt;&#10;{policyId: &quot;pol-instalacion-001&quot;}" receiveEvent="d0946577_68e5eea7" sendEvent="2a27f2_68e5eea7" xmi:id="9c2397e7_68e5eea7" xmi:type="uml:Message"/>
+        <message name="valida JWT + extrae User principal" receiveEvent="d0946577_291b4bf5" sendEvent="2a27f2_291b4bf5" xmi:id="9c2397e7_291b4bf5" xmi:type="uml:Message"/>
+        <message name="User{id=clientId, role=CLIENT}" receiveEvent="d0946577_2d2ffcb7" sendEvent="2a27f2_2d2ffcb7" xmi:id="9c2397e7_2d2ffcb7" xmi:type="uml:Message"/>
+        <message name="startCase(policyId, clientId)" receiveEvent="d0946577_762ef0ea" sendEvent="2a27f2_762ef0ea" xmi:id="9c2397e7_762ef0ea" xmi:type="uml:Message"/>
+        <message name="startMyCase(clientId, policyId)" receiveEvent="d0946577_31f9b85e" sendEvent="2a27f2_31f9b85e" xmi:id="9c2397e7_31f9b85e" xmi:type="uml:Message"/>
+        <message name="findById(policyId)" receiveEvent="d0946577_424e1977" sendEvent="2a27f2_424e1977" xmi:id="9c2397e7_424e1977" xmi:type="uml:Message"/>
+        <message name="policyRepository.findById(policyId)" receiveEvent="d0946577_10d68fcd" sendEvent="2a27f2_10d68fcd" xmi:id="9c2397e7_10d68fcd" xmi:type="uml:Message"/>
+        <message name="Policy{nodes[], edges[]}" receiveEvent="d0946577_117e949d" sendEvent="2a27f2_117e949d" xmi:id="9c2397e7_117e949d" xmi:type="uml:Message"/>
+        <message name="Policy" receiveEvent="d0946577_6db9f5a4" sendEvent="2a27f2_6db9f5a4" xmi:id="9c2397e7_6db9f5a4" xmi:type="uml:Message"/>
+        <message name="identifica nodo INITIAL&#10;navega al primer nodo ACTION" receiveEvent="d0946577_5f8edcc5" sendEvent="2a27f2_5f8edcc5" xmi:id="9c2397e7_5f8edcc5" xmi:type="uml:Message"/>
+        <message name="asigna Task PENDING&#10;al usuario del dpto. correspondiente" receiveEvent="d0946577_7b02881e" sendEvent="2a27f2_7b02881e" xmi:id="9c2397e7_7b02881e" xmi:type="uml:Message"/>
+        <message name="caseRepository.save(Case{&#10;  policyId, clientId,&#10;  status=OPEN,&#10;  tasks=[Task{PENDING}]&#10;})" receiveEvent="d0946577_1ebd319f" sendEvent="2a27f2_1ebd319f" xmi:id="9c2397e7_1ebd319f" xmi:type="uml:Message"/>
+        <message name="Case{id=&quot;case-001&quot;}" receiveEvent="d0946577_3c0be339" sendEvent="2a27f2_3c0be339" xmi:id="9c2397e7_3c0be339" xmi:type="uml:Message"/>
+        <message name="publish(&quot;CASE_CREATED&quot;, caseId)" receiveEvent="d0946577_15ca7889" sendEvent="2a27f2_15ca7889" xmi:id="9c2397e7_15ca7889" xmi:type="uml:Message"/>
+        <ownedComment annotatedElement="393d80f0_5e82df6a" xmi:id="9bde863f_7a675056" xmi:type="uml:Comment">
+            <body>STOMP broker /topic/cases
+Panel del funcionario se actualiza
+automÃ¡ticamente (tiempo real)</body>
+        </ownedComment>
+        <message name="WebSocket event&#10;&quot;CASE_CREATED&quot;" receiveEvent="d0946577_d21a74c" sendEvent="2a27f2_d21a74c" xmi:id="9c2397e7_d21a74c" xmi:type="uml:Message"/>
+        <message name="sendToOfficer(assignedUserId, caseId, taskId)" receiveEvent="d0946577_6e509ffa" sendEvent="2a27f2_6e509ffa" xmi:id="9c2397e7_6e509ffa" xmi:type="uml:Message"/>
+        <message name="userRepository.findById(assignedUserId)" receiveEvent="d0946577_2898ac89" sendEvent="2a27f2_2898ac89" xmi:id="9c2397e7_2898ac89" xmi:type="uml:Message"/>
+        <message name="User{fcmToken=&quot;device-abc&quot;}" receiveEvent="d0946577_683dbc2c" sendEvent="2a27f2_683dbc2c" xmi:id="9c2397e7_683dbc2c" xmi:type="uml:Message"/>
+        <message name="FirebaseMessaging.send(&#10;  token=device-abc,&#10;  title=&quot;Nueva tarea asignada&quot;,&#10;  data={caseId, taskId}&#10;)" receiveEvent="d0946577_68267da0" sendEvent="2a27f2_68267da0" xmi:id="9c2397e7_68267da0" xmi:type="uml:Message"/>
+        <message name="push notification" receiveEvent="d0946577_2638011" sendEvent="2a27f2_2638011" xmi:id="9c2397e7_2638011" xmi:type="uml:Message"/>
+        <message name="Case" receiveEvent="d0946577_6ff29830" sendEvent="2a27f2_6ff29830" xmi:id="9c2397e7_6ff29830" xmi:type="uml:Message"/>
+        <message name="ResponseEntity&lt;CaseDetailDto&gt;" receiveEvent="d0946577_6a2b953e" sendEvent="2a27f2_6a2b953e" xmi:id="9c2397e7_6a2b953e" xmi:type="uml:Message"/>
+        <message name="201 Created&#10;CaseDetailDto{caseId, status=OPEN, ...}" receiveEvent="d0946577_313b2ea6" sendEvent="2a27f2_313b2ea6" xmi:id="9c2397e7_313b2ea6" xmi:type="uml:Message"/>
+        <message name="muestra trÃ¡mite iniciado&#10;con estado en tiempo real" receiveEvent="d0946577_2f465398" sendEvent="2a27f2_2f465398" xmi:id="9c2397e7_2f465398" xmi:type="uml:Message"/>
+        <fragment covered="393d80f0_5e82df6a 393d80f0_3f197a46 393d80f0_50a638b5 393d80f0_635eaaf1 393d80f0_5c30a9b0 393d80f0_7a69b07 393d80f0_13e39c73 393d80f0_1ddf84b8 393d80f0_636be97c 393d80f0_30ee2816" interactionOperator="Fase 4: Funcionario procesa tarea " xmi:id="883b6095_623a8092" xmi:type="uml:CombinedFragment">
+            <operand xmi:id="b4b708c9_623a8092">
+                <guard xmi:id="5e21ea5_623a8092">
+                    <specification value="PUT /api/cases/:id/tasks/:taskId/advance" xmi:id="17841d80_623a8092" xmi:type="uml:LiteralString"/>
+                </guard>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_a1cdc6d" xmi:id="2a27f2_a1cdc6d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_a1cdc6d" xmi:id="d0946577_a1cdc6d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_175b9425" xmi:id="2a27f2_175b9425" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_175b9425" xmi:id="d0946577_175b9425" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_3098cf3b" xmi:id="2a27f2_3098cf3b" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_3098cf3b" xmi:id="d0946577_3098cf3b" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_610f7aa" xmi:id="2a27f2_610f7aa" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_610f7aa" xmi:id="d0946577_610f7aa" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_6a03bcb1" xmi:id="2a27f2_6a03bcb1" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6a03bcb1" xmi:id="d0946577_6a03bcb1" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_21b2e768" xmi:id="2a27f2_21b2e768" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_21b2e768" xmi:id="d0946577_21b2e768" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_57250572" xmi:id="2a27f2_57250572" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_57250572" xmi:id="d0946577_57250572" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_2118cddf" xmi:id="2a27f2_2118cddf" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_2118cddf" xmi:id="d0946577_2118cddf" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_17a7f733" xmi:id="2a27f2_17a7f733" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_17a7f733" xmi:id="d0946577_17a7f733" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_635eaaf1" message="9c2397e7_68567e20" xmi:id="2a27f2_68567e20" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_68567e20" xmi:id="d0946577_68567e20" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_76ed1b7c" xmi:id="2a27f2_76ed1b7c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_76ed1b7c" xmi:id="d0946577_76ed1b7c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_11fc564b" xmi:id="2a27f2_11fc564b" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_11fc564b" xmi:id="d0946577_11fc564b" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_394a2528" xmi:id="2a27f2_394a2528" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_394a2528" xmi:id="d0946577_394a2528" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_6236eb5f" xmi:id="2a27f2_6236eb5f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6236eb5f" xmi:id="d0946577_6236eb5f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7c1e2a9e" xmi:id="2a27f2_7c1e2a9e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7c1e2a9e" xmi:id="d0946577_7c1e2a9e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_fa36558" xmi:id="2a27f2_fa36558" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_fa36558" xmi:id="d0946577_fa36558" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5e82df6a 393d80f0_3f197a46 393d80f0_50a638b5 393d80f0_7a69b07 393d80f0_13e39c73 393d80f0_1ddf84b8 393d80f0_636be97c" interactionOperator="alt" xmi:id="883b6095_672872e1" xmi:type="uml:CombinedFragment">
+                    <operand xmi:id="b4b708c9_672872e1">
+                        <guard xmi:id="5e21ea5_672872e1">
+                            <specification value="Siguiente nodo es ACTION (SEQUENTIAL)" xmi:id="17841d80_672872e1" xmi:type="uml:LiteralString"/>
+                        </guard>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_32910148" xmi:id="2a27f2_32910148" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_32910148" xmi:id="d0946577_32910148" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_3f56875e" xmi:id="2a27f2_3f56875e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_7a69b07" message="9c2397e7_3f56875e" xmi:id="d0946577_3f56875e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_2b4bac49" xmi:id="2a27f2_2b4bac49" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_5e82df6a" message="9c2397e7_2b4bac49" xmi:id="d0946577_2b4bac49" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_5e82df6a" message="9c2397e7_fd07cbb" xmi:id="2a27f2_fd07cbb" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_50a638b5" message="9c2397e7_fd07cbb" xmi:id="d0946577_fd07cbb" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_3571b748" xmi:id="2a27f2_3571b748" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_3f197a46" message="9c2397e7_3571b748" xmi:id="d0946577_3571b748" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_3f197a46" message="9c2397e7_3e96bacf" xmi:id="2a27f2_3e96bacf" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_636be97c" message="9c2397e7_3e96bacf" xmi:id="d0946577_3e96bacf" xmi:type="uml:MessageOccurrenceSpecification"/>
+                    </operand>
+                    <operand xmi:id="b4b708c9_484970b0">
+                        <guard xmi:id="5e21ea5_484970b0">
+                            <specification value="Siguiente nodo es DECISION (CONDITIONAL)" xmi:id="17841d80_484970b0" xmi:type="uml:LiteralString"/>
+                        </guard>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_4470f8a6" xmi:id="2a27f2_4470f8a6" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_4470f8a6" xmi:id="d0946577_4470f8a6" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7c83dc97" xmi:id="2a27f2_7c83dc97" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7c83dc97" xmi:id="d0946577_7c83dc97" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7748410a" xmi:id="2a27f2_7748410a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_7748410a" xmi:id="d0946577_7748410a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                    </operand>
+                    <operand xmi:id="b4b708c9_740773a3">
+                        <guard xmi:id="5e21ea5_740773a3">
+                            <specification value="Siguiente nodo es FORK (PARALLEL)" xmi:id="17841d80_740773a3" xmi:type="uml:LiteralString"/>
+                        </guard>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_37f1104d" xmi:id="2a27f2_37f1104d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_37f1104d" xmi:id="d0946577_37f1104d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_55740540" xmi:id="2a27f2_55740540" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_3f197a46" message="9c2397e7_55740540" xmi:id="d0946577_55740540" xmi:type="uml:MessageOccurrenceSpecification"/>
+                    </operand>
+                    <operand xmi:id="b4b708c9_60015ef5">
+                        <guard xmi:id="5e21ea5_60015ef5">
+                            <specification value="Siguiente nodo es JOIN (sincronizaciÃ³n)" xmi:id="17841d80_60015ef5" xmi:type="uml:LiteralString"/>
+                        </guard>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_2f54a33d" xmi:id="2a27f2_2f54a33d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_2f54a33d" xmi:id="d0946577_2f54a33d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_7a69b07 393d80f0_1ddf84b8" interactionOperator="alt" xmi:id="883b6095_1018bde2" xmi:type="uml:CombinedFragment">
+                            <operand xmi:id="b4b708c9_1018bde2">
+                                <guard xmi:id="5e21ea5_1018bde2">
+                                    <specification value="Todas ramas DONE" xmi:id="17841d80_1018bde2" xmi:type="uml:LiteralString"/>
+                                </guard>
+                                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_65b3f4a4" xmi:id="2a27f2_65b3f4a4" xmi:type="uml:MessageOccurrenceSpecification"/>
+                                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_65b3f4a4" xmi:id="d0946577_65b3f4a4" xmi:type="uml:MessageOccurrenceSpecification"/>
+                            </operand>
+                            <operand xmi:id="b4b708c9_f2ff811">
+                                <guard xmi:id="5e21ea5_f2ff811">
+                                    <specification value="Ramas pendientes" xmi:id="17841d80_f2ff811" xmi:type="uml:LiteralString"/>
+                                </guard>
+                                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_568ff82" xmi:id="2a27f2_568ff82" xmi:type="uml:MessageOccurrenceSpecification"/>
+                                <fragment covered="393d80f0_7a69b07" message="9c2397e7_568ff82" xmi:id="d0946577_568ff82" xmi:type="uml:MessageOccurrenceSpecification"/>
+                            </operand>
+                        </fragment>
+                    </operand>
+                    <operand xmi:id="b4b708c9_2a266d09">
+                        <guard xmi:id="5e21ea5_2a266d09">
+                            <specification value="Siguiente nodo es FINAL" xmi:id="17841d80_2a266d09" xmi:type="uml:LiteralString"/>
+                        </guard>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_5ab9e72c" xmi:id="2a27f2_5ab9e72c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_5ab9e72c" xmi:id="d0946577_5ab9e72c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_186f8716" xmi:id="2a27f2_186f8716" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_7a69b07" message="9c2397e7_186f8716" xmi:id="d0946577_186f8716" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_1d8bd0de" xmi:id="2a27f2_1d8bd0de" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_3f197a46" message="9c2397e7_1d8bd0de" xmi:id="d0946577_1d8bd0de" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_3f197a46" message="9c2397e7_45ca843" xmi:id="2a27f2_45ca843" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_636be97c" message="9c2397e7_45ca843" xmi:id="d0946577_45ca843" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_636be97c" message="9c2397e7_11c9af63" xmi:id="2a27f2_11c9af63" xmi:type="uml:MessageOccurrenceSpecification"/>
+                        <fragment covered="393d80f0_13e39c73" message="9c2397e7_11c9af63" xmi:id="d0946577_11c9af63" xmi:type="uml:MessageOccurrenceSpecification"/>
+                    </operand>
+                </fragment>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_36b4fe2a" xmi:id="2a27f2_36b4fe2a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_36b4fe2a" xmi:id="d0946577_36b4fe2a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_574b560f" xmi:id="2a27f2_574b560f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_574b560f" xmi:id="d0946577_574b560f" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_ba54932" xmi:id="2a27f2_ba54932" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_50a638b5" message="9c2397e7_ba54932" xmi:id="d0946577_ba54932" xmi:type="uml:MessageOccurrenceSpecification"/>
+            </operand>
+        </fragment>
+        <message name="GET /api/cases/my-tasks&#10;Authorization: Bearer &lt;JWT&gt;" receiveEvent="d0946577_a1cdc6d" sendEvent="2a27f2_a1cdc6d" xmi:id="9c2397e7_a1cdc6d" xmi:type="uml:Message"/>
+        <message name="getMyTasks()" receiveEvent="d0946577_175b9425" sendEvent="2a27f2_175b9425" xmi:id="9c2397e7_175b9425" xmi:type="uml:Message"/>
+        <message name="findAll() + filter by assignedUserId" receiveEvent="d0946577_3098cf3b" sendEvent="2a27f2_3098cf3b" xmi:id="9c2397e7_3098cf3b" xmi:type="uml:Message"/>
+        <message name="caseRepository.findAll()" receiveEvent="d0946577_610f7aa" sendEvent="2a27f2_610f7aa" xmi:id="9c2397e7_610f7aa" xmi:type="uml:Message"/>
+        <message name="[Case{tasks=[Task{PENDING}]}]" receiveEvent="d0946577_6a03bcb1" sendEvent="2a27f2_6a03bcb1" xmi:id="9c2397e7_6a03bcb1" xmi:type="uml:Message"/>
+        <message name="[MyTaskDto{...}]" receiveEvent="d0946577_21b2e768" sendEvent="2a27f2_21b2e768" xmi:id="9c2397e7_21b2e768" xmi:type="uml:Message"/>
+        <message name="200 OK â€” lista de tareas pendientes" receiveEvent="d0946577_57250572" sendEvent="2a27f2_57250572" xmi:id="9c2397e7_57250572" xmi:type="uml:Message"/>
+        <ownedComment annotatedElement="393d80f0_50a638b5" xmi:id="9bde863f_5609159b" xmi:type="uml:Comment">
+            <body>Funcionario ve semÃ¡foro visual:
+PENDING â†’ AMARILLO
+IN_PROGRESS â†’ VERDE
+DONE â†’ GRIS
+BLOCKED â†’ ROJO</body>
+        </ownedComment>
+        <message name="PUT /api/cases/case-001/tasks/task-001/advance&#10;{payload: {campo1: &quot;valor&quot;}, inputMode: &quot;VOICE&quot;}" receiveEvent="d0946577_2118cddf" sendEvent="2a27f2_2118cddf" xmi:id="9c2397e7_2118cddf" xmi:type="uml:Message"/>
+        <message name="valida JWT" receiveEvent="d0946577_17a7f733" sendEvent="2a27f2_17a7f733" xmi:id="9c2397e7_17a7f733" xmi:type="uml:Message"/>
+        <message name="User{role=OFFICER}" receiveEvent="d0946577_68567e20" sendEvent="2a27f2_68567e20" xmi:id="9c2397e7_68567e20" xmi:type="uml:Message"/>
+        <message name="advanceTask(caseId, taskId, payload, inputMode)" receiveEvent="d0946577_76ed1b7c" sendEvent="2a27f2_76ed1b7c" xmi:id="9c2397e7_76ed1b7c" xmi:type="uml:Message"/>
+        <message name="advanceTask(caseId, taskId, userId, payload)" receiveEvent="d0946577_11fc564b" sendEvent="2a27f2_11fc564b" xmi:id="9c2397e7_11fc564b" xmi:type="uml:Message"/>
+        <message name="findById(&quot;case-001&quot;)" receiveEvent="d0946577_394a2528" sendEvent="2a27f2_394a2528" xmi:id="9c2397e7_394a2528" xmi:type="uml:Message"/>
+        <message name="Case" receiveEvent="d0946577_6236eb5f" sendEvent="2a27f2_6236eb5f" xmi:id="9c2397e7_6236eb5f" xmi:type="uml:Message"/>
+        <message name="marca Task{status=DONE,&#10;formSubmission={payload, VOICE}}" receiveEvent="d0946577_7c1e2a9e" sendEvent="2a27f2_7c1e2a9e" xmi:id="9c2397e7_7c1e2a9e" xmi:type="uml:Message"/>
+        <message name="routeNextStep(case, completedNodeId)" receiveEvent="d0946577_fa36558" sendEvent="2a27f2_fa36558" xmi:id="9c2397e7_fa36558" xmi:type="uml:Message"/>
+        <message name="crea nueva Task PENDING&#10;para siguiente departamento" receiveEvent="d0946577_32910148" sendEvent="2a27f2_32910148" xmi:id="9c2397e7_32910148" xmi:type="uml:Message"/>
+        <message name="caseRepository.save(Case actualizado)" receiveEvent="d0946577_3f56875e" sendEvent="2a27f2_3f56875e" xmi:id="9c2397e7_3f56875e" xmi:type="uml:Message"/>
+        <message name="publish(&quot;TASK_COMPLETED&quot;, {caseId, nextNodeId})" receiveEvent="d0946577_2b4bac49" sendEvent="2a27f2_2b4bac49" xmi:id="9c2397e7_2b4bac49" xmi:type="uml:Message"/>
+        <message name="update panel en tiempo real" receiveEvent="d0946577_fd07cbb" sendEvent="2a27f2_fd07cbb" xmi:id="9c2397e7_fd07cbb" xmi:type="uml:Message"/>
+        <message name="sendToOfficer(nextUserId, caseId, newTaskId)" receiveEvent="d0946577_3571b748" sendEvent="2a27f2_3571b748" xmi:id="9c2397e7_3571b748" xmi:type="uml:Message"/>
+        <message name="push al siguiente funcionario" receiveEvent="d0946577_3e96bacf" sendEvent="2a27f2_3e96bacf" xmi:id="9c2397e7_3e96bacf" xmi:type="uml:Message"/>
+        <message name="evalÃºa conditionJson del edge" receiveEvent="d0946577_4470f8a6" sendEvent="2a27f2_4470f8a6" xmi:id="9c2397e7_4470f8a6" xmi:type="uml:Message"/>
+        <message name="selecciona rama TRUE o FALSE" receiveEvent="d0946577_7c83dc97" sendEvent="2a27f2_7c83dc97" xmi:id="9c2397e7_7c83dc97" xmi:type="uml:Message"/>
+        <message name="crea Task para el nodo resultante" receiveEvent="d0946577_7748410a" sendEvent="2a27f2_7748410a" xmi:id="9c2397e7_7748410a" xmi:type="uml:Message"/>
+        <message name="crea N Tasks simultÃ¡neas&#10;(una por cada rama outgoing)" receiveEvent="d0946577_37f1104d" sendEvent="2a27f2_37f1104d" xmi:id="9c2397e7_37f1104d" xmi:type="uml:Message"/>
+        <message name="sendToOfficer (Ã—N funcionarios)" receiveEvent="d0946577_55740540" sendEvent="2a27f2_55740540" xmi:id="9c2397e7_55740540" xmi:type="uml:Message"/>
+        <message name="verifica si todas las&#10;ramas paralelas estÃ¡n DONE" receiveEvent="d0946577_2f54a33d" sendEvent="2a27f2_2f54a33d" xmi:id="9c2397e7_2f54a33d" xmi:type="uml:Message"/>
+        <message name="avanza al nodo post-JOIN" receiveEvent="d0946577_65b3f4a4" sendEvent="2a27f2_65b3f4a4" xmi:id="9c2397e7_65b3f4a4" xmi:type="uml:Message"/>
+        <message name="guarda estado y espera" receiveEvent="d0946577_568ff82" sendEvent="2a27f2_568ff82" xmi:id="9c2397e7_568ff82" xmi:type="uml:Message"/>
+        <message name="case.status = COMPLETED&#10;case.finishedAt = now()" receiveEvent="d0946577_5ab9e72c" sendEvent="2a27f2_5ab9e72c" xmi:id="9c2397e7_5ab9e72c" xmi:type="uml:Message"/>
+        <message name="caseRepository.save(Case{COMPLETED})" receiveEvent="d0946577_186f8716" sendEvent="2a27f2_186f8716" xmi:id="9c2397e7_186f8716" xmi:type="uml:Message"/>
+        <message name="sendToClient(clientId, caseId, &quot;COMPLETED&quot;)" receiveEvent="d0946577_1d8bd0de" sendEvent="2a27f2_1d8bd0de" xmi:id="9c2397e7_1d8bd0de" xmi:type="uml:Message"/>
+        <message name="push &quot;Tu trÃ¡mite fue completado&quot;" receiveEvent="d0946577_45ca843" sendEvent="2a27f2_45ca843" xmi:id="9c2397e7_45ca843" xmi:type="uml:Message"/>
+        <message name="notificaciÃ³n push&#10;&quot;TrÃ¡mite completado&quot;" receiveEvent="d0946577_11c9af63" sendEvent="2a27f2_11c9af63" xmi:id="9c2397e7_11c9af63" xmi:type="uml:Message"/>
+        <message name="Case guardado" receiveEvent="d0946577_36b4fe2a" sendEvent="2a27f2_36b4fe2a" xmi:id="9c2397e7_36b4fe2a" xmi:type="uml:Message"/>
+        <message name="Case actualizado" receiveEvent="d0946577_574b560f" sendEvent="2a27f2_574b560f" xmi:id="9c2397e7_574b560f" xmi:type="uml:Message"/>
+        <message name="200 OK â€” CaseDetailDto" receiveEvent="d0946577_ba54932" sendEvent="2a27f2_ba54932" xmi:id="9c2397e7_ba54932" xmi:type="uml:Message"/>
+        <fragment covered="393d80f0_64cd705f 393d80f0_13e39c73 393d80f0_5c30a9b0 393d80f0_7a69b07 393d80f0_1ddf84b8 393d80f0_30ee2816" interactionOperator="Fase 5: Cliente consulta estado " xmi:id="883b6095_3943a2be" xmi:type="uml:CombinedFragment">
+            <operand xmi:id="b4b708c9_3943a2be">
+                <guard xmi:id="5e21ea5_3943a2be">
+                    <specification value="GET /api/cases/my-cases" xmi:id="17841d80_3943a2be" xmi:type="uml:LiteralString"/>
+                </guard>
+                <fragment covered="393d80f0_13e39c73" message="9c2397e7_343570b7" xmi:id="2a27f2_343570b7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_343570b7" xmi:id="d0946577_343570b7" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_157853da" xmi:id="2a27f2_157853da" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_157853da" xmi:id="d0946577_157853da" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_71c3b41" xmi:id="2a27f2_71c3b41" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_71c3b41" xmi:id="d0946577_71c3b41" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_5c30a9b0" message="9c2397e7_236e3f4e" xmi:id="2a27f2_236e3f4e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_236e3f4e" xmi:id="d0946577_236e3f4e" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_3cc1435c" xmi:id="2a27f2_3cc1435c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_3cc1435c" xmi:id="d0946577_3cc1435c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_7a69b07" message="9c2397e7_6bf0219d" xmi:id="2a27f2_6bf0219d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_6bf0219d" xmi:id="d0946577_6bf0219d" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_dd0c991" xmi:id="2a27f2_dd0c991" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_dd0c991" xmi:id="d0946577_dd0c991" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_1ddf84b8" message="9c2397e7_5f16132a" xmi:id="2a27f2_5f16132a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_5f16132a" xmi:id="d0946577_5f16132a" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_30ee2816" message="9c2397e7_69fb6037" xmi:id="2a27f2_69fb6037" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_69fb6037" xmi:id="d0946577_69fb6037" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_64cd705f" message="9c2397e7_36d585c" xmi:id="2a27f2_36d585c" xmi:type="uml:MessageOccurrenceSpecification"/>
+                <fragment covered="393d80f0_13e39c73" message="9c2397e7_36d585c" xmi:id="d0946577_36d585c" xmi:type="uml:MessageOccurrenceSpecification"/>
+            </operand>
+        </fragment>
+        <message name="abre App â†’ TrackingScreen" receiveEvent="d0946577_343570b7" sendEvent="2a27f2_343570b7" xmi:id="9c2397e7_343570b7" xmi:type="uml:Message"/>
+        <message name="GET /api/cases/my-cases&#10;Authorization: Bearer &lt;JWT&gt;" receiveEvent="d0946577_157853da" sendEvent="2a27f2_157853da" xmi:id="9c2397e7_157853da" xmi:type="uml:Message"/>
+        <message name="getMyCases()" receiveEvent="d0946577_71c3b41" sendEvent="2a27f2_71c3b41" xmi:id="9c2397e7_71c3b41" xmi:type="uml:Message"/>
+        <message name="findByClientId(clientId)" receiveEvent="d0946577_236e3f4e" sendEvent="2a27f2_236e3f4e" xmi:id="9c2397e7_236e3f4e" xmi:type="uml:Message"/>
+        <message name="caseRepository.findByClientId(clientId)" receiveEvent="d0946577_3cc1435c" sendEvent="2a27f2_3cc1435c" xmi:id="9c2397e7_3cc1435c" xmi:type="uml:Message"/>
+        <message name="[Case{status=COMPLETED, eventLogs=[...]}]" receiveEvent="d0946577_6bf0219d" sendEvent="2a27f2_6bf0219d" xmi:id="9c2397e7_6bf0219d" xmi:type="uml:Message"/>
+        <message name="CaseViewService.toDetailList(cases)" receiveEvent="d0946577_dd0c991" sendEvent="2a27f2_dd0c991" xmi:id="9c2397e7_dd0c991" xmi:type="uml:Message"/>
+        <message name="[CaseDetailDto{status=COMPLETED, ...}]" receiveEvent="d0946577_5f16132a" sendEvent="2a27f2_5f16132a" xmi:id="9c2397e7_5f16132a" xmi:type="uml:Message"/>
+        <message name="200 OK" receiveEvent="d0946577_69fb6037" sendEvent="2a27f2_69fb6037" xmi:id="9c2397e7_69fb6037" xmi:type="uml:Message"/>
+        <message name="muestra trÃ¡mite completado&#10;con lÃ­nea de tiempo (EventLogs)" receiveEvent="d0946577_36d585c" sendEvent="2a27f2_36d585c" xmi:id="9c2397e7_36d585c" xmi:type="uml:Message"/>
+    </packagedElement>
+</uml:Model>

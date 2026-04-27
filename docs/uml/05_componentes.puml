@@ -1,0 +1,194 @@
+@startuml 05_componentes
+!theme plain
+skinparam componentBackgroundColor #ECF0F1
+skinparam componentBorderColor #2C3E50
+skinparam interfaceBorderColor #2C3E50
+skinparam packageBackgroundColor #FDFEFE
+skinparam packageBorderColor #5D6D7E
+skinparam arrowColor #2C3E50
+skinparam noteBackgroundColor #FFFDE7
+skinparam noteBorderColor #F9A825
+skinparam linetype ortho
+
+title Diagrama de Componentes — Sistema de Gestión de Trámites y Workflows\n(UML 2.5)
+
+' ════════════════════════════════════════════
+'  CAPA DE PRESENTACIÓN
+' ════════════════════════════════════════════
+
+package "Capa de Presentación" #E8F4FD {
+
+    package "Aplicación Web SPA\n(React + Vite + TypeScript)" #BDE3FF {
+        component [PolicyEditor\nCanvas (ReactFlow)] as PolicyEditor
+        component [TaskMonitor\n(WebSocket STOMP)] as TaskMonitor
+        component [AnalyticsDashboard\n(KPIs + gráficas)] as Dashboard
+        component [AiAssistant\nChat UI] as AIChat
+        component [FormRenderer\n(dinámico por nodo)] as FormRenderer
+        component [AuthContext\n(JWT + React Context)] as AuthCtx
+        interface "HTTP/REST\n:3000" as WEBAPP_IF
+    }
+
+    package "Aplicación Móvil\n(Flutter 3.x / Dart)" #C8E6C9 {
+        component [LoginScreen\n(AuthProvider)] as FlutterLogin
+        component [TasksScreen +\nCaseDetailScreen\n(OFFICER)] as FlutterTasks
+        component [TrackingScreen +\nCaseTrackingDetail\n(CLIENT)] as FlutterTracking
+        component [SpeechToText\nService (dictado)] as FlutterVoice
+        component [PushNotification\nService (FCM)] as FlutterFCM
+        interface "HTTP/REST +\nFCM Token" as MOBILE_IF
+    }
+}
+
+' ════════════════════════════════════════════
+'  CAPA DE BACKEND — Spring Boot
+' ════════════════════════════════════════════
+
+package "Backend — Spring Boot 3.5.0 (Java 17)" #FFF9C4 {
+
+    package "Capa de Seguridad" {
+        component [JwtAuthFilter] as JwtFilter
+        component [SecurityConfig\n(Spring Security)] as SecConf
+        component [JwtUtil\n(HMAC-SHA256)] as JwtUtil
+    }
+
+    package "Controladores REST" {
+        component [AuthController\n/api/auth/**] as AuthCtrl
+        component [CaseController\n/api/cases/**] as CaseCtrl
+        component [PolicyController\n/api/policies/**] as PolCtrl
+        component [DepartmentController\n/api/departments/**] as DeptCtrl
+        component [AnalyticsController\n/api/analytics/**] as AnalCtrl
+        component [AiAssistantController\n/api/ai-assistant/**] as AICtrl
+        component [FormsController\n/api/forms/**] as FormsCtrl
+    }
+
+    package "Capa de Servicios (Lógica de Negocio)" {
+        component [AuthService\n(registro y login)] as AuthSvc
+        component [CaseService\n(Motor de Workflow)] as CaseSvc
+        component [PolicyService\n(CRUD políticas)] as PolSvc
+        component [CaseViewService\n(proyección DTOs)] as ViewSvc
+        component [DepartmentService\n(CRUD deptos.)] as DeptSvc
+        component [AnalyticsService\n(KPIs + IA)] as AnalSvc
+        component [NotificationService\n(FCM push)] as NotifSvc
+        component [EventPublisher\n(STOMP broker)] as EvtPub
+    }
+
+    package "Repositorios (MongoDB)" {
+        component [CaseRepository] as CaseRepo
+        component [PolicyRepository] as PolRepo
+        component [UserRepository] as UserRepo
+        component [DepartmentRepository] as DeptRepo
+    }
+
+    package "Configuraciones" {
+        component [WebSocketConfig\n(STOMP /ws)] as WSConf
+        component [FirebaseConfig\n(FirebaseApp)] as FbConf
+        component [MongoConfig] as MongoConf
+    }
+
+    interface "REST :8080" as BACKEND_API
+    interface "WebSocket /ws" as BACKEND_WS
+}
+
+' ════════════════════════════════════════════
+'  SERVICIOS EXTERNOS
+' ════════════════════════════════════════════
+
+package "Servicios Externos" #F8BBD0 {
+    database "MongoDB 7.0\n(workflow_sw1)" as MongoDB
+    component [Firebase\nCloud Messaging\n(FCM)] as FCMService
+    component [OpenAI API\n(GPT-4o Vision)] as OpenAI
+}
+
+' ════════════════════════════════════════════
+'  RELACIONES — PRESENTACIÓN → BACKEND
+' ════════════════════════════════════════════
+
+PolicyEditor    --> BACKEND_API  : REST CRUD /api/policies
+TaskMonitor     --> BACKEND_WS   : subscribeSTOMP /topic/cases
+Dashboard       --> BACKEND_API  : GET /api/analytics/**
+AIChat          --> BACKEND_API  : POST /api/ai-assistant/ask
+FormRenderer    --> BACKEND_API  : PUT /api/cases/:id/tasks/:t/advance
+AuthCtx         --> BACKEND_API  : POST /api/auth/login
+
+FlutterLogin    --> BACKEND_API  : POST /api/auth/login
+FlutterTasks    --> BACKEND_API  : GET /api/cases/my-tasks\nPUT /api/cases/:id/tasks/:t/advance
+FlutterTracking --> BACKEND_API  : GET /api/cases/my-cases
+FlutterFCM      --> BACKEND_API  : PATCH /api/users/fcm-token
+FlutterVoice    --> FlutterTasks : resultado de voz → formulario
+
+' ════════════════════════════════════════════
+'  RELACIONES — BACKEND INTERNO
+' ════════════════════════════════════════════
+
+JwtFilter   --> JwtUtil       : validateToken()
+JwtFilter   --> UserRepo      : loadUserByEmail()
+SecConf     --> JwtFilter     : configura filtro
+
+AuthCtrl    --> AuthSvc
+CaseCtrl    --> CaseSvc
+CaseCtrl    --> ViewSvc
+PolCtrl     --> PolSvc
+DeptCtrl    --> DeptSvc
+AnalCtrl    --> AnalSvc
+AICtrl      --> OpenAI        : HTTP POST /v1/chat/completions
+FormsCtrl   --> CaseSvc
+
+CaseSvc     --> CaseRepo
+CaseSvc     --> PolSvc
+CaseSvc     --> DeptSvc
+CaseSvc     --> NotifSvc
+CaseSvc     --> EvtPub
+AuthSvc     --> UserRepo
+PolSvc      --> PolRepo
+DeptSvc     --> DeptRepo
+AnalSvc     --> CaseRepo
+AnalSvc     --> OpenAI        : análisis IA de cuellos de botella
+
+NotifSvc    --> UserRepo      : busca fcmToken
+NotifSvc    --> FbConf        : FirebaseMessaging
+EvtPub      --> WSConf        : SimpMessagingTemplate
+
+' ════════════════════════════════════════════
+'  RELACIONES — BACKEND → EXTERNOS
+' ════════════════════════════════════════════
+
+CaseRepo    --> MongoDB
+PolRepo     --> MongoDB
+UserRepo    --> MongoDB
+DeptRepo    --> MongoDB
+MongoConf   --> MongoDB
+
+FbConf      --> FCMService    : Admin SDK → send()
+FCMService  --> FlutterFCM    : push payload
+
+' ════════════════════════════════════════════
+'  NOTAS
+' ════════════════════════════════════════════
+
+note right of CaseSvc
+  **Motor de Workflow central**
+  Evalúa NodeType en cada avance:
+  ACTION → asigna Task al dept.
+  DECISION → evalúa condición del edge
+  FORK → crea N tareas paralelas
+  JOIN → espera todas las ramas
+  FINAL → cierra el Case
+end note
+
+note right of NotifSvc
+  Si firebase-service-account.json
+  no existe, falla silenciosamente.
+  App móvil requiere google-services.json
+  real para recibir notificaciones.
+end note
+
+note bottom of MongoDB
+  Colecciones:
+  - cases
+  - policies
+  - users
+  - departments
+  Datos embebidos: tasks, eventLogs,
+  policyNodes, policyEdges
+end note
+
+@enduml

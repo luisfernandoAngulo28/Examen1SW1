@@ -1,0 +1,253 @@
+@startuml 03_actividades
+!theme plain
+skinparam ActivityBackgroundColor #ECF0F1
+skinparam ActivityBorderColor #2C3E50
+skinparam ActivityDiamondBackgroundColor #F9E79F
+skinparam ActivityDiamondBorderColor #F39C12
+skinparam ArrowColor #2C3E50
+skinparam PartitionBackgroundColor #FDFEFE
+skinparam PartitionBorderColor #5D6D7E
+skinparam NoteBackgroundColor #FFFDE7
+skinparam NoteBorderColor #F9A825
+skinparam swimlaneWidth 180
+
+title Diagrama de Actividades — Ejecución de una Política de Negocio\n"Solicitud de Instalación de Servicio" (Flujo con todas las variantes)\n(UML 2.5 — Swimlanes)
+
+|#BDE3FF| Cliente |
+|#C8E6C9| Dep. Atención al Cliente |
+|#FFF9C4| Motor de Workflow |
+|#FFE0B2| Dep. Técnico / Instalación |
+|#F8BBD0| Dep. Facturación |
+|#E8D5F5| Sistema de Notificaciones |
+
+' ═══════════════════════════════════════════
+' INICIO
+' ═══════════════════════════════════════════
+
+|Cliente|
+start
+:Inicia sesión en el sistema;
+note right: login JWT — rol CLIENT
+
+:Selecciona política de negocio\n"Solicitud de Instalación";
+
+:Confirma inicio de trámite;
+
+' ═══════════════════════════════════════════
+' NODO INITIAL — MOTOR CREA EL CASE
+' ═══════════════════════════════════════════
+
+|Motor de Workflow|
+:Crea documento **Case** en MongoDB\n(status=OPEN, currentNodeId=INITIAL);
+
+:Avanza al primer nodo ACTION\n(Recepción de Solicitud);
+note right
+  CaseService.create()
+  Registra EventLog:
+  "CASE_CREATED"
+end note
+
+:Asigna tarea PENDING al funcionario\nde Dep. Atención al Cliente;
+
+|Sistema de Notificaciones|
+:Envía push FCM al funcionario\n"Nueva tarea asignada";
+note right
+  NotificationService
+  .sendToOfficer()
+end note
+
+' ═══════════════════════════════════════════
+' ATENCIÓN AL CLIENTE
+' ═══════════════════════════════════════════
+
+|Dep. Atención al Cliente|
+:Recibe notificación en su\nbandeja de tareas (App Web/Móvil);
+
+:Toma la tarea\n(status → IN_PROGRESS);
+
+:Completa Formulario de Recepción\n[nombre, dirección, tipo de servicio];
+note right
+  InputMode: MANUAL | VOICE | AI
+  FormSubmission almacenada en Task
+end note
+
+:Envía formulario completado;
+
+' ═══════════════════════════════════════════
+' DECISIÓN — ¿SOLICITUD COMPLETA?
+' ═══════════════════════════════════════════
+
+|Motor de Workflow|
+:Marca tarea DONE\nRegistra EventLog "TASK_COMPLETED";
+
+:Avanza al nodo **DECISION**\n"¿Solicitud tiene información completa?";
+
+if (¿Información completa?) then (SÍ)
+
+    |Motor de Workflow|
+    :Avanza al nodo **FORK**\n"Paralelizar verificación técnica y facturación";
+    note right
+      FlowType: PARALLEL
+      Crea 2 tareas simultáneas
+    end note
+
+    ' ═══════════════════════════════════════
+    ' RAMA PARALELA 1 — TÉCNICO
+    ' ═══════════════════════════════════════
+
+    fork
+        |Motor de Workflow|
+        :Asigna tarea PENDING\nal Dep. Técnico / Instalación;
+
+        |Sistema de Notificaciones|
+        :Envía push FCM\nal funcionario técnico;
+
+        |Dep. Técnico / Instalación|
+        :Recibe la tarea;
+
+        :Realiza verificación técnica\n[disponibilidad de red, viabilidad];
+
+        if (¿Zona con cobertura?) then (SÍ — SECUENCIAL)
+            :Programa visita de\ninstalación;
+            :Completa formulario técnico\n[fecha, técnico asignado, notas];
+        else (NO — ITERATIVO)
+            :Registra observación;\
+            note right: Flujo ITERATIVE
+            :Notifica al cliente\nfecha estimada de cobertura;
+
+            repeat
+                :Verifica disponibilidad\nen próximo período;
+            repeat while (¿Zona disponible?) is (NO)
+            ->SÍ;
+
+            :Completa formulario técnico;
+        endif
+
+        |Motor de Workflow|
+        :Marca tarea técnica DONE;
+
+    ' ═══════════════════════════════════════
+    ' RAMA PARALELA 2 — FACTURACIÓN
+    ' ═══════════════════════════════════════
+
+    fork again
+        |Motor de Workflow|
+        :Asigna tarea PENDING\nal Dep. Facturación;
+
+        |Sistema de Notificaciones|
+        :Envía push FCM\nal funcionario de facturación;
+
+        |Dep. Facturación|
+        :Recibe la tarea;
+
+        :Prepara pre-liquidación\n[plan, precio, cuotas];
+
+        :Completa formulario de\nfacturación;
+        note right
+          InputMode soportado: VOICE
+          dictado por el funcionario
+        end note
+
+        |Motor de Workflow|
+        :Marca tarea de facturación DONE;
+
+    end fork
+
+    ' ═══════════════════════════════════════
+    ' JOIN — SINCRONIZAR RAMAS
+    ' ═══════════════════════════════════════
+
+    |Motor de Workflow|
+    :Nodo **JOIN** — espera ambas\nramas DONE;
+
+    if (¿Ambas tareas completadas?) then (SÍ)
+        :Avanza al nodo ACTION\n"Aprobación Final";
+        note right
+          Flujo: SEQUENTIAL
+          post-JOIN
+        end note
+
+        |Dep. Atención al Cliente|
+        :Revisa resumen consolidado\nde ambas ramas;
+
+        :Confirma aprobación del trámite\ncon firma digital;
+
+        |Motor de Workflow|
+        :Marca tarea de aprobación DONE;
+
+        :Avanza al nodo **FINAL**\nstatus → COMPLETED;
+
+        |Sistema de Notificaciones|
+        :Envía push FCM al Cliente\n"Trámite completado exitosamente";
+
+        |Cliente|
+        :Recibe notificación de\nfinalización del trámite;
+
+        :Visualiza línea de tiempo\ncompleta en la App;
+
+    else (NO — aún pendiente)
+        |Motor de Workflow|
+        :Espera evento de\ncompletado faltante;
+        note right
+          Estado: OPEN o IN_PROGRESS
+          WebSocket notifica al panel
+          de funcionario en tiempo real
+        end note
+    endif
+
+else (NO — información incompleta)
+    ' ═══════════════════════════════════════
+    ' BUCLE ITERATIVO — CORRECCIÓN DE DATOS
+    ' ═══════════════════════════════════════
+
+    |Motor de Workflow|
+    :Toma rama CONDITIONAL\nFlowType: ITERATIVE;
+    note right
+      conditionLabel: "completar_informacion"
+      Retrocede al nodo de recepción
+    end note
+
+    |Sistema de Notificaciones|
+    :Notifica al Cliente\n"Se requiere información adicional";
+
+    |Cliente|
+    :Recibe notificación push;
+    :Contacta al funcionario o\ncompleta info faltante;
+
+    |Dep. Atención al Cliente|
+    :Solicita información\nfaltante al cliente;
+
+    |Motor de Workflow|
+    :Reactiva la tarea de\nrecepción (PENDING);
+
+    |Dep. Atención al Cliente|
+    :Actualiza formulario\ncon datos corregidos;
+    note right: Flujo ITERATIVE
+    goto ITERATION_END
+endif
+
+|Motor de Workflow|
+ITERATION_END:
+stop
+
+' ═══════════════════════════════════════════
+' NOTAS GENERALES
+' ═══════════════════════════════════════════
+
+note bottom
+  **Tipos de nodo utilizados (NodeType):**
+  INITIAL → punto de entrada único
+  ACTION  → actividad humana con formulario
+  DECISION → bifurcación condicional (CONDITIONAL)
+  FORK    → inicio de rama paralela (PARALLEL)
+  JOIN    → sincronización de ramas paralelas
+  FINAL   → punto de finalización del trámite
+
+  **Tipos de flujo utilizados (FlowType):**
+  SEQUENTIAL  → siguiente paso único
+  CONDITIONAL → evaluación de condición en DECISION
+  PARALLEL    → ramas concurrentes FORK..JOIN
+  ITERATIVE   → repetición de un nodo hasta cumplir condición
+end note
+
+@enduml

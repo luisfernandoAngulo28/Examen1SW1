@@ -1,0 +1,345 @@
+@startuml 02_clases
+!theme plain
+skinparam classBackgroundColor #ECF0F1
+skinparam classBorderColor #2C3E50
+skinparam arrowColor #2C3E50
+skinparam stereotypeCBackgroundColor #AED6F1
+skinparam stereotypeIBackgroundColor #A9DFBF
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Diagrama de Clases — Sistema de Gestión de Trámites y Workflows\n(UML 2.5 — Capa de Dominio)
+
+' ════════════════════════════════════════════
+'  ENUMERACIONES
+' ════════════════════════════════════════════
+
+enum Role <<enumeration>> {
+    DESIGNER
+    OFFICER
+    CLIENT
+}
+
+enum PolicyStatus <<enumeration>> {
+    ACTIVE
+    INACTIVE
+}
+
+enum NodeType <<enumeration>> {
+    INITIAL
+    ACTION
+    DECISION
+    FORK
+    JOIN
+    FINAL
+}
+
+enum FlowType <<enumeration>> {
+    SEQUENTIAL
+    CONDITIONAL
+    ITERATIVE
+    PARALLEL
+}
+
+enum CaseStatus <<enumeration>> {
+    OPEN
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+}
+
+enum TaskStatus <<enumeration>> {
+    PENDING
+    IN_PROGRESS
+    DONE
+    BLOCKED
+}
+
+enum InputMode <<enumeration>> {
+    MANUAL
+    VOICE
+    AI
+}
+
+' ════════════════════════════════════════════
+'  ENTIDADES PRINCIPALES (MongoDB Documents)
+' ════════════════════════════════════════════
+
+class User <<Document>> {
+    - id : String  {id}
+    - email : String  {unique}
+    - name : String
+    - passwordHash : String
+    - role : Role
+    - departmentId : String
+    - fcmToken : String
+    - createdAt : Instant
+    --
+    + getId() : String
+    + getEmail() : String
+    + getRole() : Role
+    + getDepartmentId() : String
+    + getFcmToken() : String
+}
+
+class Department <<Document>> {
+    - id : String  {id}
+    - name : String
+    - createdAt : Instant
+    --
+    + getId() : String
+    + getName() : String
+}
+
+class Policy <<Document>> {
+    - id : String  {id}
+    - name : String
+    - status : PolicyStatus
+    - createdBy : String
+    - nodes : List<PolicyNode>
+    - edges : List<PolicyEdge>
+    - createdAt : Instant
+    - updatedAt : Instant
+    --
+    + getId() : String
+    + getNodes() : List<PolicyNode>
+    + getEdges() : List<PolicyEdge>
+    + getStatus() : PolicyStatus
+}
+
+class PolicyNode <<EmbeddedDocument>> {
+    - id : String
+    - departmentId : String
+    - nodeType : NodeType
+    - title : String
+    - description : String
+    - positionX : double
+    - positionY : double
+    - formTemplate : Object
+    --
+    + getId() : String
+    + getNodeType() : NodeType
+    + getDepartmentId() : String
+    + getFormTemplate() : Object
+}
+
+class PolicyEdge <<EmbeddedDocument>> {
+    - id : String
+    - fromNodeId : String
+    - toNodeId : String
+    - flowType : FlowType
+    - conditionLabel : String
+    - conditionJson : Object
+    --
+    + getId() : String
+    + getFlowType() : FlowType
+    + getFromNodeId() : String
+    + getToNodeId() : String
+}
+
+class Case <<Document>> {
+    - id : String  {id}
+    - policyId : String
+    - currentNodeId : String
+    - status : CaseStatus
+    - clientId : String
+    - tasks : List<Task>
+    - eventLogs : List<EventLog>
+    - startedAt : Instant
+    - finishedAt : Instant
+    --
+    + getId() : String
+    + getStatus() : CaseStatus
+    + getTasks() : List<Task>
+    + getEventLogs() : List<EventLog>
+}
+
+class Task <<EmbeddedDocument>> {
+    - id : String
+    - nodeId : String
+    - assignedUserId : String
+    - status : TaskStatus
+    - formSubmission : FormSubmission
+    - startedAt : Instant
+    - finishedAt : Instant
+    - dueAt : Instant
+    --
+    + getId() : String
+    + getStatus() : TaskStatus
+    + getAssignedUserId() : String
+    + getNodeId() : String
+}
+
+class FormSubmission <<EmbeddedDocument>> {
+    - id : String
+    - payloadJson : Object
+    - inputMode : InputMode
+    - createdAt : Instant
+    --
+    + getId() : String
+    + getInputMode() : InputMode
+    + getPayloadJson() : Object
+}
+
+class EventLog <<EmbeddedDocument>> {
+    - type : String
+    - payloadJson : Object
+    - createdAt : Instant
+    --
+    + getType() : String
+    + getCreatedAt() : Instant
+}
+
+' ════════════════════════════════════════════
+'  DTOs DE RESPUESTA
+' ════════════════════════════════════════════
+
+class CaseDetailDto <<DTO>> {
+    + caseId : String
+    + policyId : String
+    + policyName : String
+    + currentNodeId : String
+    + currentNodeTitle : String
+    + currentDepartmentId : String
+    + currentDepartmentName : String
+    + status : String
+    + clientId : String
+    + tasks : List<TaskSummary>
+    + eventLogs : List<EventLog>
+    + startedAt : Instant
+    + finishedAt : Instant
+}
+
+class MyTaskDto <<DTO>> {
+    + caseId : String
+    + taskId : String
+    + policyId : String
+    + policyName : String
+    + nodeId : String
+    + nodeTitle : String
+    + departmentId : String
+    + departmentName : String
+    + status : String
+    + formTemplate : Object
+    + startedAt : Instant
+    + dueAt : Instant
+}
+
+class AuthResponse <<DTO>> {
+    + token : String
+    + userId : String
+    + email : String
+    + name : String
+    + role : String
+    + departmentId : String
+}
+
+' ════════════════════════════════════════════
+'  SERVICIOS (Capa de Negocio)
+' ════════════════════════════════════════════
+
+class CaseService <<Service>> {
+    - caseRepository : CaseRepository
+    - policyService : PolicyService
+    - departmentService : DepartmentService
+    - eventPublisher : EventPublisher
+    - notificationService : NotificationService
+    --
+    + create(policyId, userId) : Case
+    + startMyCase(userId, policyId) : Case
+    + advanceTask(caseId, taskId, userId, payload) : Case
+    + findAll() : List<Case>
+    + findByClientId(clientId) : List<Case>
+    + findByPolicyId(policyId) : List<Case>
+    - routeNextStep(case, completedNodeId) : void
+    - handleDecisionNode(case, node) : void
+    - handleForkNode(case, node) : void
+    - handleJoinNode(case, node) : void
+}
+
+class PolicyService <<Service>> {
+    - policyRepository : PolicyRepository
+    --
+    + create(policy) : Policy
+    + update(id, policy) : Policy
+    + delete(id) : void
+    + findAll() : List<Policy>
+    + findById(id) : Policy
+    + saveGraph(id, nodes, edges) : Policy
+}
+
+class NotificationService <<Service>> {
+    - userRepository : UserRepository
+    - firebaseMessaging : FirebaseMessaging
+    --
+    + sendToUser(userId, title, body, data) : void
+    + sendToOfficer(userId, caseId, taskId) : void
+    + sendToClient(clientId, caseId, status) : void
+}
+
+class AnalyticsService <<Service>> {
+    - caseRepository : CaseRepository
+    --
+    + getBottleneckStats() : Map<String,Object>
+    + getKpis() : Map<String,Object>
+    + analyzeWithAI(caseId) : String
+}
+
+' ════════════════════════════════════════════
+'  RELACIONES
+' ════════════════════════════════════════════
+
+' Enums usados por entidades
+User          "1" --> "1"    Role           : role
+Policy        "1" --> "1"    PolicyStatus   : status
+PolicyNode    "1" --> "1"    NodeType       : nodeType
+PolicyEdge    "1" --> "1"    FlowType       : flowType
+Case          "1" --> "1"    CaseStatus     : status
+Task          "1" --> "1"    TaskStatus     : status
+FormSubmission "1" --> "1"   InputMode      : inputMode
+
+' Composición (documentos embebidos)
+Policy        "1" *--  "0..*" PolicyNode     : nodes
+Policy        "1" *--  "0..*" PolicyEdge     : edges
+Case          "1" *--  "0..*" Task           : tasks
+Case          "1" *--  "0..*" EventLog       : eventLogs
+Task          "1" *--  "0..1" FormSubmission : formSubmission
+
+' Asociaciones por ID (MongoDB - no FK real)
+User          "0..*" ..>  "1"    Department     : departmentId
+Case          "0..*" ..>  "1"    Policy         : policyId
+Case          "0..*" ..>  "0..1" User           : clientId
+Task          "0..*" ..>  "1"    User           : assignedUserId
+Task          "0..*" ..>  "1"    PolicyNode     : nodeId
+PolicyNode    "0..*" ..>  "0..1" Department     : departmentId
+Policy        "0..*" ..>  "1"    User           : createdBy
+
+' Servicios usan Repository y entre sí
+CaseService   ..>  CaseDetailDto  : produces
+CaseService   ..>  MyTaskDto      : produces
+CaseService   ..>  NotificationService : uses
+CaseService   ..>  PolicyService       : uses
+CaseService   ..>  AnalyticsService    : feeds
+
+note top of Case
+  Documento raíz en MongoDB.
+  Tasks y EventLogs son embebidos.
+  policyId, clientId y tasks.assignedUserId
+  son referencias por String ID.
+end note
+
+note top of PolicyNode
+  nodeType determina el comportamiento
+  del Motor de Workflow al ejecutar el nodo.
+  FORK → paralelo, JOIN → sincronización,
+  DECISION → condicional, ACTION → tarea manual.
+end note
+
+note right of NotificationService
+  Si Firebase no está configurado,
+  falla silenciosamente (catch vacío).
+  FCM token se actualiza desde el
+  móvil via PATCH /api/users/fcm-token.
+end note
+
+@enduml
