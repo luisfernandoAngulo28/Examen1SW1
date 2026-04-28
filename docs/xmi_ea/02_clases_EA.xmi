@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.1"
+  xmlns:uml="http://www.omg.org/spec/UML/20090901"
+  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+  xmlns:thecustomprofile="http://www.sparxsystems.com/profiles/thecustomprofile/1.0">
+  <xmi:Documentation exporter="PlantUML-to-EA-ClassDiagram" exporterVersion="1.0"/>
+  <uml:Model xmi:type="uml:Model"
+             name="WorkflowSW1 -- Diagrama de Clases UML 2.5"
+             visibility="public">
+
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_0001_5EB193D5" name="Enumeraciones" visibility="public">
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0005_CD124FE5" name="Role" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0034_F27535CE" name="DESIGNER" enumeration="EAID_0005_CD124FE5"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0035_DB79F911" name="OFFICER" enumeration="EAID_0005_CD124FE5"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0036_5A7BF9DD" name="CLIENT" enumeration="EAID_0005_CD124FE5"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0006_41660853" name="PolicyStatus" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0037_7DB9ADFE" name="ACTIVE" enumeration="EAID_0006_41660853"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0038_766268FC" name="INACTIVE" enumeration="EAID_0006_41660853"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0007_72D3A491" name="NodeType" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0039_AE283A52" name="INITIAL" enumeration="EAID_0007_72D3A491"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0040_E1F6A912" name="ACTION" enumeration="EAID_0007_72D3A491"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0041_0DA1EC52" name="DECISION" enumeration="EAID_0007_72D3A491"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0042_BACA303A" name="FORK" enumeration="EAID_0007_72D3A491"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0043_754052D4" name="JOIN" enumeration="EAID_0007_72D3A491"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0044_B52E46AB" name="FINAL" enumeration="EAID_0007_72D3A491"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0008_CBA5BF76" name="FlowType" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0045_77A4A255" name="SEQUENTIAL" enumeration="EAID_0008_CBA5BF76"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0046_EE962B4C" name="CONDITIONAL" enumeration="EAID_0008_CBA5BF76"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0047_D4D36756" name="ITERATIVE" enumeration="EAID_0008_CBA5BF76"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0048_75184316" name="PARALLEL" enumeration="EAID_0008_CBA5BF76"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0009_96AAD8B1" name="CaseStatus" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0049_474F9FEA" name="OPEN" enumeration="EAID_0009_96AAD8B1"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0050_518700DE" name="IN_PROGRESS" enumeration="EAID_0009_96AAD8B1"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0051_36C2DB64" name="COMPLETED" enumeration="EAID_0009_96AAD8B1"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0052_B87C43B6" name="CANCELLED" enumeration="EAID_0009_96AAD8B1"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0010_FF55F5B2" name="TaskStatus" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0053_E8E42812" name="PENDING" enumeration="EAID_0010_FF55F5B2"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0054_39F59203" name="IN_PROGRESS" enumeration="EAID_0010_FF55F5B2"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0055_0087DEFF" name="DONE" enumeration="EAID_0010_FF55F5B2"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0056_14BC1AE4" name="BLOCKED" enumeration="EAID_0010_FF55F5B2"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="EAID_0011_24C197AA" name="InputMode" visibility="public">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0057_D6510B7E" name="MANUAL" enumeration="EAID_0011_24C197AA"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0058_2DE7C9C6" name="VOICE" enumeration="EAID_0011_24C197AA"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="EAID_0059_D0CCAD4A" name="AI" enumeration="EAID_0011_24C197AA"/>
+      </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_0002_9E35DCB7" name="Modelo de Dominio" visibility="public">
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0012_C6E98050" name="User" visibility="public"> <!-- &lt;&lt;Document&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0060_BC7577F8" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0061_1ADEA8A7" name="email" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0062_3B8E3FB8" name="name" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0063_DF844E7C" name="passwordHash" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0064_7A369F36" name="role" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0065_7F2EADB1" name="departmentId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0066_584CAFB3" name="fcmToken" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0067_CD7E57B6" name="createdAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0068_B6EFE208" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0069_8479FF97" name="getEmail" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0070_AC57F98E" name="getRole" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0071_D59CE7F1" name="getDepartmentId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0072_20E1C07E" name="getFcmToken" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0013_21DCD56A" name="Department" visibility="public"> <!-- &lt;&lt;Document&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0073_84815C6F" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0074_F0A38FD0" name="name" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0075_4BA82FCF" name="createdAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0076_AA6091C7" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0077_22197E86" name="getName" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0014_199E36EA" name="Policy" visibility="public"> <!-- &lt;&lt;Document&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0078_5A427CBA" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0079_AE00D9F2" name="name" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0080_C1407E78" name="status" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0081_FE9DEB2A" name="createdBy" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0082_55874EE9" name="nodes" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0083_33EE29AD" name="edges" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0084_63E3A611" name="createdAt" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0085_906E911C" name="updatedAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0086_828869FE" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0087_1B9D87AA" name="getNodes" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0088_82855E94" name="getEdges" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0089_A4BC52A5" name="getStatus" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0015_7C8E4283" name="PolicyNode" visibility="public"> <!-- &lt;&lt;EmbeddedDocument&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0090_17F10C88" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0091_8E1AB463" name="departmentId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0092_B8BF274F" name="nodeType" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0093_7F54D0FF" name="title" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0094_DA6C6B0C" name="description" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0095_93C578C6" name="positionX" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0096_2CE0A5B6" name="positionY" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0097_72E5EB81" name="formTemplate" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0098_863DF49C" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0099_FF5C40EC" name="getNodeType" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0100_B34E3B97" name="getDepartmentId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0101_0FD4723D" name="getFormTemplate" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0016_FAF1B039" name="PolicyEdge" visibility="public"> <!-- &lt;&lt;EmbeddedDocument&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0102_44A8C789" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0103_EBA12A2F" name="fromNodeId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0104_8F1B966D" name="toNodeId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0105_C9A737EC" name="flowType" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0106_DB237AD2" name="conditionLabel" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0107_5B199BFC" name="conditionJson" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0108_F15623C8" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0109_F1177C87" name="getFlowType" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0110_E51F9CFE" name="getFromNodeId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0111_25BAE691" name="getToNodeId" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0017_9E90432E" name="Case" visibility="public"> <!-- &lt;&lt;Document&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0112_53DE2C91" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0113_EA49027F" name="policyId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0114_032CDD09" name="currentNodeId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0115_ED77D047" name="status" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0116_DC6783F5" name="clientId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0117_5E4CE9F6" name="tasks" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0118_8576A36B" name="eventLogs" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0119_AD839F3A" name="startedAt" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0120_9ACCB365" name="finishedAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0121_10025B44" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0122_E50FC65F" name="getStatus" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0123_254E04EB" name="getTasks" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0124_411C0CBE" name="getEventLogs" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0018_7E39E17D" name="Task" visibility="public"> <!-- &lt;&lt;EmbeddedDocument&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0125_B18BE0EA" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0126_8B6DC431" name="nodeId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0127_2969FFB7" name="assignedUserId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0128_4A189743" name="status" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0129_CA350574" name="formSubmission" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0130_7D21B545" name="startedAt" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0131_85F29531" name="finishedAt" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0132_84530CEA" name="dueAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0133_876A0D98" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0134_60C4C87A" name="getStatus" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0135_39D12CA0" name="getAssignedUserId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0136_9975F2E6" name="getNodeId" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0019_AA4B5F59" name="FormSubmission" visibility="public"> <!-- &lt;&lt;EmbeddedDocument&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0137_1AAB14E9" name="id" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0138_25A57CE7" name="payloadJson" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0139_A643EAD0" name="inputMode" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0140_3BD77D96" name="createdAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0141_07E8597D" name="getId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0142_D40AB768" name="getInputMode" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0143_CD11005E" name="getPayloadJson" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0020_50749A81" name="EventLog" visibility="public"> <!-- &lt;&lt;EmbeddedDocument&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0144_3FAB3B0C" name="type" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0145_FC30ACAA" name="payloadJson" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0146_24032C3E" name="createdAt" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0147_159192C2" name="getType" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0148_97158CD0" name="getCreatedAt" visibility="public"/>
+      </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_0003_0AE0518C" name="DTOs" visibility="public">
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0021_CE356919" name="AuthResponse" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0149_E154BD9A" name="token" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0150_3A2B9378" name="userId" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0151_D5ECD548" name="email" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0152_ED3F6135" name="name" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0153_A8967904" name="role" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0154_B991180C" name="departmentId" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0022_6C7A2EA4" name="CaseDetailDto" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0155_4BF9AD98" name="id" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0156_2EE2008B" name="status" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0157_00D7ACA7" name="currentNodeId" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0158_BB4A87F8" name="clientId" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0159_5993EEFC" name="startedAt" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0160_AA6092C8" name="finishedAt" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0161_F01C2419" name="policy" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0162_44DDB8A6" name="tasks" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0163_8B78A860" name="eventLogs" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0023_59F0B588" name="TaskDetailDto" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0164_49632E86" name="id" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0165_5F4EC74C" name="status" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0166_474085EA" name="startedAt" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0167_DEDFE347" name="finishedAt" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0168_AD9BF565" name="node" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0169_4A98EAED" name="assignedUser" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0170_A8A4FB64" name="formSubmission" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0024_B3603802" name="MyTaskDto" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0171_7200999E" name="id" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0172_06058B27" name="status" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0173_41477ABD" name="startedAt" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0174_79177FBA" name="node" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0175_413C73A7" name="case" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0176_C6059380" name="assignedUser" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0025_E481EC7E" name="LoginRequest" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0177_46371B89" name="email" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0178_1498DC0B" name="password" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0026_F81BF165" name="RegisterRequest" visibility="public"> <!-- &lt;&lt;DTO&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0179_E87FD68F" name="email" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0180_E25F841D" name="password" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0181_C6BB8665" name="name" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0182_D487BE14" name="role" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0183_B2644B5B" name="departmentId" visibility="public"/>
+      </packagedElement>
+  </packagedElement>
+
+  <packagedElement xmi:type="uml:Package" xmi:id="EAID_0004_776E345D" name="Servicios" visibility="public">
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0027_F2C1EA67" name="AuthService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0184_98B87F59" name="userRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0185_0AA761AD" name="jwtUtil" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0186_93C3F134" name="login" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0187_9F40C58E" name="register" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0028_F55253E7" name="CaseService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0188_CCA68C24" name="caseRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0189_AB5623FB" name="policyRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0190_DA6B9DF9" name="userRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0191_F25FC072" name="departmentRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0192_9E67DCFE" name="eventPublisher" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0193_E05CC36E" name="notificationService" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0194_60D3883B" name="startCase" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0195_7701B457" name="startCaseForClient" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0196_DE10396D" name="advanceTask" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0197_26D51FF4" name="findAll" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0198_2D894A35" name="findByClientId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0199_91DC270E" name="findByPolicyId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0200_E1E9BF0D" name="findById" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0201_27819636" name="routeNextStep" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0202_6657D73B" name="handleDecisionNode" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0203_D91C80C9" name="handleForkNode" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0204_B475B4CF" name="handleJoinNode" visibility="private"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0029_9D0A89F4" name="PolicyService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0205_0DCD86D9" name="policyRepository" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0206_61896C0A" name="create" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0207_7E20B2CB" name="update" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0208_D03D3FDF" name="delete" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0209_A505E228" name="findAll" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0210_43E4683B" name="findById" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0211_0B6E6CE6" name="saveGraph" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0030_8BD1CBA1" name="NotificationService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0212_36DB916D" name="send" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0031_70004789" name="AnalyticsService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0213_C5EACE6E" name="caseRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0214_03EFC7EA" name="policyRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0215_3D77BFA4" name="departmentRepository" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0216_2BFEF076" name="getDashboardStats" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0217_A0D7C7E1" name="getBottleneckStats" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0218_C6A1B650" name="getKpis" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0032_4111456C" name="EventPublisher" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0219_054EDE29" name="messagingTemplate" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0220_533CB2E1" name="publishCaseUpdate" visibility="public"/>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Class" xmi:id="EAID_0033_933C73BF" name="CaseViewService" visibility="public"> <!-- &lt;&lt;Service&gt;&gt; -->
+        <!-- atributos -->
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0221_7B355189" name="caseRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0222_D70793E9" name="policyRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0223_2FE436DF" name="userRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EAID_0224_1B239D9B" name="departmentRepository" visibility="private"/>
+        <!-- operaciones -->
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0225_B8D6A968" name="toDetailDto" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EAID_0226_26AD567B" name="getMyTasks" visibility="public"/>
+      </packagedElement>
+  </packagedElement>
+
+  <!-- Enums usados por entidades (dependencia) -->
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0227_E1A1AF28" name="role" client="EAID_0012_C6E98050" supplier="EAID_0005_CD124FE5" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0228_1CF24B87" name="status" client="EAID_0014_199E36EA" supplier="EAID_0006_41660853" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0229_80704415" name="nodeType" client="EAID_0015_7C8E4283" supplier="EAID_0007_72D3A491" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0230_29716F8E" name="flowType" client="EAID_0016_FAF1B039" supplier="EAID_0008_CBA5BF76" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0231_F5166A22" name="status" client="EAID_0017_9E90432E" supplier="EAID_0009_96AAD8B1" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0232_01C892EF" name="status" client="EAID_0018_7E39E17D" supplier="EAID_0010_FF55F5B2" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0233_A8782A29" name="inputMode" client="EAID_0019_AA4B5F59" supplier="EAID_0011_24C197AA" visibility="public"/>
+
+  <!-- Composicion: subdocumentos embebidos MongoDB -->
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0234_2B744496" name="nodes" visibility="public">
+    <memberEnd xmi:idref="EAID_0235_EF165678"/>
+    <memberEnd xmi:idref="EAID_0236_98EDAC67"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0235_EF165678" type="EAID_0014_199E36EA" association="EAID_0234_2B744496" aggregation="composite"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0236_98EDAC67" type="EAID_0015_7C8E4283" association="EAID_0234_2B744496"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0237_C9F0CCB9" name="edges" visibility="public">
+    <memberEnd xmi:idref="EAID_0238_89A9C8B8"/>
+    <memberEnd xmi:idref="EAID_0239_3A5AC2E1"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0238_89A9C8B8" type="EAID_0014_199E36EA" association="EAID_0237_C9F0CCB9" aggregation="composite"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0239_3A5AC2E1" type="EAID_0016_FAF1B039" association="EAID_0237_C9F0CCB9"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0240_48AE9290" name="tasks" visibility="public">
+    <memberEnd xmi:idref="EAID_0241_A07C6CF8"/>
+    <memberEnd xmi:idref="EAID_0242_C0547BD8"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0241_A07C6CF8" type="EAID_0017_9E90432E" association="EAID_0240_48AE9290" aggregation="composite"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0242_C0547BD8" type="EAID_0018_7E39E17D" association="EAID_0240_48AE9290"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0243_A066B391" name="eventLogs" visibility="public">
+    <memberEnd xmi:idref="EAID_0244_637F4194"/>
+    <memberEnd xmi:idref="EAID_0245_B75D9971"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0244_637F4194" type="EAID_0017_9E90432E" association="EAID_0243_A066B391" aggregation="composite"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0245_B75D9971" type="EAID_0020_50749A81" association="EAID_0243_A066B391"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0246_C2A98D37" name="formSubmission" visibility="public">
+    <memberEnd xmi:idref="EAID_0247_8739BA46"/>
+    <memberEnd xmi:idref="EAID_0248_BF10FDC7"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0247_8739BA46" type="EAID_0018_7E39E17D" association="EAID_0246_C2A98D37" aggregation="composite"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0248_BF10FDC7" type="EAID_0019_AA4B5F59" association="EAID_0246_C2A98D37"/>
+  </packagedElement>
+
+  <!-- Asociaciones por referencia String ID (MongoDB) -->
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0249_41482803" name="departmentId" visibility="public">
+    <memberEnd xmi:idref="EAID_0250_383767ED"/>
+    <memberEnd xmi:idref="EAID_0251_639C300D"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0250_383767ED" type="EAID_0012_C6E98050" association="EAID_0249_41482803"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0251_639C300D" type="EAID_0013_21DCD56A" association="EAID_0249_41482803"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0252_D7D866C6" name="policyId" visibility="public">
+    <memberEnd xmi:idref="EAID_0253_D7BA467A"/>
+    <memberEnd xmi:idref="EAID_0254_C876474C"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0253_D7BA467A" type="EAID_0017_9E90432E" association="EAID_0252_D7D866C6"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0254_C876474C" type="EAID_0014_199E36EA" association="EAID_0252_D7D866C6"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0255_95783C4A" name="clientId" visibility="public">
+    <memberEnd xmi:idref="EAID_0256_44A8F43D"/>
+    <memberEnd xmi:idref="EAID_0257_96E1433E"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0256_44A8F43D" type="EAID_0017_9E90432E" association="EAID_0255_95783C4A"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0257_96E1433E" type="EAID_0012_C6E98050" association="EAID_0255_95783C4A"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0258_5C430C49" name="assignedUserId" visibility="public">
+    <memberEnd xmi:idref="EAID_0259_CF039841"/>
+    <memberEnd xmi:idref="EAID_0260_9F1540E8"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0259_CF039841" type="EAID_0018_7E39E17D" association="EAID_0258_5C430C49"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0260_9F1540E8" type="EAID_0012_C6E98050" association="EAID_0258_5C430C49"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0261_011ADA2D" name="nodeId" visibility="public">
+    <memberEnd xmi:idref="EAID_0262_1F5673A4"/>
+    <memberEnd xmi:idref="EAID_0263_29BA352A"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0262_1F5673A4" type="EAID_0018_7E39E17D" association="EAID_0261_011ADA2D"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0263_29BA352A" type="EAID_0015_7C8E4283" association="EAID_0261_011ADA2D"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0264_B71B5EAE" name="departmentId" visibility="public">
+    <memberEnd xmi:idref="EAID_0265_DA544357"/>
+    <memberEnd xmi:idref="EAID_0266_ECC8917A"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0265_DA544357" type="EAID_0015_7C8E4283" association="EAID_0264_B71B5EAE"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0266_ECC8917A" type="EAID_0013_21DCD56A" association="EAID_0264_B71B5EAE"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="EAID_0267_B54210FD" name="createdBy" visibility="public">
+    <memberEnd xmi:idref="EAID_0268_A514F21B"/>
+    <memberEnd xmi:idref="EAID_0269_A070AD8F"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0268_A514F21B" type="EAID_0014_199E36EA" association="EAID_0267_B54210FD"/>
+    <ownedEnd xmi:type="uml:Property" xmi:id="EAID_0269_A070AD8F" type="EAID_0012_C6E98050" association="EAID_0267_B54210FD"/>
+  </packagedElement>
+
+  <!-- Dependencias de servicios -->
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0270_5DA72D99" name="produce" client="EAID_0027_F2C1EA67" supplier="EAID_0021_CE356919" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0271_C9F0CA1E" name="produce" client="EAID_0033_933C73BF" supplier="EAID_0022_6C7A2EA4" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0272_BE98C3B9" name="produce" client="EAID_0033_933C73BF" supplier="EAID_0023_59F0B588" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0273_B3F5E58C" name="produce" client="EAID_0033_933C73BF" supplier="EAID_0024_B3603802" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0274_3086C85F" name="usa" client="EAID_0028_F55253E7" supplier="EAID_0030_8BD1CBA1" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0275_79802BB5" name="usa" client="EAID_0028_F55253E7" supplier="EAID_0032_4111456C" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0276_F47CADE7" name="usa" client="EAID_0028_F55253E7" supplier="EAID_0029_9D0A89F4" visibility="public"/>
+  <packagedElement xmi:type="uml:Dependency" xmi:id="EAID_0277_726A3B82" name="delega vista" client="EAID_0028_F55253E7" supplier="EAID_0033_933C73BF" visibility="public"/>
+
+  </uml:Model>
+</xmi:XMI>
