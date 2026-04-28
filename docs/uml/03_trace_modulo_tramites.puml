@@ -1,0 +1,63 @@
+@startuml Trace_Modulo_Tramites
+!theme plain
+skinparam actorStyle default
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+skinparam packageBorderColor #2C3E50
+skinparam packageBackgroundColor #FEF9E7
+
+left to right direction
+
+title 3.2.1.3 Vista de Casos de Uso\nMódulo de Gestión de Trámites (Motor de Workflow)
+
+' ── Actores ──
+actor "Cliente"     as CLIENT
+actor "Funcionario" as OFFICER
+actor "Usuario"     as USER
+actor "Sistema IA"  as AI
+
+CLIENT   --|> USER : Extends
+OFFICER  --|> USER : Extends
+
+' ── Sistema ──
+rectangle "Módulo de Gestión de Trámites y Motor de Workflow" {
+
+    usecase "CU05\nIniciar nuevo\nTrámite"               as CU05
+    usecase "CU05a\nVer mis Trámites\nen curso"          as CU05a
+    usecase "CU05b\nCancelar\nTrámite"                   as CU05b
+    usecase "CU06\nProcesar Tarea\n(avanzar workflow)"   as CU06
+    usecase "CU07\nRegistrar Avance\ncon Formulario"     as CU07
+    usecase "CU07a\nIngresar Datos\nManualmente"         as CU07a
+    usecase "CU07b\nDictar Datos\npor Voz"               as CU07b
+    usecase "CU07c\nAutocompletar\ncon IA (NLP)"         as CU07c
+    usecase "CU10\nRecibir Notificación\nPush (FCM)"     as CU10
+    usecase "CU12\nMotor Workflow\n(automático)"         as CU12
+}
+
+' ── Relaciones actor - CU ──
+CLIENT   --> CU05
+CLIENT   --> CU05a
+CLIENT   --> CU05b
+CLIENT   --> CU10
+OFFICER  --> CU06
+OFFICER  --> CU07
+OFFICER  --> CU07a
+OFFICER  --> CU07b
+OFFICER  --> CU07c
+OFFICER  --> CU10
+AI       --> CU07c
+AI       --> CU12
+
+' ── Include / Extend ──
+CU05   ..> CU05a  : <<include>>
+CU06   ..> CU07   : <<include>>
+CU07   ..> CU07a  : <<include>>
+CU07b  ..> CU07a  : <<extend>>
+CU07c  ..> CU07a  : <<extend>>
+CU06   ..> CU12   : <<include>>
+CU05   ..> CU10   : <<extend>>
+CU06   ..> CU10   : <<extend>>
+
+@enduml

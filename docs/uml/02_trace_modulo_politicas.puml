@@ -1,0 +1,49 @@
+@startuml Trace_Modulo_Politicas
+!theme plain
+skinparam actorStyle default
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+skinparam packageBorderColor #2C3E50
+skinparam packageBackgroundColor #EBF5FB
+
+left to right direction
+
+title 3.2.1.3 Vista de Casos de Uso\nMódulo de Gestión de Políticas de Workflow
+
+' ── Actores ──
+actor "Diseñador\nde Procesos" as DESIGNER
+actor "Sistema IA"             as AI
+
+' ── Sistema ──
+rectangle "Módulo de Gestión de Políticas de Workflow" {
+
+    usecase "CU02\nCrear / Editar\nPolítica"                  as CU02
+    usecase "CU02a\nEliminar\nPolítica"                       as CU02a
+    usecase "CU02b\nActivar / Desactivar\nPolítica"           as CU02b
+    usecase "CU03\nDiseñar Diagrama\nVisual (nodos y aristas)" as CU03
+    usecase "CU03a\nAgregar Nodo\n(ACTION/DECISION/FORK/JOIN)" as CU03a
+    usecase "CU03b\nConectar Nodos\n(flujo y condición)"      as CU03b
+    usecase "CU03c\nAsignar Departamento\na Nodo"             as CU03c
+    usecase "CU04\nUsar Asistente IA\npara Diseño"            as CU04
+}
+
+' ── Relaciones actor - CU ──
+DESIGNER --> CU02
+DESIGNER --> CU02a
+DESIGNER --> CU02b
+DESIGNER --> CU03
+DESIGNER --> CU04
+AI       --> CU04
+
+' ── Include / Extend ──
+CU02  ..> CU03  : <<include>>
+CU03  ..> CU03a : <<include>>
+CU03  ..> CU03b : <<include>>
+CU03  ..> CU03c : <<include>>
+CU04  ..> CU03  : <<extend>>
+CU02a ..> CU02  : <<extend>>
+CU02b ..> CU02  : <<extend>>
+
+@enduml

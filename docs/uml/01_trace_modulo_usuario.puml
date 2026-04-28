@@ -1,0 +1,52 @@
+@startuml Trace_Modulo_Usuario
+!theme plain
+skinparam actorStyle default
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+skinparam packageBorderColor #2C3E50
+skinparam packageBackgroundColor #FDFEFE
+
+left to right direction
+
+title 3.2.1.3 Vista de Casos de Uso\nMódulo de Gestión de Usuarios y Seguridad
+
+' ── Actores ──
+actor "Diseñador"   as DESIGNER
+actor "Funcionario" as OFFICER
+actor "Cliente"     as CLIENT
+actor "Usuario"     as USER
+
+DESIGNER --|> USER : Extends
+OFFICER  --|> USER : Extends
+CLIENT   --|> USER : Extends
+
+' ── Sistema ──
+rectangle "Módulo de Gestión de Usuarios y Seguridad" {
+
+    usecase "CU01\nGestionar Inicio\nde Sesión"          as CU01
+    usecase "CU01a\nRegistrarse\nen el Sistema"          as CU01a
+    usecase "CU01b\nCerrar\nSesión"                      as CU01b
+    usecase "CU13\nGestionar\nUsuarios"                  as CU13
+    usecase "CU13a\nAsignar Rol\nal Usuario"             as CU13a
+    usecase "CU13b\nAsociar Usuario\na Departamento"     as CU13b
+    usecase "CU11\nGestionar\nDepartamentos"             as CU11
+    usecase "CU10a\nRegistrar Token\nFCM Dispositivo"    as CU10a
+}
+
+' ── Relaciones actor - CU ──
+USER     --> CU01
+USER     --> CU01b
+USER     --> CU10a
+DESIGNER --> CU01a
+DESIGNER --> CU13
+DESIGNER --> CU11
+
+' ── Include / Extend ──
+CU01  ..> CU01a : <<extend>>
+CU13  ..> CU13a : <<include>>
+CU13  ..> CU13b : <<include>>
+CU13b ..> CU11  : <<include>>
+
+@enduml

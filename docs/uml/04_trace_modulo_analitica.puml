@@ -1,0 +1,54 @@
+@startuml Trace_Modulo_Analitica
+!theme plain
+skinparam actorStyle default
+skinparam packageStyle rectangle
+skinparam usecaseBorderColor #2C3E50
+skinparam usecaseBackgroundColor #ECF0F1
+skinparam arrowColor #2C3E50
+skinparam packageBorderColor #2C3E50
+skinparam packageBackgroundColor #EAFAF1
+
+left to right direction
+
+title 3.2.1.3 Vista de Casos de Uso\nMódulo de Monitoreo, Analítica e Inteligencia Artificial
+
+' ── Actores ──
+actor "Diseñador\nde Procesos" as DESIGNER
+actor "Funcionario"            as OFFICER
+actor "Cliente"                as CLIENT
+actor "Sistema IA"             as AI
+
+' ── Sistema ──
+rectangle "Módulo de Monitoreo, Analítica e IA" {
+
+    usecase "CU08\nMonitor en\nTiempo Real"                     as CU08
+    usecase "CU08a\nVer Semáforo\nde Estado (rojo/amari/verde)" as CU08a
+    usecase "CU08b\nRecibir Evento\nWebSocket STOMP"            as CU08b
+    usecase "CU09\nAnalizar Cuellos\nde Botella (IA)"           as CU09
+    usecase "CU09a\nVer Recomendación\nen Lenguaje Natural"     as CU09a
+    usecase "CU14\nVer Dashboard\nde KPIs"                      as CU14
+    usecase "CU14a\nVer Tiempo Promedio\npor Etapa"             as CU14a
+    usecase "CU15\nVer Historial\ny Trazabilidad"               as CU15
+    usecase "CU15a\nVer Línea\nde Tiempo"                       as CU15a
+}
+
+' ── Relaciones actor - CU ──
+DESIGNER --> CU08
+DESIGNER --> CU09
+DESIGNER --> CU14
+DESIGNER --> CU15
+OFFICER  --> CU08b
+OFFICER  --> CU15
+CLIENT   --> CU15
+AI       --> CU09
+AI       --> CU09a
+
+' ── Include / Extend ──
+CU08  ..> CU08a : <<include>>
+CU08  ..> CU08b : <<include>>
+CU09  ..> CU09a : <<include>>
+CU14  ..> CU14a : <<include>>
+CU15  ..> CU15a : <<include>>
+CU09  ..> CU14  : <<extend>>
+
+@enduml
