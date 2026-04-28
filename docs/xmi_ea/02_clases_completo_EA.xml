@@ -368,14 +368,14 @@
       <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_User" type="Class_Policy" association="Assoc_Policy_User"/>
     </packagedElement>
 
-    <!-- Policy *-- PolicyNode (composicion) -->
+    <!-- Policy compone PolicyNode (composicion) -->
     <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_Nodes" name="nodes">
       <memberEnd xmi:idref="Policy_nodes"/>
       <memberEnd xmi:idref="End_Policy_Nodes"/>
       <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_Nodes" type="Class_Policy" association="Assoc_Policy_Nodes"/>
     </packagedElement>
 
-    <!-- Policy *-- PolicyEdge (composicion) -->
+    <!-- Policy compone PolicyEdge (composicion) -->
     <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_Edges" name="edges">
       <memberEnd xmi:idref="Policy_edges"/>
       <memberEnd xmi:idref="End_Policy_Edges"/>
@@ -424,14 +424,14 @@
       <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Client" type="Class_Case" association="Assoc_Case_Client"/>
     </packagedElement>
 
-    <!-- Case *-- Task (composicion) -->
+    <!-- Case compone Task (composicion) -->
     <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_Tasks" name="tasks">
       <memberEnd xmi:idref="Case_tasks"/>
       <memberEnd xmi:idref="End_Case_Tasks"/>
       <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Tasks" type="Class_Case" association="Assoc_Case_Tasks"/>
     </packagedElement>
 
-    <!-- Case *-- EventLog (composicion) -->
+    <!-- Case compone EventLog (composicion) -->
     <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_EventLogs" name="eventLogs">
       <memberEnd xmi:idref="Case_eventLogs"/>
       <memberEnd xmi:idref="End_Case_EventLogs"/>
@@ -459,7 +459,7 @@
       <ownedEnd xmi:type="uml:Property" xmi:id="End_Task_Status" type="Class_Task" association="Assoc_Task_Status"/>
     </packagedElement>
 
-    <!-- Task *-- FormSubmission (composicion) -->
+    <!-- Task compone FormSubmission (composicion) -->
     <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Task_Form" name="formSubmission">
       <memberEnd xmi:idref="Task_formSubmission"/>
       <memberEnd xmi:idref="End_Task_Form"/>
