@@ -1,0 +1,43 @@
+@startuml COM_CU05_IniciarTramite
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #D6EAF8
+skinparam controlBackgroundColor #D5F5E3
+skinparam entityBackgroundColor #FDEBD0
+skinparam sequenceArrowColor #2C3E50
+skinparam sequenceLifeLineBorderColor #2C3E50
+
+title CU05 — Iniciar Trámite\nDiagrama de Comunicación
+
+autonumber
+
+actor "Cliente" as ACTOR
+
+boundary "I.CaseController\n/api/cases" as I
+control  "C.CaseService"               as C
+entity   "E.Policy\n(MongoDB)"         as EP
+entity   "E.Case\n(MongoDB)"           as EC
+entity   "E.NotificationService"       as EN
+
+ACTOR -> I  : POST startCase(policyId)
+I     -> C  : startCaseForClient(policyId, clientId)
+C     -> EP : findById(policyId)
+EP   --> C  : Policy (nodes, edges)
+C     -> C  : findInitialNode(policy.nodes)
+C     -> EC : new Case(policyId, clientId, OPEN)
+C     -> C  : createTask(initialNode, assignedOfficer)
+C     -> EC : save(case)
+EC   --> C  : Case persisted
+C     -> EN : send(fcmToken, "Nuevo tramite asignado")
+C    --> I  : Case(id, status=IN_PROGRESS, tasks)
+I    --> ACTOR : 201 Created — CaseDetailDto
+
+note right of C
+  El motor busca el nodo INITIAL
+  y crea la primera Task para
+  el funcionario del departamento.
+end note
+
+@enduml

@@ -1,0 +1,63 @@
+@startuml COM_CU06_ProcesarTarea
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #D6EAF8
+skinparam controlBackgroundColor #D5F5E3
+skinparam entityBackgroundColor #FDEBD0
+skinparam sequenceArrowColor #2C3E50
+skinparam sequenceLifeLineBorderColor #2C3E50
+
+title CU06 — Procesar Tarea (Motor de Workflow)\nDiagrama de Comunicación
+
+autonumber
+
+actor "Funcionario" as ACTOR
+
+boundary "I.CaseController\n/api/cases/{id}/tasks/{tid}" as I
+control  "C.CaseService"                                  as C
+entity   "E.Case\n(MongoDB)"                              as EC
+entity   "E.Policy\n(MongoDB)"                            as EP
+control  "C.EventPublisher\n(WebSocket)"                  as CEP
+entity   "E.NotificationService\n(FCM)"                   as EN
+
+ACTOR -> I   : PUT advanceTask(caseId, taskId, formPayload)
+I     -> C   : advanceTask(caseId, taskId, userId, payload)
+C     -> EC  : findById(caseId)
+EC   --> C   : Case (tasks, currentNodeId)
+C     -> C   : validateTaskOwner(task, userId)
+C     -> C   : completeTask(taskId, FormSubmission)
+C     -> EP  : findById(case.policyId)
+EP   --> C   : Policy (nodes, edges)
+C     -> C   : routeNextStep(case, completedNodeId)
+
+alt nodeType == ACTION
+    C -> C   : createTask(nextNode, assignedUser)
+else nodeType == DECISION
+    C -> C   : handleDecisionNode(case, node, conditionJson)
+else nodeType == FORK
+    C -> C   : handleForkNode(case, parallelNodes)
+else nodeType == JOIN
+    C -> C   : handleJoinNode(case, node)
+else nodeType == FINAL
+    C -> C   : case.status = COMPLETED
+end
+
+C     -> EC  : save(updatedCase)
+EC   --> C   : Case updated
+C     -> CEP : publishCaseUpdate(case)
+CEP  --> ACTOR : WebSocket STOMP push
+C     -> EN  : send(fcmToken, "Tarea completada / Nueva tarea")
+C    --> I   : Case(status, tasks)
+I    --> ACTOR : 200 OK — CaseDetailDto
+
+note right of C
+  Motor: routeNextStep() evalua
+  el tipo del siguiente nodo
+  y crea tareas en paralelo (FORK),
+  espera sincronizacion (JOIN) o
+  evalua condicion (DECISION).
+end note
+
+@enduml

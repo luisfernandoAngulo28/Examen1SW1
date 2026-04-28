@@ -1,0 +1,38 @@
+@startuml COM_CU01_Login
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam backgroundColor #FFFFFF
+skinparam boundaryBackgroundColor #D6EAF8
+skinparam controlBackgroundColor #D5F5E3
+skinparam entityBackgroundColor #FDEBD0
+skinparam sequenceLifeLineBorderColor #2C3E50
+skinparam sequenceArrowColor #2C3E50
+
+title CU01 — Inicio de Sesión\nDiagrama de Comunicación
+
+autonumber
+
+actor "Usuario\n(Cliente / Funcionario\n/ Diseñador)" as ACTOR
+
+boundary "I.AuthController\n/api/auth" as I
+control  "C.AuthService"              as C
+entity   "E.User\n(MongoDB)"          as EU
+entity   "E.JwtUtil"                  as EJ
+
+ACTOR -> I  : login(email, password)
+I     -> C  : authenticate(email, password)
+C     -> EU : findByEmail(email)
+EU   --> C  : User | null
+C     -> C  : validatePassword(password, passwordHash)
+C     -> EJ : generateToken(userId, role, departmentId)
+EJ   --> C  : jwt : String
+C    --> I  : AuthResponse(token, userId, role, departmentId)
+I    --> ACTOR : 200 OK — AuthResponse
+
+note right of C
+  Si email no existe o password
+  incorrecto → 401 Unauthorized
+end note
+
+@enduml

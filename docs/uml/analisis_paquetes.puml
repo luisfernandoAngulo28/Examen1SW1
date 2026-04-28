@@ -1,0 +1,80 @@
+@startuml Analisis_Paquetes
+!theme plain
+skinparam packageStyle rectangle
+skinparam packageBackgroundColor #ECF0F1
+skinparam packageBorderColor #2C3E50
+skinparam arrowColor #2C3E50
+skinparam ArrowFontColor #2C3E50
+skinparam backgroundColor #FFFFFF
+skinparam nodesep 60
+skinparam ranksep 70
+
+title 3.2.4 Análisis de Paquetes\nSistema de Gestion de Tramites y Workflows
+
+' ═══════════════════════════
+'  PAQUETES PRINCIPALES
+' ═══════════════════════════
+
+package "Modulo de\nSeguridad / Auth" as PKG_AUTH #D6EAF8 {
+    [AuthController]
+    [AuthService]
+    [JwtUtil]
+    [UserRepository]
+}
+
+package "Modulo de\nGestion de Politicas" as PKG_POLICY #D5F5E3 {
+    [PolicyController]
+    [PolicyService]
+    [PolicyRepository]
+}
+
+package "Modulo de\nGestion de Tramites\n(Motor Workflow)" as PKG_CASE #FDEBD0 {
+    [CaseController]
+    [CaseService]
+    [CaseViewService]
+    [CaseRepository]
+    [EventPublisher]
+}
+
+package "Modulo de\nNotificaciones" as PKG_NOTIF #F9EBEA {
+    [NotificationService]
+    [FCM / Firebase]
+}
+
+package "Modulo de\nAnalitica e IA" as PKG_AI #FDEDEC {
+    [AnalyticsService]
+    [AI Service\n(FastAPI Python)]
+}
+
+package "Modulo de\nGestion de Usuarios\ny Departamentos" as PKG_USERS #EAF2FF {
+    [UserController]
+    [DepartmentController]
+    [DepartmentRepository]
+}
+
+' ═══════════════════════════
+'  RELACIONES ENTRE PAQUETES
+' ═══════════════════════════
+
+PKG_CASE    ..> PKG_POLICY  : <<use>>\ntramite usa politica
+PKG_CASE    ..> PKG_NOTIF   : <<use>>\nnotifica FCM
+PKG_CASE    ..> PKG_USERS   : <<use>>\nasigna funcionario
+PKG_AUTH    ..> PKG_USERS   : <<use>>\nautenticar usuario
+PKG_AI      ..> PKG_CASE    : <<import>>\nanaliza casos/tareas
+PKG_POLICY  ..> PKG_USERS   : <<use>>\ncreatedBy usuario
+
+note top of PKG_CASE
+  Nucleo del sistema.
+  Motor de Workflow: routeNextStep,
+  handleFork, handleJoin, handleDecision.
+  Publica eventos WebSocket STOMP.
+end note
+
+note bottom of PKG_AI
+  Servicio Python FastAPI separado.
+  Detecta cuellos de botella y
+  genera recomendaciones NLP.
+  Autocompletado de formularios por voz.
+end note
+
+@enduml

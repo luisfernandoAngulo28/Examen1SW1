@@ -1,0 +1,173 @@
+@startuml Analisis_Clases
+!theme plain
+skinparam classBackgroundColor #ECF0F1
+skinparam classBorderColor #2C3E50
+skinparam arrowColor #2C3E50
+skinparam stereotypeCBackgroundColor #AED6F1
+skinparam stereotypeIBackgroundColor #A9DFBF
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 50
+skinparam linetype ortho
+
+title 3.2.3 Análisis de Clases — Casos de Uso Sobresalientes\n(Sistema de Gestion de Tramites y Workflows)
+
+' ═══════════════════════════════════════════════════
+'  CU01: INICIO DE SESION
+' ═══════════════════════════════════════════════════
+
+package "CU01: Inicio de Sesion" #FDFEFE {
+
+    actor "Usuario\n(Cliente/Funcionario\n/Diseñador)" as A1
+
+    class AuthController <<interface>> {
+        + email : String
+        + password : String
+        --
+        + login()
+        + register()
+    }
+
+    class AuthService <<Controller>> {
+        --
+        + authenticate(email, password) : AuthResponse
+        + register(request) : AuthResponse
+        - validatePassword(raw, hash) : boolean
+        - generateToken(userId, role) : String
+    }
+
+    class User <<Entity>> {
+        + id : String
+        + email : String
+        + name : String
+        + passwordHash : String
+        + role : Role
+        + departmentId : String
+        + fcmToken : String
+        --
+        + getEmail() : String
+        + getRole() : Role
+    }
+
+    class AuthResponse <<Entity>> {
+        + token : String
+        + userId : String
+        + email : String
+        + role : String
+        + departmentId : String
+    }
+
+    A1           --> AuthController : login(email, password)
+    AuthController --> AuthService   : authenticate()
+    AuthService  --> User            : findByEmail()
+    AuthService  --> AuthResponse    : produce
+}
+
+' ═══════════════════════════════════════════════════
+'  CU05: INICIAR TRAMITE
+' ═══════════════════════════════════════════════════
+
+package "CU05: Iniciar Tramite" #EBF5FB {
+
+    actor "Cliente" as A2
+
+    class CaseController <<interface>> {
+        + policyId : String
+        --
+        + startCase()
+        + findByClientId()
+        + findById()
+    }
+
+    class CaseService <<Controller>> {
+        --
+        + startCaseForClient(policyId, clientId) : Case
+        + findAll() : List<Case>
+        + findByClientId(clientId) : List<Case>
+        - findInitialNode(nodes) : PolicyNode
+        - createFirstTask(node) : Task
+    }
+
+    class Policy <<Entity>> {
+        + id : String
+        + name : String
+        + status : PolicyStatus
+        + nodes : List<PolicyNode>
+        + edges : List<PolicyEdge>
+        --
+        + getNodes() : List<PolicyNode>
+        + getEdges() : List<PolicyEdge>
+    }
+
+    class Case <<Entity>> {
+        + id : String
+        + policyId : String
+        + clientId : String
+        + status : CaseStatus
+        + tasks : List<Task>
+        + startedAt : Instant
+        --
+        + getStatus() : CaseStatus
+        + getTasks() : List<Task>
+    }
+
+    A2             --> CaseController : POST startCase(policyId)
+    CaseController --> CaseService    : startCaseForClient()
+    CaseService    --> Policy         : findById(policyId)
+    CaseService    --> Case           : new + save()
+}
+
+' ═══════════════════════════════════════════════════
+'  CU06: PROCESAR TAREA (MOTOR WORKFLOW)
+' ═══════════════════════════════════════════════════
+
+package "CU06: Procesar Tarea" #FEF9E7 {
+
+    actor "Funcionario" as A3
+
+    class CaseController2 <<interface>> {
+        + caseId : String
+        + taskId : String
+        + payload : Object
+        --
+        + advanceTask()
+        + getMyTasks()
+    }
+
+    class CaseService2 <<Controller>> {
+        --
+        + advanceTask(caseId, taskId, userId, payload) : Case
+        - routeNextStep(case, nodeId) : void
+        - handleDecisionNode(case, node) : void
+        - handleForkNode(case, node) : void
+        - handleJoinNode(case, node) : void
+    }
+
+    class Task <<Entity>> {
+        + id : String
+        + nodeId : String
+        + assignedUserId : String
+        + status : TaskStatus
+        + formSubmission : FormSubmission
+        + startedAt : Instant
+        + finishedAt : Instant
+        --
+        + getStatus() : TaskStatus
+    }
+
+    class FormSubmission <<Entity>> {
+        + id : String
+        + payloadJson : Object
+        + inputMode : InputMode
+        + createdAt : Instant
+        --
+        + getInputMode() : InputMode
+    }
+
+    A3              --> CaseController2 : PUT advanceTask(payload)
+    CaseController2 --> CaseService2    : advanceTask()
+    CaseService2    --> Task            : complete + routeNext()
+    Task            *-- FormSubmission  : formSubmission
+}
+
+@enduml
