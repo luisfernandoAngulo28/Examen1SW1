@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmlns:uml="http://schema.omg.org/spec/UML/2.1"
+         xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"
+         xmi:version="2.1">
+  <xmi:Documentation exporter="Enterprise Architect" exporterVersion="6.5"/>
+  <uml:Model xmi:type="uml:Model" xmi:id="Model1"
+             name="Diagrama de Clases — Sistema de Gestión de Trámites y Workflows">
+
+    <!-- ══════════════════════════════════════════════════════
+         PAQUETE 1: Enumeraciones
+         ══════════════════════════════════════════════════════ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="Pkg_Enums" name="Enumeraciones">
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_Role" name="Role">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="Role_DESIGNER" name="DESIGNER"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="Role_OFFICER"  name="OFFICER"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="Role_CLIENT"   name="CLIENT"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_PolicyStatus" name="PolicyStatus">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="PolicyStatus_ACTIVE"   name="ACTIVE"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="PolicyStatus_INACTIVE" name="INACTIVE"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_NodeType" name="NodeType">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_INITIAL"  name="INITIAL"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_ACTION"   name="ACTION"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_DECISION" name="DECISION"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_FORK"     name="FORK"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_JOIN"     name="JOIN"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="NodeType_FINAL"    name="FINAL"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_FlowType" name="FlowType">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="FlowType_SEQUENTIAL"  name="SEQUENTIAL"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="FlowType_CONDITIONAL" name="CONDITIONAL"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="FlowType_ITERATIVE"   name="ITERATIVE"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="FlowType_PARALLEL"    name="PARALLEL"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_CaseStatus" name="CaseStatus">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="CaseStatus_OPEN"        name="OPEN"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="CaseStatus_IN_PROGRESS" name="IN_PROGRESS"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="CaseStatus_COMPLETED"   name="COMPLETED"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="CaseStatus_CANCELLED"   name="CANCELLED"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_TaskStatus" name="TaskStatus">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="TaskStatus_PENDING"     name="PENDING"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="TaskStatus_IN_PROGRESS" name="IN_PROGRESS"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="TaskStatus_DONE"        name="DONE"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="TaskStatus_BLOCKED"     name="BLOCKED"/>
+      </packagedElement>
+
+      <packagedElement xmi:type="uml:Enumeration" xmi:id="Enum_InputMode" name="InputMode">
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="InputMode_MANUAL" name="MANUAL"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="InputMode_VOICE"  name="VOICE"/>
+        <ownedLiteral xmi:type="uml:EnumerationLiteral" xmi:id="InputMode_AI"     name="AI"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAQUETE 2: Modelo de Dominio (MongoDB Documents)
+         ══════════════════════════════════════════════════════ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="Pkg_Dominio" name="Modelo de Dominio">
+
+      <!-- User -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_User" name="User">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_id"           name="id"           visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_email"        name="email"        visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_name"         name="name"         visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_passwordHash" name="passwordHash" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_role"         name="role"         visibility="private" type="Enum_Role"         association="Assoc_User_Role"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_departmentId" name="departmentId" visibility="private" type="Class_Department" association="Assoc_User_Department"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_fcmToken"     name="fcmToken"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="User_createdAt"    name="createdAt"    visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="User_getId"           name="getId"           visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="User_getEmail"        name="getEmail"        visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="User_getRole"         name="getRole"         visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="User_getDepartmentId" name="getDepartmentId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="User_getFcmToken"     name="getFcmToken"     visibility="public"/>
+      </packagedElement>
+
+      <!-- Department -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_Department" name="Department">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Department_id"        name="id"        visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Department_name"      name="name"      visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Department_createdAt" name="createdAt" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Department_getId"   name="getId"   visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Department_getName" name="getName" visibility="public"/>
+      </packagedElement>
+
+      <!-- Policy -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_Policy" name="Policy">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_id"        name="id"        visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_name"      name="name"      visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_status"    name="status"    visibility="private" type="Enum_PolicyStatus"  association="Assoc_Policy_Status"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_createdBy" name="createdBy" visibility="private" type="Class_User"         association="Assoc_Policy_User"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_nodes"     name="nodes"     visibility="private" type="Class_PolicyNode"   association="Assoc_Policy_Nodes" aggregation="composite"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_edges"     name="edges"     visibility="private" type="Class_PolicyEdge"   association="Assoc_Policy_Edges" aggregation="composite"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_createdAt" name="createdAt" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Policy_updatedAt" name="updatedAt" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Policy_getId"     name="getId"     visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Policy_getNodes"  name="getNodes"  visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Policy_getEdges"  name="getEdges"  visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Policy_getStatus" name="getStatus" visibility="public"/>
+      </packagedElement>
+
+      <!-- PolicyNode -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_PolicyNode" name="PolicyNode">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_id"           name="id"           visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_departmentId" name="departmentId" visibility="private" type="Class_Department" association="Assoc_PolicyNode_Dept"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_nodeType"     name="nodeType"     visibility="private" type="Enum_NodeType"     association="Assoc_PolicyNode_Type"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_title"        name="title"        visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_description"  name="description"  visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_positionX"    name="positionX"    visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_positionY"    name="positionY"    visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyNode_formTemplate" name="formTemplate" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyNode_getId"           name="getId"           visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyNode_getNodeType"     name="getNodeType"     visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyNode_getDepartmentId" name="getDepartmentId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyNode_getFormTemplate" name="getFormTemplate" visibility="public"/>
+      </packagedElement>
+
+      <!-- PolicyEdge -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_PolicyEdge" name="PolicyEdge">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_id"             name="id"             visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_fromNodeId"     name="fromNodeId"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_toNodeId"       name="toNodeId"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_flowType"       name="flowType"       visibility="private" type="Enum_FlowType" association="Assoc_PolicyEdge_Flow"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_conditionLabel" name="conditionLabel" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyEdge_conditionJson"  name="conditionJson"  visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyEdge_getId"         name="getId"         visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyEdge_getFlowType"   name="getFlowType"   visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyEdge_getFromNodeId" name="getFromNodeId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyEdge_getToNodeId"   name="getToNodeId"   visibility="public"/>
+      </packagedElement>
+
+      <!-- Case -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_Case" name="Case">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_id"            name="id"            visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_policyId"      name="policyId"      visibility="private" type="Class_Policy"   association="Assoc_Case_Policy"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_currentNodeId" name="currentNodeId" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_status"        name="status"        visibility="private" type="Enum_CaseStatus" association="Assoc_Case_Status"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_clientId"      name="clientId"      visibility="private" type="Class_User"     association="Assoc_Case_Client"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_tasks"         name="tasks"         visibility="private" type="Class_Task"     association="Assoc_Case_Tasks"     aggregation="composite"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_eventLogs"     name="eventLogs"     visibility="private" type="Class_EventLog" association="Assoc_Case_EventLogs" aggregation="composite"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_startedAt"     name="startedAt"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Case_finishedAt"    name="finishedAt"    visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Case_getId"        name="getId"        visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Case_getStatus"    name="getStatus"    visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Case_getTasks"     name="getTasks"     visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Case_getEventLogs" name="getEventLogs" visibility="public"/>
+      </packagedElement>
+
+      <!-- Task -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_Task" name="Task">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_id"             name="id"             visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_nodeId"         name="nodeId"         visibility="private" type="Class_PolicyNode"    association="Assoc_Task_Node"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_assignedUserId" name="assignedUserId" visibility="private" type="Class_User"          association="Assoc_Task_User"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_status"         name="status"         visibility="private" type="Enum_TaskStatus"     association="Assoc_Task_Status"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_formSubmission" name="formSubmission" visibility="private" type="Class_FormSubmission" association="Assoc_Task_Form" aggregation="composite"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_startedAt"      name="startedAt"      visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_finishedAt"     name="finishedAt"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="Task_dueAt"          name="dueAt"          visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Task_getId"           name="getId"           visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Task_getStatus"       name="getStatus"       visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Task_getAssignedUser" name="getAssignedUserId" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="Task_getNodeId"       name="getNodeId"       visibility="public"/>
+      </packagedElement>
+
+      <!-- FormSubmission -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_FormSubmission" name="FormSubmission">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="FormSubmission_id"          name="id"          visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="FormSubmission_payloadJson" name="payloadJson" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="FormSubmission_inputMode"   name="inputMode"   visibility="private" type="Enum_InputMode" association="Assoc_Form_InputMode"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="FormSubmission_createdAt"   name="createdAt"   visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="FormSubmission_getId"          name="getId"          visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="FormSubmission_getInputMode"   name="getInputMode"   visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="FormSubmission_getPayloadJson" name="getPayloadJson" visibility="public"/>
+      </packagedElement>
+
+      <!-- EventLog -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_EventLog" name="EventLog">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EventLog_type"        name="type"        visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EventLog_payloadJson" name="payloadJson" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EventLog_createdAt"   name="createdAt"   visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EventLog_getType"      name="getType"      visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EventLog_getCreatedAt" name="getCreatedAt" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAQUETE 3: DTOs  — COMPLETADO con todos los atributos
+         ══════════════════════════════════════════════════════ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="Pkg_DTOs" name="DTOs">
+
+      <!-- AuthResponse -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_AuthResponse" name="AuthResponse">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_token"        name="token"        visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_userId"       name="userId"       visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_email"        name="email"        visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_name"         name="name"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_role"         name="role"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthResponse_departmentId" name="departmentId" visibility="public"/>
+      </packagedElement>
+
+      <!-- CaseDetailDto -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_CaseDetailDto" name="CaseDetailDto">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_id"            name="id"            visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_status"        name="status"        visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_currentNodeId" name="currentNodeId" visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_clientId"      name="clientId"      visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_startedAt"     name="startedAt"     visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_finishedAt"    name="finishedAt"    visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_policy"        name="policy"        visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_tasks"         name="tasks"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseDetailDto_eventLogs"     name="eventLogs"     visibility="public"/>
+      </packagedElement>
+
+      <!-- TaskDetailDto -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_TaskDetailDto" name="TaskDetailDto">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_id"             name="id"             visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_status"         name="status"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_startedAt"      name="startedAt"      visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_finishedAt"     name="finishedAt"     visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_node"           name="node"           visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_assignedUser"   name="assignedUser"   visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="TaskDetailDto_formSubmission" name="formSubmission" visibility="public"/>
+      </packagedElement>
+
+      <!-- MyTaskDto -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_MyTaskDto" name="MyTaskDto">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_id"           name="id"           visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_status"       name="status"       visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_startedAt"    name="startedAt"    visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_node"         name="node"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_case"         name="case"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="MyTaskDto_assignedUser" name="assignedUser" visibility="public"/>
+      </packagedElement>
+
+      <!-- LoginRequest -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_LoginRequest" name="LoginRequest">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="LoginRequest_email"    name="email"    visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="LoginRequest_password" name="password" visibility="public"/>
+      </packagedElement>
+
+      <!-- RegisterRequest -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_RegisterRequest" name="RegisterRequest">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="RegisterRequest_email"        name="email"        visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="RegisterRequest_password"     name="password"     visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="RegisterRequest_name"         name="name"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="RegisterRequest_role"         name="role"         visibility="public"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="RegisterRequest_departmentId" name="departmentId" visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ══════════════════════════════════════════════════════
+         PAQUETE 4: Servicios — COMPLETADO con atributos y ops
+         ══════════════════════════════════════════════════════ -->
+    <packagedElement xmi:type="uml:Package" xmi:id="Pkg_Servicios" name="Servicios">
+
+      <!-- AuthService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_AuthService" name="AuthService">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthService_userRepository" name="userRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AuthService_jwtUtil"        name="jwtUtil"        visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="AuthService_login"    name="login"    visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="AuthService_register" name="register" visibility="public"/>
+      </packagedElement>
+
+      <!-- CaseService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_CaseService" name="CaseService">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_caseRepository"       name="caseRepository"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_policyRepository"     name="policyRepository"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_userRepository"       name="userRepository"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_departmentRepository" name="departmentRepository" visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_eventPublisher"       name="eventPublisher"       visibility="private" type="Class_EventPublisher"       association="Assoc_CaseService_EventPublisher"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseService_notificationService"  name="notificationService"  visibility="private" type="Class_NotificationService"  association="Assoc_CaseService_NotifService"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_startCase"          name="startCase"          visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_startCaseForClient" name="startCaseForClient" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_advanceTask"        name="advanceTask"        visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_findAll"            name="findAll"            visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_findByClientId"     name="findByClientId"     visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_findByPolicyId"     name="findByPolicyId"     visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_findById"           name="findById"           visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_routeNextStep"      name="routeNextStep"      visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_handleDecisionNode" name="handleDecisionNode" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_handleForkNode"     name="handleForkNode"     visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseService_handleJoinNode"     name="handleJoinNode"     visibility="private"/>
+      </packagedElement>
+
+      <!-- PolicyService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_PolicyService" name="PolicyService">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="PolicyService_policyRepository" name="policyRepository" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_create"    name="create"    visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_update"    name="update"    visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_delete"    name="delete"    visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_findAll"   name="findAll"   visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_findById"  name="findById"  visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="PolicyService_saveGraph" name="saveGraph" visibility="public"/>
+      </packagedElement>
+
+      <!-- NotificationService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_NotificationService" name="NotificationService">
+        <ownedOperation xmi:type="uml:Operation" xmi:id="NotificationService_send" name="send" visibility="public"/>
+      </packagedElement>
+
+      <!-- AnalyticsService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_AnalyticsService" name="AnalyticsService">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AnalyticsService_caseRepository"       name="caseRepository"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AnalyticsService_policyRepository"     name="policyRepository"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="AnalyticsService_departmentRepository" name="departmentRepository" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="AnalyticsService_getDashboardStats"  name="getDashboardStats"  visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="AnalyticsService_getBottleneckStats" name="getBottleneckStats" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="AnalyticsService_getKpis"            name="getKpis"            visibility="public"/>
+      </packagedElement>
+
+      <!-- EventPublisher -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_EventPublisher" name="EventPublisher">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="EventPublisher_messagingTemplate" name="messagingTemplate" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="EventPublisher_publishCaseUpdate" name="publishCaseUpdate" visibility="public"/>
+      </packagedElement>
+
+      <!-- CaseViewService -->
+      <packagedElement xmi:type="uml:Class" xmi:id="Class_CaseViewService" name="CaseViewService">
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseViewService_caseRepository"       name="caseRepository"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseViewService_policyRepository"     name="policyRepository"     visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseViewService_userRepository"       name="userRepository"       visibility="private"/>
+        <ownedAttribute xmi:type="uml:Property" xmi:id="CaseViewService_departmentRepository" name="departmentRepository" visibility="private"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseViewService_toDetailDto" name="toDetailDto" visibility="public"/>
+        <ownedOperation xmi:type="uml:Operation" xmi:id="CaseViewService_getMyTasks"  name="getMyTasks"  visibility="public"/>
+      </packagedElement>
+
+    </packagedElement>
+
+    <!-- ══════════════════════════════════════════════════════
+         ASOCIACIONES (usan los IDs de atributos como memberEnd)
+         ══════════════════════════════════════════════════════ -->
+
+    <!-- User → Role -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_User_Role" name="role">
+      <memberEnd xmi:idref="User_role"/>
+      <memberEnd xmi:idref="End_User_Role"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_User_Role" type="Class_User" association="Assoc_User_Role"/>
+    </packagedElement>
+
+    <!-- User → Department -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_User_Department" name="departmentId">
+      <memberEnd xmi:idref="User_departmentId"/>
+      <memberEnd xmi:idref="End_User_Dept"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_User_Dept" type="Class_User" association="Assoc_User_Department"/>
+    </packagedElement>
+
+    <!-- Policy → PolicyStatus -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_Status" name="status">
+      <memberEnd xmi:idref="Policy_status"/>
+      <memberEnd xmi:idref="End_Policy_Status"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_Status" type="Class_Policy" association="Assoc_Policy_Status"/>
+    </packagedElement>
+
+    <!-- Policy → User (createdBy) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_User" name="createdBy">
+      <memberEnd xmi:idref="Policy_createdBy"/>
+      <memberEnd xmi:idref="End_Policy_User"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_User" type="Class_Policy" association="Assoc_Policy_User"/>
+    </packagedElement>
+
+    <!-- Policy *-- PolicyNode (composicion) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_Nodes" name="nodes">
+      <memberEnd xmi:idref="Policy_nodes"/>
+      <memberEnd xmi:idref="End_Policy_Nodes"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_Nodes" type="Class_Policy" association="Assoc_Policy_Nodes"/>
+    </packagedElement>
+
+    <!-- Policy *-- PolicyEdge (composicion) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Policy_Edges" name="edges">
+      <memberEnd xmi:idref="Policy_edges"/>
+      <memberEnd xmi:idref="End_Policy_Edges"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Policy_Edges" type="Class_Policy" association="Assoc_Policy_Edges"/>
+    </packagedElement>
+
+    <!-- PolicyNode → NodeType -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_PolicyNode_Type" name="nodeType">
+      <memberEnd xmi:idref="PolicyNode_nodeType"/>
+      <memberEnd xmi:idref="End_PolicyNode_Type"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_PolicyNode_Type" type="Class_PolicyNode" association="Assoc_PolicyNode_Type"/>
+    </packagedElement>
+
+    <!-- PolicyNode → Department -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_PolicyNode_Dept" name="departmentId">
+      <memberEnd xmi:idref="PolicyNode_departmentId"/>
+      <memberEnd xmi:idref="End_PolicyNode_Dept"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_PolicyNode_Dept" type="Class_PolicyNode" association="Assoc_PolicyNode_Dept"/>
+    </packagedElement>
+
+    <!-- PolicyEdge → FlowType -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_PolicyEdge_Flow" name="flowType">
+      <memberEnd xmi:idref="PolicyEdge_flowType"/>
+      <memberEnd xmi:idref="End_PolicyEdge_Flow"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_PolicyEdge_Flow" type="Class_PolicyEdge" association="Assoc_PolicyEdge_Flow"/>
+    </packagedElement>
+
+    <!-- Case → Policy -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_Policy" name="policyId">
+      <memberEnd xmi:idref="Case_policyId"/>
+      <memberEnd xmi:idref="End_Case_Policy"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Policy" type="Class_Case" association="Assoc_Case_Policy"/>
+    </packagedElement>
+
+    <!-- Case → CaseStatus -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_Status" name="status">
+      <memberEnd xmi:idref="Case_status"/>
+      <memberEnd xmi:idref="End_Case_Status"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Status" type="Class_Case" association="Assoc_Case_Status"/>
+    </packagedElement>
+
+    <!-- Case → User (clientId) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_Client" name="clientId">
+      <memberEnd xmi:idref="Case_clientId"/>
+      <memberEnd xmi:idref="End_Case_Client"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Client" type="Class_Case" association="Assoc_Case_Client"/>
+    </packagedElement>
+
+    <!-- Case *-- Task (composicion) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_Tasks" name="tasks">
+      <memberEnd xmi:idref="Case_tasks"/>
+      <memberEnd xmi:idref="End_Case_Tasks"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_Tasks" type="Class_Case" association="Assoc_Case_Tasks"/>
+    </packagedElement>
+
+    <!-- Case *-- EventLog (composicion) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Case_EventLogs" name="eventLogs">
+      <memberEnd xmi:idref="Case_eventLogs"/>
+      <memberEnd xmi:idref="End_Case_EventLogs"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Case_EventLogs" type="Class_Case" association="Assoc_Case_EventLogs"/>
+    </packagedElement>
+
+    <!-- Task → PolicyNode -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Task_Node" name="nodeId">
+      <memberEnd xmi:idref="Task_nodeId"/>
+      <memberEnd xmi:idref="End_Task_Node"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Task_Node" type="Class_Task" association="Assoc_Task_Node"/>
+    </packagedElement>
+
+    <!-- Task → User (assignedUserId) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Task_User" name="assignedUserId">
+      <memberEnd xmi:idref="Task_assignedUserId"/>
+      <memberEnd xmi:idref="End_Task_User"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Task_User" type="Class_Task" association="Assoc_Task_User"/>
+    </packagedElement>
+
+    <!-- Task → TaskStatus -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Task_Status" name="status">
+      <memberEnd xmi:idref="Task_status"/>
+      <memberEnd xmi:idref="End_Task_Status"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Task_Status" type="Class_Task" association="Assoc_Task_Status"/>
+    </packagedElement>
+
+    <!-- Task *-- FormSubmission (composicion) -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Task_Form" name="formSubmission">
+      <memberEnd xmi:idref="Task_formSubmission"/>
+      <memberEnd xmi:idref="End_Task_Form"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Task_Form" type="Class_Task" association="Assoc_Task_Form"/>
+    </packagedElement>
+
+    <!-- FormSubmission → InputMode -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_Form_InputMode" name="inputMode">
+      <memberEnd xmi:idref="FormSubmission_inputMode"/>
+      <memberEnd xmi:idref="End_Form_InputMode"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_Form_InputMode" type="Class_FormSubmission" association="Assoc_Form_InputMode"/>
+    </packagedElement>
+
+    <!-- CaseService → EventPublisher -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_CaseService_EventPublisher" name="eventPublisher">
+      <memberEnd xmi:idref="CaseService_eventPublisher"/>
+      <memberEnd xmi:idref="End_CS_EP"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_CS_EP" type="Class_CaseService" association="Assoc_CaseService_EventPublisher"/>
+    </packagedElement>
+
+    <!-- CaseService → NotificationService -->
+    <packagedElement xmi:type="uml:Association" xmi:id="Assoc_CaseService_NotifService" name="notificationService">
+      <memberEnd xmi:idref="CaseService_notificationService"/>
+      <memberEnd xmi:idref="End_CS_NS"/>
+      <ownedEnd xmi:type="uml:Property" xmi:id="End_CS_NS" type="Class_CaseService" association="Assoc_CaseService_NotifService"/>
+    </packagedElement>
+
+    <!-- ══════════════════════════════════════════════════════
+         DEPENDENCIAS (servicios producen DTOs y se usan entre sí)
+         ══════════════════════════════════════════════════════ -->
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_AuthService_AuthResponse"        supplier="Class_AuthResponse"        client="Class_AuthService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseViewService_CaseDetailDto"   supplier="Class_CaseDetailDto"       client="Class_CaseViewService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseViewService_TaskDetailDto"   supplier="Class_TaskDetailDto"       client="Class_CaseViewService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseViewService_MyTaskDto"       supplier="Class_MyTaskDto"           client="Class_CaseViewService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseService_PolicyService"       supplier="Class_PolicyService"       client="Class_CaseService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseService_NotificationService" supplier="Class_NotificationService" client="Class_CaseService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseService_EventPublisher"      supplier="Class_EventPublisher"      client="Class_CaseService"/>
+    <packagedElement xmi:type="uml:Dependency" xmi:id="Dep_CaseService_CaseViewService"     supplier="Class_CaseViewService"     client="Class_CaseService"/>
+
+  </uml:Model>
+</xmi:XMI>
