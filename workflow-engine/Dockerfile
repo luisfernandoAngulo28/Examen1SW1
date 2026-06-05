@@ -8,7 +8,7 @@ RUN chmod +x mvnw
 # Download dependencies first (cached layer)
 RUN ./mvnw dependency:go-offline -q
 COPY src src
-RUN ./mvnw package -DskipTests -q
+RUN ./mvnw package -Dmaven.test.skip=true -q
 
 # Runtime stage
 FROM eclipse-temurin:22-jre-alpine
