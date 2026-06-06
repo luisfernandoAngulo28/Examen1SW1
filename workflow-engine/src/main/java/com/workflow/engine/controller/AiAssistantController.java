@@ -1,6 +1,8 @@
 package com.workflow.engine.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.workflow.engine.model.Policy;
+import com.workflow.engine.repository.PolicyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ public class AiAssistantController {
 
     /** ObjectMapper inyectado para serializar/deserializar el proxy JSON. */
     private final ObjectMapper objectMapper;
+
+    private final PolicyRepository policyRepository;
 
     // ── Prompt endpoint ────────────────────────────────────────────────────────
 
@@ -69,6 +73,83 @@ public class AiAssistantController {
                 "confidence", Map.of(),
                 "error", "AI service not available — formulario listo para llenado manual"
         ));
+    }
+
+    // ── Policy Suggestion endpoint ─────────────────────────────────────────────
+
+    /**
+     * REQ-AI-ASSIGN: Asignación automática de política por descripción de voz.
+     * Recibe la transcripción del cliente, construye la lista de políticas activas
+     * y delega al microservicio NLP para obtener la mejor coincidencia.
+     */
+    @PostMapping("/suggest-policy")
+    public ResponseEntity<Map<String, Object>> suggestPolicy(@RequestBody Map<String, String> body) {
+        String transcript = body.getOrDefault("transcript", "").trim();
+        if (transcript.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Transcript vacío"));
+        }
+
+        // Fetch active policies and build keyword hints from node titles
+        List<Policy> policies = policyRepository.findAll();
+        List<Map<String, String>> policyList = policies.stream()
+                .filter(p -> p.getStatus() != null &&
+                        !p.getStatus().name().equals("DRAFT"))
+                .map(p -> {
+                    String keywords = p.getNodes().stream()
+                            .map(n -> n.getTitle() != null ? n.getTitle() : "")
+                            .reduce("", (a, b) -> a + " " + b)
+                            .trim();
+                    return Map.of(
+                            "id", p.getId(),
+                            "name", p.getName() != null ? p.getName() : "",
+                            "keywords", keywords
+                    );
+                })
+                .toList();
+
+        if (policyList.isEmpty()) {
+            return ResponseEntity.ok(Map.of(
+                    "policyId", "",
+                    "policyName", "",
+                    "confidence", 0.0,
+                    "explanation", "No hay políticas activas disponibles en el sistema."
+            ));
+        }
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("transcript", transcript);
+        requestBody.put("policies", policyList);
+
+        Map<String, Object> aiResult = proxyPost("/nlp/assign-policy", requestBody);
+        if (aiResult != null) return ResponseEntity.ok(aiResult);
+
+        // Local fallback: simple keyword matching
+        return ResponseEntity.ok(localAssignPolicy(transcript, policyList));
+    }
+
+    /** Fallback local cuando el microservicio no está disponible. */
+    private Map<String, Object> localAssignPolicy(String transcript, List<Map<String, String>> policies) {
+        String lower = transcript.toLowerCase(java.util.Locale.ROOT);
+        Map<String, String> best = null;
+        int bestHits = 0;
+        for (Map<String, String> p : policies) {
+            String combined = (p.getOrDefault("name", "") + " " + p.getOrDefault("keywords", "")).toLowerCase(java.util.Locale.ROOT);
+            int hits = 0;
+            for (String word : combined.split("\\s+")) {
+                if (word.length() > 3 && lower.contains(word)) hits++;
+            }
+            if (hits > bestHits) { bestHits = hits; best = p; }
+        }
+        if (best == null) best = policies.get(0);
+        double conf = bestHits > 0 ? Math.min(0.3 + bestHits * 0.1, 0.85) : 0.3;
+        return Map.of(
+                "policyId", best.get("id"),
+                "policyName", best.get("name"),
+                "confidence", conf,
+                "explanation", bestHits > 0
+                        ? "Coincidencia por palabras clave con '" + best.get("name") + "'."
+                        : "No se encontró coincidencia directa. Se sugiere la primera política activa."
+        );
     }
 
     // ── Proxy helper: delega al microservicio Python/FastAPI ───────────────────

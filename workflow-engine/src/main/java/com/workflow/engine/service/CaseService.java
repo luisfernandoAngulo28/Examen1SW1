@@ -287,6 +287,45 @@ public class CaseService {
                     }
                     // If not all branches done yet: do nothing — JOIN waits silently
 
+                } else if (nextNode.getNodeType() == NodeType.MERGE) {
+                    // MERGE (UML 2.5): multiple incoming flows → 1 outgoing, no guards.
+                    // Unlike JOIN, MERGE does NOT wait — it forwards the FIRST token that arrives.
+                    // Idempotent: only create post-merge task if MERGE has not been traversed yet.
+                    boolean alreadyMerged = currentCase.getTasks().stream()
+                            .anyMatch(t -> t.getNodeId().equals(nextNodeId));
+                    if (!alreadyMerged) {
+                        Task mergeTask = new Task();
+                        mergeTask.setId(UUID.randomUUID().toString());
+                        mergeTask.setNodeId(nextNodeId);
+                        mergeTask.setStatus(TaskStatus.DONE);
+                        mergeTask.setFinishedAt(Instant.now());
+                        currentCase.getTasks().add(mergeTask);
+                        currentCase.setCurrentNodeId(nextNodeId);
+                        addEvent(currentCase, "TASK_CREATED");
+
+                        policy.getEdges().stream()
+                                .filter(me -> me.getFromNodeId().equals(nextNodeId))
+                                .forEach(me -> {
+                                    PolicyNode afterMerge = policy.getNodes().stream()
+                                            .filter(n -> n.getId().equals(me.getToNodeId()))
+                                            .findFirst().orElse(null);
+                                    if (afterMerge != null && afterMerge.getNodeType() == NodeType.FINAL) {
+                                        currentCase.setStatus(CaseStatus.COMPLETED);
+                                        currentCase.setFinishedAt(Instant.now());
+                                        addEvent(currentCase, "CASE_COMPLETED");
+                                    } else {
+                                        Task postMergeTask = new Task();
+                                        postMergeTask.setId(UUID.randomUUID().toString());
+                                        postMergeTask.setNodeId(me.getToNodeId());
+                                        postMergeTask.setStatus(TaskStatus.PENDING);
+                                        currentCase.getTasks().add(postMergeTask);
+                                        currentCase.setCurrentNodeId(me.getToNodeId());
+                                        addEvent(currentCase, "TASK_CREATED");
+                                    }
+                                });
+                    }
+                    // Subsequent tokens arriving at MERGE are discarded (UML 2.5 semantics)
+
                 } else {
                     Task newTask = new Task();
                     newTask.setId(UUID.randomUUID().toString());
