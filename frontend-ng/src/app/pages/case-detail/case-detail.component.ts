@@ -151,9 +151,9 @@ interface UserOption { id: string; name: string; email: string; }
       <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1500;display:flex;align-items:center;justify-content:center">
         <div style="background:#fff;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
           <div style="text-align:center;font-size:52px;margin-bottom:8px">⚠️</div>
-          <h2 style="color:#ff4d4f;text-align:center;margin:0 0 8px">Riesgo ALTO Detectado</h2>
+          <h2 style="color:#ff4d4f;text-align:center;margin:0 0 8px">Riesgo Detectado por IA</h2>
           <p style="color:#666;text-align:center;font-size:14px;margin-bottom:20px">
-            El <strong>Motor Inteligente de Enrutamiento</strong> (ML) detectó que este trámite tiene alta probabilidad de demora antes de avanzar al siguiente nodo.
+            El <strong>Motor Inteligente de Enrutamiento</strong> (ML/TensorFlow) detectó probabilidad de demora en este trámite. Nivel: <strong style="color:#ff4d4f">{{ riskWarning.risk_level || 'MEDIO' }}</strong>
           </p>
           <div style="background:#fff2f0;border:1px solid #ffccc7;border-radius:8px;padding:14px;margin-bottom:20px">
             <div style="display:flex;justify-content:space-between;margin-bottom:6px">
@@ -256,7 +256,8 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${API_BASE}/ml/dashboard`).subscribe({
       next: dashboard => {
         const riskItem = (dashboard.delayRisk || []).find((r: any) => r.case_id === this.id);
-        if (riskItem?.risk_level === 'HIGH') {
+        const isRisky = riskItem && (riskItem.risk_level === 'HIGH' || riskItem.risk_level === 'MEDIUM' || (riskItem.risk_score || 0) > 0.20);
+        if (isRisky) {
           this.riskWarning = riskItem;
           this.pendingCompletion = { taskId, chosenEdgeLabel };
         } else {
