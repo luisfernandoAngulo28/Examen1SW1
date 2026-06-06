@@ -1,6 +1,6 @@
-// Dev (ng serve :4200): talks directly to Spring Boot on :8080
-// Production (Docker/nginx): nginx proxies /api → backend container
+// Dev (ng serve on localhost): talks directly to Spring Boot on :8080
+// Production (nginx on any IP): uses relative /api so nginx proxies to backend
 export const API_BASE =
-  window.location.port === '4200'
+  (window.location.hostname === 'localhost')
     ? 'http://localhost:8080/api'
-    : `${window.location.protocol}//${window.location.host}/api`;
+    : '/api';
