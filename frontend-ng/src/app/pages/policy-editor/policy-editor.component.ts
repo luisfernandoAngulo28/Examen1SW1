@@ -52,6 +52,10 @@ function nodeColor(type: string) {
         <span class="badge" [class]="wsConnected ? 'badge-green' : 'badge-red'" style="font-size:11px;padding:3px 8px">
           {{ wsConnected ? '● En vivo' : '○ Sin WS' }}
         </span>
+        <button (click)="exportDiagramPng()" class="btn btn-ghost" style="display:inline-flex;align-items:center;gap:4px" title="Exportar diagrama como PNG">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar PNG
+        </button>
         <button (click)="save()" class="btn btn-primary" [disabled]="saving" style="display:inline-flex;align-items:center;gap:4px">
           @if (!saving) { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> }
           {{ saving ? 'Guardando...' : 'Guardar' }}
@@ -604,6 +608,43 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
         buttonLabel: f.buttonLabel || '',
       }));
     } catch { this.formFields = []; }
+  }
+
+  exportDiagramPng() {
+    const svgEl = (document.querySelector('svg[style*="background"]')
+               || document.querySelector('svg')) as SVGSVGElement | null;
+    if (!svgEl) { this.toast.show('Cambia a vista de swim lanes para exportar', 'info'); return; }
+
+    const w = svgEl.viewBox?.baseVal?.width  || svgEl.getBoundingClientRect().width  || 1200;
+    const h = svgEl.viewBox?.baseVal?.height || svgEl.getBoundingClientRect().height || 600;
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w * 2; canvas.height = h * 2;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#f8f9fa'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const img = new Image();
+    img.onload = () => {
+      ctx.scale(2, 2); ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `${(this.policyName || 'diagrama').replace(/\s+/g,'_')}.png`;
+      a.click();
+      this.toast.show('Diagrama exportado como PNG', 'success');
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([svgData], { type: 'image/svg+xml' }));
+      a.download = `${(this.policyName || 'diagrama').replace(/\s+/g,'_')}.svg`;
+      a.click();
+      this.toast.show('Exportado como SVG', 'info');
+    };
+    img.src = url;
   }
 
   save() {

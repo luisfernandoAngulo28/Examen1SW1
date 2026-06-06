@@ -145,6 +145,38 @@ interface UserOption { id: string; name: string; email: string; }
         </div>
       </div>
     }
+
+    <!-- ══ Motor Inteligente de Enrutamiento — Risk Warning Modal ═══════════ -->
+    @if (riskWarning) {
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1500;display:flex;align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+          <div style="text-align:center;font-size:52px;margin-bottom:8px">⚠️</div>
+          <h2 style="color:#ff4d4f;text-align:center;margin:0 0 8px">Riesgo ALTO Detectado</h2>
+          <p style="color:#666;text-align:center;font-size:14px;margin-bottom:20px">
+            El <strong>Motor Inteligente de Enrutamiento</strong> (ML) detectó que este trámite tiene alta probabilidad de demora antes de avanzar al siguiente nodo.
+          </p>
+          <div style="background:#fff2f0;border:1px solid #ffccc7;border-radius:8px;padding:14px;margin-bottom:20px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;color:#666">Puntuación de riesgo:</span>
+              <span style="font-size:13px;font-weight:700;color:#ff4d4f">{{ ((riskWarning.risk_score || 0.85) * 100).toFixed(0) }}%</span>
+            </div>
+            <div style="font-size:12px;color:#cf1322">
+              <strong>Recomendación IA:</strong> {{ riskWarning.recommendation || 'Revisar la carga de trabajo del departamento antes de continuar.' }}
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button (click)="riskWarning=null;pendingCompletion=null"
+                    style="background:#fff;color:#666;border:1px solid #d9d9d9;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;font-weight:600">
+              ← Cancelar y revisar
+            </button>
+            <button (click)="confirmCompletion()"
+                    style="background:#ff4d4f;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;cursor:pointer;font-weight:600">
+              Avanzar de todas formas →
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class CaseDetailComponent implements OnInit, OnDestroy {
@@ -155,6 +187,8 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
   decisionEdges: Record<string, { conditionLabel: string; toNodeId: string }[]> = {};
   expandedForms = new Set<string>();
   wsConnected = false;
+  riskWarning: any = null;
+  pendingCompletion: { taskId: string; chosenEdgeLabel?: string } | null = null;
 
   readonly statusColor: Record<string, string> = { PENDING: '#999', IN_PROGRESS: '#fa8c16', DONE: '#52c41a', BLOCKED: '#ff4d4f' };
   private id = '';
@@ -218,6 +252,30 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
   }
 
   complete(taskId: string, chosenEdgeLabel?: string) {
+    // Motor Inteligente de Enrutamiento: consultar ML antes de avanzar
+    this.http.get<any>(`${API_BASE}/ml/dashboard`).subscribe({
+      next: dashboard => {
+        const riskItem = (dashboard.delayRisk || []).find((r: any) => r.case_id === this.id);
+        if (riskItem?.risk_level === 'HIGH') {
+          this.riskWarning = riskItem;
+          this.pendingCompletion = { taskId, chosenEdgeLabel };
+        } else {
+          this.doComplete(taskId, chosenEdgeLabel);
+        }
+      },
+      error: () => this.doComplete(taskId, chosenEdgeLabel)
+    });
+  }
+
+  confirmCompletion() {
+    if (this.pendingCompletion) {
+      this.doComplete(this.pendingCompletion.taskId, this.pendingCompletion.chosenEdgeLabel);
+      this.riskWarning = null;
+      this.pendingCompletion = null;
+    }
+  }
+
+  private doComplete(taskId: string, chosenEdgeLabel?: string) {
     this.http.post(`${API_BASE}/cases/tasks/${taskId}/complete`, { chosenEdgeLabel }).subscribe({
       next: () => { this.toast.show('Tarea completada', 'success'); this.load(); },
       error: () => this.toast.show('Error al completar tarea', 'error')
