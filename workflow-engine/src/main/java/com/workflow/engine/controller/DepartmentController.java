@@ -22,13 +22,13 @@ public class DepartmentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Department> create(@RequestBody Department department) {
         return ResponseEntity.ok(departmentService.create(department));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         departmentService.delete(id);
         return ResponseEntity.noContent().build();

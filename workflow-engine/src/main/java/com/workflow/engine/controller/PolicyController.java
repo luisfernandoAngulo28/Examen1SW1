@@ -29,19 +29,19 @@ public class PolicyController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Policy> create(@RequestBody Policy policy) {
         return ResponseEntity.ok(policyService.create(policy));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Policy> update(@PathVariable String id, @RequestBody Policy policy) {
         return ResponseEntity.ok(policyService.update(id, policy));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         policyService.delete(id);
         return ResponseEntity.noContent().build();
@@ -49,7 +49,7 @@ public class PolicyController {
 
     /** Saves only nodes+edges (graph topology) without touching other policy fields. */
     @PutMapping("/{id}/graph")
-    @PreAuthorize("hasRole('DESIGNER')")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Policy> updateGraph(@PathVariable String id,
                                                @RequestBody java.util.Map<String, Object> body) {
         Policy saved = policyService.updateGraph(id, body);

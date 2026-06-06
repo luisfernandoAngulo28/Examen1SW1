@@ -68,9 +68,15 @@ print("  ✓ admin logueado")
 
 # ── 2. Reset (opcional) ───────────────────────────────────────────────────────
 if RESET:
-    print("\n🗑   Reset: borrando todos los trámites...")
+    print("\n🗑   Reset: borrando trámites y políticas...")
     req("DELETE", "/cases", token=admin_token)
     print("  ✓ trámites eliminados")
+    # Borrar políticas existentes para recrearlas con las aristas correctas
+    existing_reset = req("GET", "/policies", token=admin_token) or []
+    for p in existing_reset:
+        req("DELETE", f"/policies/{p['id']}", token=admin_token)
+    if existing_reset:
+        print(f"  ✓ {len(existing_reset)} política(s) eliminada(s)")
 
 # ── 3. Departamentos ──────────────────────────────────────────────────────────
 print("\n🏢  Creando departamentos...")
@@ -184,10 +190,10 @@ policy1 = make_policy(
         {"id": "n5", "nodeType": "FINAL",    "title": "Trámite Completado",   "departmentId": None,      "positionX": 900, "positionY": 200, "documentPermission": "VIEW"},
     ],
     edges=[
-        {"id": "e1", "source": "n1", "target": "n2", "label": ""},
-        {"id": "e2", "source": "n2", "target": "n3", "label": ""},
-        {"id": "e3", "source": "n3", "target": "n4", "label": ""},
-        {"id": "e4", "source": "n4", "target": "n5", "label": ""},
+        {"id": "e1", "fromNodeId": "n1", "toNodeId": "n2", "conditionLabel": ""},
+        {"id": "e2", "fromNodeId": "n2", "toNodeId": "n3", "conditionLabel": ""},
+        {"id": "e3", "fromNodeId": "n3", "toNodeId": "n4", "conditionLabel": ""},
+        {"id": "e4", "fromNodeId": "n4", "toNodeId": "n5", "conditionLabel": ""},
     ],
     token=designer_token or admin_token
 )
@@ -229,13 +235,13 @@ policy2 = make_policy(
         {"id": "a7", "nodeType": "FINAL",    "title": "Licencia Emitida",         "departmentId": None,       "positionX": 1000, "positionY": 250, "documentPermission": "VIEW"},
     ],
     edges=[
-        {"id": "b1", "source": "a1", "target": "a2", "label": ""},
-        {"id": "b2", "source": "a2", "target": "a3", "label": ""},
-        {"id": "b3", "source": "a3", "target": "a4", "label": "Sí, inspección"},
-        {"id": "b4", "source": "a3", "target": "a5", "label": "No, directo"},
-        {"id": "b5", "source": "a4", "target": "a5", "label": ""},
-        {"id": "b6", "source": "a5", "target": "a6", "label": ""},
-        {"id": "b7", "source": "a6", "target": "a7", "label": ""},
+        {"id": "b1", "fromNodeId": "a1", "toNodeId": "a2", "conditionLabel": ""},
+        {"id": "b2", "fromNodeId": "a2", "toNodeId": "a3", "conditionLabel": ""},
+        {"id": "b3", "fromNodeId": "a3", "toNodeId": "a4", "conditionLabel": "Sí, inspección"},
+        {"id": "b4", "fromNodeId": "a3", "toNodeId": "a5", "conditionLabel": "No, directo"},
+        {"id": "b5", "fromNodeId": "a4", "toNodeId": "a5", "conditionLabel": ""},
+        {"id": "b6", "fromNodeId": "a5", "toNodeId": "a6", "conditionLabel": ""},
+        {"id": "b7", "fromNodeId": "a6", "toNodeId": "a7", "conditionLabel": ""},
     ],
     token=designer_token or admin_token
 )
