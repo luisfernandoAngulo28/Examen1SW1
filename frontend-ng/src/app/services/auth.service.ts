@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { API_BASE } from '../api';
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'DESIGNER' | 'OFFICER' | 'ADMIN' | 'SUPERVISOR';
+  role: 'DESIGNER' | 'OFFICER' | 'ADMIN' | 'SUPERVISOR' | 'CLIENT';
   departmentId?: string | null;
 }
 
@@ -21,7 +22,7 @@ export interface AuthResponse {
   departmentId?: string | null;
 }
 
-const API = (import.meta as any).env?.['VITE_API_URL'] || 'http://localhost:8080/api';
+const API = API_BASE;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

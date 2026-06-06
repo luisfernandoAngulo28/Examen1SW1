@@ -66,7 +66,13 @@ interface MyTask {
                         [style.color]="taskPriority(t)===3?'#cf1322':taskPriority(t)===2?'#d48806':'#389e0d'"
                         [style.border]="'1px solid '+(taskPriority(t)===3?'#ffa39e':taskPriority(t)===2?'#ffe58f':'#b7eb8f')"
                         style="font-size:11px;border-radius:4px;padding:2px 7px;font-weight:600">
-                    {{ taskPriority(t)===3 ? '🔴 Alta' : taskPriority(t)===2 ? '🟡 Media' : '🟢 Baja' }}
+                    @if (taskPriority(t)===3) {
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#cf1322" stroke="none" style="margin-right:3px"><circle cx="12" cy="12" r="10"/></svg>Alta
+                    } @else if (taskPriority(t)===2) {
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#d48806" stroke="none" style="margin-right:3px"><circle cx="12" cy="12" r="10"/></svg>Media
+                    } @else {
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#389e0d" stroke="none" style="margin-right:3px"><circle cx="12" cy="12" r="10"/></svg>Baja
+                    }
                   </span>
                 </td>
                 <td><a [routerLink]="['/cases', t.case.id]" class="btn btn-primary btn-sm">{{ t.status === 'DONE' ? 'Ver' : 'Atender' }}</a></td>

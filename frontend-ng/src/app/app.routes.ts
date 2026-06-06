@@ -18,6 +18,8 @@ export const routes: Routes = [
       { path: 'policies/:id/editor', loadComponent: () => import('./pages/policy-editor/policy-editor.component').then(m => m.PolicyEditorComponent) },
       { path: 'policies/:policyId/cases', loadComponent: () => import('./pages/cases/cases.component').then(m => m.CasesComponent) },
       { path: 'cases/:id', loadComponent: () => import('./pages/case-detail/case-detail.component').then(m => m.CaseDetailComponent) },
+      { path: 'nuevo-proceso', loadComponent: () => import('./pages/nuevo-proceso/nuevo-proceso.component').then(m => m.NuevoProcesComponent) },
+      { path: 'reports', loadComponent: () => import('./pages/reports/reports.component').then(m => m.ReportsComponent) },
     ]
   },
   { path: '**', redirectTo: '' }

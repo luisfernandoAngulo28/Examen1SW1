@@ -23,6 +23,16 @@ interface PolicyNode { id: string; title: string; nodeType: string; departmentId
 interface PolicyEdge { id: string; fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; }
 interface AiResponse { action: string; suggestion: string; nodes?: { title: string; department: string }[]; connections?: { from: string; to: string; flowType: string }[]; }
 
+function uuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 function nodeColor(type: string) {
   const map: Record<string, string> = { INITIAL: '#52c41a', FINAL: '#ff4d4f', DECISION: '#faad14', FORK: '#722ed1', JOIN: '#13c2c2', ACTION: '#1677ff' };
   return map[type] || '#1677ff';
@@ -42,7 +52,10 @@ function nodeColor(type: string) {
         <span class="badge" [class]="wsConnected ? 'badge-green' : 'badge-red'" style="font-size:11px;padding:3px 8px">
           {{ wsConnected ? '● En vivo' : '○ Sin WS' }}
         </span>
-        <button (click)="save()" class="btn btn-primary" [disabled]="saving">{{ saving ? 'Guardando...' : '💾 Guardar' }}</button>
+        <button (click)="save()" class="btn btn-primary" [disabled]="saving" style="display:inline-flex;align-items:center;gap:4px">
+          @if (!saving) { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> }
+          {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
       </div>
     </div>
 
@@ -70,8 +83,12 @@ function nodeColor(type: string) {
               <button type="button" (click)="voiceNodeTitle()" class="btn btn-ghost btn-sm"
                 [style.color]="listeningNodeTitle ? '#ff4d4f' : ''"
                 [style.border]="listeningNodeTitle ? '1px solid #ff4d4f' : ''"
-                title="Dictar nombre por voz">
-                {{ listeningNodeTitle ? '🔴' : '🎤' }}
+                title="Dictar nombre por voz" style="display:inline-flex;align-items:center">
+                @if (listeningNodeTitle) {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="#ff4d4f" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                } @else {
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                }
               </button>
             </div>
           </div>
@@ -110,8 +127,14 @@ function nodeColor(type: string) {
         <!-- View toggle bar -->
         <div style="flex-shrink:0;display:flex;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);background:var(--bg-secondary)">
           <span style="font-size:12px;font-weight:600;color:var(--text-secondary)">Vista:</span>
-          <button [class]="'btn btn-sm '+(viewMode==='lanes'?'btn-primary':'btn-ghost')" (click)="viewMode='lanes'">🏊 Calles</button>
-          <button [class]="'btn btn-sm '+(viewMode==='graph'?'btn-primary':'btn-ghost')" (click)="viewMode='graph';graphUpdate$.next(true)">🔀 Grafo libre</button>
+          <button [class]="'btn btn-sm '+(viewMode==='lanes'?'btn-primary':'btn-ghost')" (click)="viewMode='lanes'" style="display:inline-flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="9"/><line x1="9" y1="15" x2="9" y2="21"/></svg>
+            Calles
+          </button>
+          <button [class]="'btn btn-sm '+(viewMode==='graph'?'btn-primary':'btn-ghost')" (click)="viewMode='graph';graphUpdate$.next(true)" style="display:inline-flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Grafo libre
+          </button>
         </div>
 
         <!-- Swim lane view -->
@@ -119,7 +142,8 @@ function nodeColor(type: string) {
           <div style="flex:1;overflow:auto">
             @if (!laneViewData) {
               <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--text-secondary)">
-                <div style="font-size:48px">📋</div><p>Agrega nodos desde el panel izquierdo</p>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.35"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M5 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
+                <p>Agrega nodos desde el panel izquierdo</p>
               </div>
             } @else {
               <svg [attr.width]="laneViewData.svgW" [attr.height]="laneViewData.svgH" style="display:block">
@@ -214,16 +238,25 @@ function nodeColor(type: string) {
             </ngx-graph>
             @if (graphNodes.length === 0) {
               <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--text-secondary);pointer-events:none">
-                <div style="font-size:48px">📋</div>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.35"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M5 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/></svg>
                 <p>Agrega nodos desde el panel izquierdo</p>
               </div>
             }
             @if (selectedNodeId) {
               <div style="position:absolute;top:16px;right:16px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
                 <p style="font-size:13px;font-weight:600;margin-bottom:10px">Nodo seleccionado</p>
-                <button (click)="deleteNode()" class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px">🗑 Eliminar nodo</button>
-                <button (click)="openFormEditor()" class="btn btn-ghost btn-sm" style="width:100%">📝 Editar formulario</button>
-                <button (click)="selectedNodeId=''" class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px">✕ Deseleccionar</button>
+                <button (click)="deleteNode()" class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;display:inline-flex;align-items:center;justify-content:center;gap:4px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  Eliminar nodo
+                </button>
+                <button (click)="openFormEditor()" class="btn btn-ghost btn-sm" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar formulario
+                </button>
+                <button (click)="selectedNodeId=''" class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px;display:inline-flex;align-items:center;justify-content:center;gap:4px">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Deseleccionar
+                </button>
               </div>
             }
           </div>
@@ -234,8 +267,14 @@ function nodeColor(type: string) {
       <div style="border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">
         <!-- Tabs -->
         <div style="display:flex;border-bottom:1px solid var(--border)">
-          <button [class]="'btn btn-sm ' + (rightTab==='ai' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0" (click)="rightTab='ai'">🤖 AI</button>
-          <button [class]="'btn btn-sm ' + (rightTab==='form' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0" (click)="rightTab='form'">📝 Formulario</button>
+          <button [class]="'btn btn-sm ' + (rightTab==='ai' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0;display:inline-flex;align-items:center;justify-content:center;gap:4px" (click)="rightTab='ai'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+            AI
+          </button>
+          <button [class]="'btn btn-sm ' + (rightTab==='form' ? 'btn-primary' : 'btn-ghost')" style="flex:1;border-radius:0;display:inline-flex;align-items:center;justify-content:center;gap:4px" (click)="rightTab='form'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Formulario
+          </button>
         </div>
 
         <!-- AI Panel -->
@@ -251,9 +290,13 @@ function nodeColor(type: string) {
                 @if (msg.role === 'ai') {
                   <div style="margin-top:3px">
                     <button (click)="speakMessage(msg.text, idx)" class="btn btn-ghost btn-sm"
-                      style="padding:1px 7px;font-size:11px;border-radius:4px"
+                      style="padding:1px 7px;font-size:11px;border-radius:4px;display:inline-flex;align-items:center;gap:3px"
                       [title]="speakingIdx === idx ? 'Detener (ElevenLabs TTS)' : 'Escuchar respuesta (ElevenLabs TTS)'">
-                      {{ speakingIdx === idx ? '⏹ Detener' : '🔊 Escuchar' }}
+                      @if (speakingIdx === idx) {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> Detener
+                      } @else {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Escuchar
+                      }
                     </button>
                   </div>
                 }
@@ -266,24 +309,35 @@ function nodeColor(type: string) {
               <button (click)="startVoiceAi()" class="btn btn-sm"
                 [class]="listeningAi ? 'btn-danger' : 'btn-ghost'"
                 [title]="listeningAi ? 'Grabando... clic para parar' : 'Dictar por voz'"
-                style="padding:6px 12px">
-                {{ listeningAi ? '🔴 Grabando...' : '🎤 Voz' }}
+                style="padding:6px 12px;display:inline-flex;align-items:center;gap:4px">
+                @if (listeningAi) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg> Grabando...
+                } @else {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Voz
+                }
               </button>
               <button (click)="fileInput.click()" class="btn btn-ghost btn-sm"
                 [disabled]="ocrLoading"
                 title="Subir imagen o foto de diagrama (OCR)"
-                style="padding:6px 12px">
-                {{ ocrLoading ? '🔄 ' + ocrProgress + '%' : '📷 OCR' }}
+                style="padding:6px 12px;display:inline-flex;align-items:center;gap:4px">
+                @if (ocrLoading) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> {{ ocrProgress }}%
+                } @else {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> OCR
+                }
               </button>
               <input #fileInput type="file" accept="image/*" style="display:none" (change)="uploadImage($event)" />
-              <button (click)="sendAiPrompt()" class="btn btn-primary btn-sm" [disabled]="aiLoading || ocrLoading" style="flex:1">{{ aiLoading ? '...' : '✈ Enviar' }}</button>
+              <button (click)="sendAiPrompt()" class="btn btn-primary btn-sm" [disabled]="aiLoading || ocrLoading" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px">
+                @if (!aiLoading) { <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> }
+                {{ aiLoading ? '...' : 'Enviar' }}
+              </button>
             </div>
             @if (voiceError) {
               <p style="font-size:11px;color:var(--danger);margin:0">{{ voiceError }}</p>
             }
             @if (ocrLoading) {
               <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:8px;font-size:12px;color:#0369a1">
-                🔍 Leyendo imagen con OCR... {{ ocrProgress }}%
+                Leyendo imagen con OCR... {{ ocrProgress }}%
                 <div style="background:#e0f2fe;border-radius:4px;height:4px;margin-top:4px">
                   <div [style.width.%]="ocrProgress" style="background:#0284c7;height:4px;border-radius:4px;transition:width 0.3s"></div>
                 </div>
@@ -309,13 +363,28 @@ function nodeColor(type: string) {
                       <option value="date">Fecha</option>
                       <option value="textarea">Párrafo</option>
                       <option value="select">Selección</option>
+                      <option value="grid">Grid (tabla)</option>
+                      <option value="button">Botón acción</option>
                     </select>
-                    <button (click)="removeField(i)" class="btn btn-danger btn-sm" style="padding:4px 8px">✕</button>
+                    @if (field.type === 'grid') {
+                      <input [(ngModel)]="field.columns" placeholder="Col1,Col2,Col3"
+                        class="form-input" style="flex:2;font-size:11px" title="Columnas separadas por coma" />
+                    }
+                    @if (field.type === 'button') {
+                      <input [(ngModel)]="field.buttonLabel" placeholder="Texto del botón"
+                        class="form-input" style="flex:2;font-size:11px" />
+                    }
+                    <button (click)="removeField(i)" class="btn btn-danger btn-sm" style="padding:4px 8px;display:inline-flex;align-items:center">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
                   </div>
                 }
               </div>
               <button (click)="addField()" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:12px">+ Campo</button>
-              <button (click)="saveForm()" class="btn btn-primary btn-sm" [disabled]="savingForm" style="width:100%">{{ savingForm ? 'Guardando...' : '💾 Guardar formulario' }}</button>
+              <button (click)="saveForm()" class="btn btn-primary btn-sm" [disabled]="savingForm" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:4px">
+                @if (!savingForm) { <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> }
+                {{ savingForm ? 'Guardando...' : 'Guardar formulario' }}
+              </button>
             }
           </div>
         }
@@ -334,7 +403,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   saving = false;
   selectedNodeId = '';
   selectedNodeTitle = '';
-  formFields: { name: string; label: string; type: string; required: boolean }[] = [];
+  formFields: { name: string; label: string; type: string; required: boolean; columns?: string; buttonLabel?: string }[] = [];
   savingForm = false;
   rightTab: 'ai' | 'form' = 'ai';
   aiPrompt = '';
@@ -355,9 +424,13 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   private currentAudio: HTMLAudioElement | null = null;
 
   readonly nodeTypes = [
-    { type: 'ACTION', color: '#1677ff' }, { type: 'DECISION', color: '#faad14' },
-    { type: 'FORK', color: '#722ed1' }, { type: 'JOIN', color: '#13c2c2' },
-    { type: 'INITIAL', color: '#52c41a' }, { type: 'FINAL', color: '#ff4d4f' },
+    { type: 'ACTION',    color: '#1677ff' },
+    { type: 'DECISION',  color: '#faad14' },
+    { type: 'MERGE',     color: '#fa8c16' },
+    { type: 'FORK',      color: '#722ed1' },
+    { type: 'JOIN',      color: '#13c2c2' },
+    { type: 'INITIAL',   color: '#52c41a' },
+    { type: 'FINAL',     color: '#ff4d4f' },
   ];
 
   get isAutoName() { return ['INITIAL', 'FINAL', 'FORK', 'JOIN'].includes(this.newNodeType); }
@@ -374,23 +447,39 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.policyId = this.route.snapshot.paramMap.get('id')!;
     this.connectEditorWs();
-    this.http.get<Dept[]>(`${API_BASE}/departments`).subscribe(d => { this.departments = d; if (d.length) this.selectedDept = d[0].id; });
+    // Load departments first so dept names are available when mapping policy nodes
+    this.http.get<Dept[]>(`${API_BASE}/departments`).subscribe(d => {
+      this.departments = d;
+      if (d.length) this.selectedDept = d[0].id;
+      this._loadPolicy();
+    });
+  }
+
+  private _mapNode(n: any, index: number): Node {
+    const deptName = this.departments.find(d => d.id === n.departmentId)?.name
+      || n.department?.name || 'General';
+    const px = n.positionX || 100 + index * 180;
+    const py = n.positionY || 100 + (index % 3) * 120;
+    return {
+      id: n.id || uuid(),
+      label: n.title || n.nodeType,
+      data: { nodeType: n.nodeType, deptName, departmentId: n.departmentId, positionX: px, positionY: py },
+      dimension: { width: 140, height: 50 },
+      position: { x: px, y: py },
+    };
+  }
+
+  private _loadPolicy() {
     this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe(p => {
       this.policyName = p.name;
-      this.graphNodes = (p.nodes || []).map((n: any) => ({
-        id: n.id,
-        label: n.title,
-        data: { nodeType: n.nodeType, deptName: n.department?.name || '', departmentId: n.departmentId, positionX: n.positionX, positionY: n.positionY },
-        dimension: { width: 140, height: 50 },
-      }));
+      this.graphNodes = (p.nodes || []).map((n: any, i: number) => this._mapNode(n, i));
       this.graphLinks = (p.edges || []).map((e: any) => ({
-        id: e.id,
+        id: e.id || uuid(),
         source: e.fromNodeId,
         target: e.toNodeId,
         label: e.conditionLabel || (e.flowType !== 'SEQUENTIAL' ? e.flowType : ''),
         data: { flowType: e.flowType, conditionLabel: e.conditionLabel },
       }));
-      // Force ngx-graph to recompute layout once data arrives
       this.laneViewData = this.computeLaneView();
       setTimeout(() => this.graphUpdate$.next(true), 50);
     });
@@ -401,11 +490,12 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
     const title = this.newNodeTitle.trim() || defaults[this.newNodeType] || '';
     if (!title) { this.toast.show('Ingresa un nombre para el nodo', 'error'); return; }
     const dept = this.departments.find(d => d.id === this.selectedDept);
-    const id = crypto.randomUUID();
+    const id = uuid();
+    const idx = this.graphNodes.length;
     const newNode: Node = {
       id,
       label: title,
-      data: { nodeType: this.newNodeType, deptName: dept?.name || '', departmentId: this.selectedDept, positionX: 100, positionY: 100 },
+      data: { nodeType: this.newNodeType, deptName: dept?.name || '', departmentId: this.selectedDept, positionX: 100 + idx * 180, positionY: 100 + (idx % 3) * 120 },
       dimension: { width: 140, height: 50 },
     };
     this.graphNodes = [...this.graphNodes, newNode];
@@ -441,7 +531,14 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   saveForm() {
     if (!this.selectedNodeId) return;
     this.savingForm = true;
-    const schema = { fields: this.formFields.map(f => ({ ...f, name: f.label.toLowerCase().replace(/\s+/g, '_') || f.name })) };
+    const schema = {
+      fields: this.formFields.map(f => ({
+        ...f,
+        name: f.label.toLowerCase().replace(/\s+/g, '_') || f.name,
+        columns: f.type === 'grid' && f.columns ? f.columns.split(',').map((c: string) => c.trim()).filter(Boolean) : undefined,
+        buttonLabel: f.type === 'button' ? (f.buttonLabel || f.label) : undefined,
+      }))
+    };
     this.http.put(`${API_BASE}/forms/template/${this.selectedNodeId}`, { schemaJson: JSON.stringify(schema) }).subscribe({
       next: () => { this.toast.show('Formulario guardado', 'success'); this.savingForm = false; },
       error: () => { this.toast.show('Error al guardar formulario', 'error'); this.savingForm = false; }
@@ -451,19 +548,23 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   parseFormSchema(schemaJson: any) {
     try {
       const s = typeof schemaJson === 'string' ? JSON.parse(schemaJson) : schemaJson;
-      this.formFields = (s.fields || []).map((f: any) => ({ name: f.name, label: f.label, type: f.type || 'text', required: !!f.required }));
+      this.formFields = (s.fields || []).map((f: any) => ({
+        name: f.name, label: f.label, type: f.type || 'text', required: !!f.required,
+        columns: Array.isArray(f.columns) ? f.columns.join(',') : (f.columns || ''),
+        buttonLabel: f.buttonLabel || '',
+      }));
     } catch { this.formFields = []; }
   }
 
   save() {
     this.saving = true;
     const nodes = this.graphNodes.map((n, i) => ({
-      id: n.id.length === 36 ? undefined : n.id,
+      id: n.id,
       title: n.label,
       nodeType: n.data?.['nodeType'] || 'ACTION',
       departmentId: n.data?.['departmentId'],
-      positionX: n.position?.x ?? i * 200,
-      positionY: n.position?.y ?? 100,
+      positionX: n.position?.x ?? n.data?.['positionX'] ?? i * 200,
+      positionY: n.position?.y ?? n.data?.['positionY'] ?? 100,
     }));
     const edges = this.graphLinks.map(l => ({
       fromNodeId: l.source,
@@ -480,7 +581,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   // ──────────── Swim lane layout ────────────
   private computeLaneView(): any {
     if (!this.graphNodes.length) return null;
-    const LANE_H = 110, NODE_W = 140, NODE_H = 46, HDR_W = 145, STEP_X = 188;
+    const NODE_W = 140, NODE_H = 46, HDR_W = 145, STEP_X = 220;
     const outAdj = new Map<string, string[]>();
     const inAdj = new Map<string, string[]>();
     this.graphNodes.forEach(n => { outAdj.set(n.id, []); inAdj.set(n.id, []); });
@@ -512,27 +613,47 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
       const preds = inAdj.get(id) || [];
       colMap.set(id, preds.length ? Math.max(...preds.map(p => (colMap.get(p) ?? 0) + 1)) : 0);
     });
-    // Collect unique deptsn in topo order
+    // Collect unique depts in topo order
     const depts: string[] = [];
     const deptSeen = new Set<string>();
     topo.forEach(id => {
-      const d = (this.graphNodes.find(x => x.id === id)?.data as any)?.deptName || 'General';
+      const nodeData = this.graphNodes.find(x => x.id === id)?.data as any;
+      const d = nodeData?.deptName
+        || this.departments.find(dep => dep.id === nodeData?.departmentId)?.name
+        || 'General';
       if (!deptSeen.has(d)) { deptSeen.add(d); depts.push(d); }
     });
     const deptIdx = new Map(depts.map((d, i) => [d, i]));
     const halfW = (t: string) => t === 'INITIAL' || t === 'FINAL' ? 22 : t === 'DECISION' ? 54 : t === 'FORK' || t === 'JOIN' ? 52 : 70;
-    // Place nodes
+    // Count nodes per (col, row) slot to compute dynamic lane height
+    const slotMax = new Map<string, number>();
+    const resolveDept = (nodeData: any): string =>
+      nodeData?.deptName
+      || this.departments.find(d => d.id === nodeData?.departmentId)?.name
+      || 'General';
+    topo.forEach(id => {
+      const n = this.graphNodes.find(x => x.id === id)!;
+      const col = colMap.get(id) ?? 0;
+      const row = deptIdx.get(resolveDept(n.data)) ?? 0;
+      const key = `${col}-${row}`;
+      slotMax.set(key, (slotMax.get(key) ?? 0) + 1);
+    });
+    const maxNodesPerSlot = Math.max(...Array.from(slotMax.values()), 1);
+    const LANE_H = Math.max(130, 70 + maxNodesPerSlot * 65);
+    // Place nodes, centered within each slot
     const slotCounter = new Map<string, number>();
     const posNodes = topo.map(id => {
       const n = this.graphNodes.find(x => x.id === id)!;
       const col = colMap.get(id) ?? 0;
-      const deptName = (n.data as any)?.deptName || 'General';
+      const deptName = resolveDept(n.data);
       const row = deptIdx.get(deptName) ?? 0;
       const slotKey = `${col}-${row}`;
       const slot = slotCounter.get(slotKey) ?? 0;
       slotCounter.set(slotKey, slot + 1);
+      const total = slotMax.get(slotKey) ?? 1;
       const cx = HDR_W + col * STEP_X + STEP_X / 2;
-      const cy = row * LANE_H + LANE_H / 2 + (slot === 0 ? 0 : slot % 2 === 1 ? -28 : 28);
+      const slotOffset = total > 1 ? (slot - (total - 1) / 2) * 65 : 0;
+      const cy = row * LANE_H + LANE_H / 2 + slotOffset;
       const nodeType = (n.data as any)?.nodeType as string;
       return { id, label: n.label as string, nodeType, cx, cy, x: cx - NODE_W / 2, y: cy - NODE_H / 2, hw: halfW(nodeType) };
     });
@@ -600,7 +721,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
     this.ocrLoading = true;
     this.ocrProgress = 0;
     this.voiceError = '';
-    this.aiMessages = [...this.aiMessages, { role: 'user', text: `📷 Imagen: ${file.name}` }];
+    this.aiMessages = [...this.aiMessages, { role: 'user', text: `[Imagen] ${file.name}` }];
     try {
       const worker = await createWorker('spa', 1, {
         logger: (m: any) => {
@@ -669,7 +790,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
         if (this.graphNodes.some(g => (g.label as string)?.toLowerCase() === n.title?.toLowerCase())) return;
         const dept = this.departments.find(d => d.name.toLowerCase().includes(n.department?.toLowerCase() || ''));
         const nd: Node = {
-          id: crypto.randomUUID(),
+          id: uuid(),
           label: n.title,
           data: { nodeType: 'ACTION', deptName: dept?.name || '', departmentId: dept?.id || '', positionX: 200 + i * 200, positionY: 100 },
           dimension: { width: 140, height: 50 },
@@ -687,7 +808,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
         if (this.graphLinks.some(l => l.source === src.id && l.target === tgt.id)) return;
         const flowType = c.flowType || 'SEQUENTIAL';
         const edge: Edge = {
-          id: crypto.randomUUID(),
+          id: uuid(),
           source: src.id,
           target: tgt.id,
           label: flowType !== 'SEQUENTIAL' ? flowType : undefined,
@@ -718,16 +839,12 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
           const payload = JSON.parse(msg.body);
           if (payload.type === 'policy:updated' && payload.data?.policyId === this.policyId) {
             this.zone.run(() => {
-              this.toast.show('🔄 Diagrama actualizado por un colaborador', 'info');
+              this.toast.show('Diagrama actualizado por un colaborador', 'info');
               // Reload graph from server
               this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe(p => {
-                this.graphNodes = (p.nodes || []).map((n: any) => ({
-                  id: n.id, label: n.title,
-                  data: { nodeType: n.nodeType, deptName: n.department?.name || '', departmentId: n.departmentId, positionX: n.positionX, positionY: n.positionY },
-                  dimension: { width: 140, height: 50 },
-                }));
+                this.graphNodes = (p.nodes || []).map((n: any, i: number) => this._mapNode(n, i));
                 this.graphLinks = (p.edges || []).map((e: any) => ({
-                  id: e.id, source: e.fromNodeId, target: e.toNodeId,
+                  id: e.id || uuid(), source: e.fromNodeId, target: e.toNodeId,
                   label: e.conditionLabel || (e.flowType !== 'SEQUENTIAL' ? e.flowType : ''),
                   data: { flowType: e.flowType, conditionLabel: e.conditionLabel },
                 }));

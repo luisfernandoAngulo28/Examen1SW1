@@ -32,7 +32,10 @@ interface Dept { id: string; name: string; users: { id: string; name: string }[]
                 <td style="font-weight:600">{{ d.name }}</td>
                 <td style="color:var(--text-secondary)">{{ d.users?.length || 0 }} usuarios</td>
                 <td>
-                  <button (click)="delete(d.id)" class="btn btn-danger btn-sm">🗑 Eliminar</button>
+                  <button (click)="delete(d.id)" class="btn btn-danger btn-sm" style="display:inline-flex;align-items:center;gap:4px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             }

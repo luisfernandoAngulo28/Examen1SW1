@@ -7,6 +7,7 @@ import { Client } from '@stomp/stompjs';
 import { ToastService } from '../../services/toast.service';
 import { TrafficLightComponent } from '../../components/traffic-light/traffic-light.component';
 import { DynamicFormComponent } from '../../components/dynamic-form/dynamic-form.component';
+import { DocumentManagerComponent } from '../../components/document-manager/document-manager.component';
 import { API_BASE } from '../../api';
 
 const WS_BASE = API_BASE.replace('/api', '').replace('http://', 'ws://').replace('https://', 'wss://');
@@ -29,7 +30,7 @@ interface UserOption { id: string; name: string; email: string; }
 @Component({
   selector: 'app-case-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TrafficLightComponent, DynamicFormComponent],
+  imports: [CommonModule, FormsModule, RouterLink, TrafficLightComponent, DynamicFormComponent, DocumentManagerComponent],
   template: `
     @if (!caseData) {
       <div class="loading-page"><div class="spinner"></div><span>Cargando trámite...</span></div>
@@ -114,6 +115,12 @@ interface UserOption { id: string; name: string; email: string; }
                       (submitted)="submitForm(task.id, $event)" />
                   }
                 </div>
+              }
+              <!-- Gestión documental por trámite (Mejora 1 — Ciclo 2) -->
+              @if (caseData) {
+                <app-document-manager
+                  [caseId]="caseData.id"
+                  [nodeId]="task.node.id" />
               }
             </div>
           }
