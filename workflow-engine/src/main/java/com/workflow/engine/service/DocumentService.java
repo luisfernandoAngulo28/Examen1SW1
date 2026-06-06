@@ -195,8 +195,8 @@ public class DocumentService {
         return documentRepository.findById(docId).map(doc -> {
             // Only uploader or ADMIN can change permissions
             boolean isUploader = currentUser.getId().equals(doc.getUploadedBy());
-            boolean isAdmin = currentUser.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().contains("ADMIN"));
+            boolean isAdmin = currentUser.getRole() != null &&
+                    currentUser.getRole().name().contains("ADMIN");
             if (!isUploader && !isAdmin) return doc; // silently ignore
 
             doc.getUserPermissions().putAll(permissions);
