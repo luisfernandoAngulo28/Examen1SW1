@@ -7,6 +7,7 @@ import { API_BASE } from '../../api';
 
 interface Policy { id: string; name: string; status: string; createdAt: string; }
 interface Stats { totalCases: number; activeCases: number; completedCases: number; pendingTasks: number; }
+interface CaseRef { id: string; status: string; policy: { id: string; name: string } | null; }
 
 interface RiskItem   { case_id: string; risk_score: number; risk_level: string; recommendation: string; }
 interface PrioItem   { task_id: string; task_title: string; department: string; priority_score: number; priority_label: string; }
@@ -86,8 +87,8 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                         {{ r.risk_level === 'HIGH' ? 'ALTO' : r.risk_level === 'MEDIUM' ? 'MEDIO' : 'BAJO' }}
                       </span>
                       <div style="flex:1;min-width:0">
-                        <div style="font-size:11px;color:#555;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.case_id | slice:0:12 }}...</div>
-                        <div style="font-size:10px;color:#999">Score: {{ (r.risk_score * 100) | number:'1.0-0' }}%</div>
+                        <div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ caseLabel(r.case_id) }}</div>
+                        <div style="font-size:10px;color:#999">Puntuación: {{ (r.risk_score * 100) | number:'1.0-0' }}% · {{ r.recommendation }}</div>
                       </div>
                     </div>
                   }
@@ -138,7 +139,7 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                     <div style="padding:8px 14px;border-bottom:1px solid #f5f5f5">
                       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
                         <span style="font-size:11px;background:#fff0f6;color:#c41d7f;font-weight:700;padding:1px 6px;border-radius:8px">ANOMALÍA</span>
-                        <span style="font-size:11px;font-family:monospace;color:#555">{{ a.case_id | slice:0:10 }}...</span>
+                        <span style="font-size:11px;font-weight:600;color:#555">{{ caseLabel(a.case_id) }}</span>
                       </div>
                       <div style="font-size:10px;color:#999">{{ a.policy_name }} · Score: {{ a.score | number:'1.2-2' }}</div>
                       <div style="font-size:10px;color:#888;margin-top:2px">{{ a.description }}</div>
@@ -194,12 +195,23 @@ export class DashboardComponent implements OnInit {
   policies: Policy[] = [];
   stats: Stats | null = null;
   ml: MlDashboard | null = null;
+  caseNameMap: Record<string, string> = {};
   private http = inject(HttpClient);
   readonly auth = inject(AuthService);
+
+  caseLabel(caseId: string): string {
+    return this.caseNameMap[caseId] ?? caseId.slice(0, 8) + '...';
+  }
 
   ngOnInit() {
     this.http.get<Policy[]>(`${API_BASE}/policies`).subscribe(d => this.policies = d);
     this.http.get<Stats>(`${API_BASE}/analytics/dashboard`).subscribe({ next: d => this.stats = d, error: () => {} });
     this.http.get<MlDashboard>(`${API_BASE}/ml/dashboard`).subscribe({ next: d => this.ml = d, error: () => {} });
+    this.http.get<CaseRef[]>(`${API_BASE}/cases`).subscribe({
+      next: cases => cases.forEach((c, i) => {
+        this.caseNameMap[c.id] = (c.policy?.name ?? 'Trámite') + ` #${i + 1}`;
+      }),
+      error: () => {}
+    });
   }
 }
