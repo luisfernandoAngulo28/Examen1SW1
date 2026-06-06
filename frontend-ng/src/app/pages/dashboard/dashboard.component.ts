@@ -157,7 +157,9 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
       <div class="card">
         <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
           <h2 style="font-size:16px;font-weight:700">Políticas de Negocio</h2>
-          <a routerLink="/policies/new" class="btn btn-primary btn-sm">+ Nueva Política</a>
+          @if (auth.user()?.role === 'ADMIN' || auth.user()?.role === 'DESIGNER') {
+            <a routerLink="/policies/new" class="btn btn-primary btn-sm">+ Nueva Política</a>
+          }
         </div>
         <table class="table">
           <thead>
@@ -169,11 +171,15 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
             @for (p of policies; track p.id) {
               <tr>
                 <td style="font-weight:600">{{ p.name }}</td>
-                <td><span [class]="'badge ' + (p.status === 'ACTIVE' ? 'badge-green' : 'badge-gray')">{{ p.status }}</span></td>
+                <td><span [class]="'badge ' + (p.status === 'ACTIVE' ? 'badge-green' : 'badge-gray')">
+                  {{ p.status === 'ACTIVE' ? 'ACTIVO' : p.status === 'INACTIVE' ? 'INACTIVO' : p.status }}
+                </span></td>
                 <td style="color:var(--text-secondary);font-size:13px">{{ p.createdAt | date:'dd/MM/yyyy' }}</td>
                 <td>
                   <div style="display:flex;gap:8px">
-                    <a [routerLink]="['/policies', p.id, 'editor']" class="btn btn-ghost btn-sm">✏ Editar</a>
+                    @if (auth.user()?.role === 'ADMIN' || auth.user()?.role === 'DESIGNER') {
+                      <a [routerLink]="['/policies', p.id, 'editor']" class="btn btn-ghost btn-sm">✏ Editar</a>
+                    }
                     <a [routerLink]="['/policies', p.id, 'cases']" class="btn btn-warning btn-sm" style="color:#fff">📁 Trámites</a>
                   </div>
                 </td>
@@ -182,7 +188,9 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
             @empty {
               <tr><td colspan="4" style="padding:40px;text-align:center;color:var(--text-secondary)">
                 No hay políticas creadas aún.
-                <a routerLink="/policies/new" class="btn btn-primary btn-sm" style="margin-left:12px">+ Crear primera política</a>
+                @if (auth.user()?.role === 'ADMIN' || auth.user()?.role === 'DESIGNER') {
+                  <a routerLink="/policies/new" class="btn btn-primary btn-sm" style="margin-left:12px">+ Crear primera política</a>
+                }
               </td></tr>
             }
           </tbody>

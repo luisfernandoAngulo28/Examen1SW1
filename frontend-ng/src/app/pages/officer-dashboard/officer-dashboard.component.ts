@@ -13,9 +13,20 @@ interface MyTask {
   id: string;
   status: string;
   startedAt: string;
-  node: { title: string; department?: { name: string } };
+  node: { id?: string; title: string; department?: { name: string } };
   case: { id: string; policy: { name: string } };
   assignedUser?: { name: string } | null;
+}
+
+interface CaseDto {
+  id: string;
+  status: string;
+  policy: { id: string; name: string };
+  tasks: {
+    id: string; status: string; startedAt: string;
+    node: { id?: string; title: string; nodeType?: string; department?: { name: string } };
+    assignedUser?: { id: string; name: string } | null;
+  }[];
 }
 
 @Component({
@@ -125,7 +136,27 @@ export class OfficerDashboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() { this.stompClient?.deactivate(); }
 
   loadTasks() {
-    this.http.get<MyTask[]>(`${API_BASE}/cases/my-tasks`).subscribe(d => this.tasks = d);
+    // Load ALL active cases and extract pending/in-progress tasks for full visibility
+    this.http.get<CaseDto[]>(`${API_BASE}/cases`).subscribe(cases => {
+      const allTasks: MyTask[] = [];
+      for (const c of cases) {
+        if (c.status !== 'IN_PROGRESS' && c.status !== 'OPEN') continue;
+        for (const t of c.tasks) {
+          if (t.status === 'PENDING' || t.status === 'IN_PROGRESS') {
+            if (t.node?.nodeType === 'INITIAL' || t.node?.nodeType === 'FINAL') continue;
+            allTasks.push({
+              id: t.id,
+              status: t.status,
+              startedAt: t.startedAt ?? c.tasks[0]?.startedAt,
+              node: { title: t.node?.title ?? 'Tarea', department: t.node?.department },
+              case: { id: c.id, policy: c.policy },
+              assignedUser: t.assignedUser ?? null,
+            });
+          }
+        }
+      }
+      this.tasks = allTasks;
+    });
   }
 
   connectStomp() {
