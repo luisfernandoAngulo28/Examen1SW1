@@ -1,5 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -27,7 +29,7 @@ interface AuditEntry {
 @Component({
   selector: 'app-document-manager',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:16px">
 
@@ -110,8 +112,8 @@ interface AuditEntry {
                     ⬇ Descargar
                   </button>
                   @if (isViewable(doc.contentType)) {
-                    <button (click)="viewInBrowser(doc)" class="btn btn-ghost btn-sm"
-                      title="Ver en navegador" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">
+                    <button (click)="openPreview(doc)" class="btn btn-ghost btn-sm"
+                      title="Vista previa" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">
                       👁 Ver
                     </button>
                   }
@@ -125,6 +127,12 @@ interface AuditEntry {
                     title="Ver historial" style="font-size:12px">
                     📋 Historial
                   </button>
+                  @if (canManagePermissions) {
+                    <button (click)="openPermissions(doc)" class="btn btn-ghost btn-sm"
+                      title="Gestionar permisos" style="font-size:12px;color:#722ed1">
+                      🔐
+                    </button>
+                  }
                   @if (canDelete) {
                     <button (click)="deleteDoc(doc)" class="btn btn-ghost btn-sm"
                       title="Eliminar" style="font-size:12px;color:#ff4d4f">
@@ -169,8 +177,82 @@ interface AuditEntry {
         </div>
       </div>
     }
+
+    <!-- Preview modal -->
+    @if (previewDoc) {
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1100;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px"
+           (click)="closePreview()">
+        <div style="display:flex;align-items:center;gap:12px;color:#fff;width:90vw;max-width:1000px">
+          <span style="font-size:14px;font-weight:600">{{ previewDoc.fileName }}</span>
+          <span style="flex:1"></span>
+          <a [href]="previewUrl" target="_blank" style="color:#91caff;font-size:13px;text-decoration:none">↗ Abrir en nueva pestaña</a>
+          <button (click)="closePreview()" style="background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;padding:4px 14px;cursor:pointer;font-size:18px">×</button>
+        </div>
+        <div style="background:#fff;border-radius:10px;overflow:hidden;width:90vw;max-width:1000px;max-height:80vh;display:flex;align-items:center;justify-content:center"
+             (click)="$event.stopPropagation()">
+          @if (previewDoc.contentType === 'application/pdf') {
+            <iframe [src]="previewUrl" style="width:100%;height:80vh;border:none"></iframe>
+          } @else if (previewDoc.contentType?.startsWith('image/')) {
+            <img [src]="previewUrl" style="max-width:100%;max-height:80vh;object-fit:contain" />
+          } @else if (previewDoc.contentType?.startsWith('video/')) {
+            <video [src]="previewUrl" controls style="max-width:100%;max-height:80vh"></video>
+          } @else {
+            <div style="padding:40px;text-align:center;color:#666">
+              <div style="font-size:40px;margin-bottom:12px">{{ fileIcon(previewDoc.contentType) }}</div>
+              <div>Este formato no tiene vista previa disponible.</div>
+              <a [href]="previewUrl" download style="color:#1677ff;margin-top:8px;display:inline-block">Descargar archivo</a>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Permissions modal -->
+    @if (permissionsDoc) {
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center"
+           (click)="permissionsDoc=null">
+        <div style="background:#fff;border-radius:12px;width:480px;overflow:hidden"
+             (click)="$event.stopPropagation()">
+          <div style="padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;background:#f6f0ff">
+            <div style="font-weight:700;color:#722ed1">🔐 Gestión de Permisos</div>
+            <button (click)="permissionsDoc=null" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">×</button>
+          </div>
+          <div style="padding:16px 20px">
+            <p style="font-size:13px;color:#666;margin-bottom:12px">Asigna permisos por usuario para <strong>{{ permissionsDoc.fileName }}</strong></p>
+            <div style="margin-bottom:12px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+              <input [(ngModel)]="newPermUserId" class="form-input" placeholder="Email o ID de usuario" style="font-size:13px" />
+              <select [(ngModel)]="newPermLevel" class="form-input" style="font-size:13px">
+                <option value="VIEW">Solo lectura</option>
+                <option value="UPLOAD">Puede subir</option>
+                <option value="EDIT">Puede editar</option>
+                <option value="ADMIN">Administrador</option>
+              </select>
+            </div>
+            <button (click)="addPermission()" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:16px">+ Agregar permiso</button>
+            <div style="border-top:1px solid #f0f0f0;padding-top:12px">
+              <div style="font-size:12px;font-weight:600;color:#666;margin-bottom:8px">Permisos actuales:</div>
+              @for (entry of permissionsEntries; track entry.userId) {
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding:6px 10px;background:#f9f9f9;border-radius:6px">
+                  <span style="flex:1;font-size:13px">{{ entry.userId }}</span>
+                  <span [style.background]="entry.level==='ADMIN'?'#fff1f0':entry.level==='EDIT'?'#f0f5ff':entry.level==='UPLOAD'?'#f6ffed':'#fafafa'"
+                        [style.color]="entry.level==='ADMIN'?'#cf1322':entry.level==='EDIT'?'#1677ff':entry.level==='UPLOAD'?'#52c41a':'#666'"
+                        style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;border:1px solid currentColor">
+                    {{ entry.level }}
+                  </span>
+                </div>
+              }
+              @empty {
+                <div style="font-size:12px;color:#999">Sin permisos específicos (acceso por defecto para todos)</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
+interface PermissionEntry { userId: string; level: string; }
+
 export class DocumentManagerComponent implements OnInit {
   @Input() caseId!: string;
   @Input() nodeId: string | null = null;
@@ -183,14 +265,26 @@ export class DocumentManagerComponent implements OnInit {
   auditDoc: CaseDocument | null = null;
   auditEntries: AuditEntry[] = [];
 
+  // Preview state
+  previewDoc: CaseDocument | null = null;
+  previewUrl: SafeResourceUrl | string = '';
+
+  // Permissions state
+  permissionsDoc: CaseDocument | null = null;
+  permissionsEntries: PermissionEntry[] = [];
+  newPermUserId = '';
+  newPermLevel = 'VIEW';
+
   private http = inject(HttpClient);
   private toast = inject(ToastService);
+  private sanitizer = inject(DomSanitizer);
   readonly auth = inject(AuthService);
 
-  get canUpload()  { return this.permission === 'VIEW_EDIT' || this.permission === 'FULL'; }
-  get canDelete()  { return this.permission === 'FULL'; }
+  get canUpload()  { return this.permission === 'VIEW_EDIT' || this.permission === 'FULL' || this.permission === 'UPLOAD' || this.permission === 'EDIT' || this.permission === 'ADMIN'; }
+  get canDelete()  { return this.permission === 'FULL' || this.permission === 'ADMIN'; }
+  get canManagePermissions() { return this.permission === 'FULL' || this.permission === 'ADMIN'; }
   get permissionLabel() {
-    return { VIEW: 'Solo lectura', VIEW_EDIT: 'Lectura + subida', FULL: 'Acceso completo' }[this.permission] ?? this.permission;
+    return { VIEW: 'Solo lectura', UPLOAD: 'Puede subir', EDIT: 'Puede editar', VIEW_EDIT: 'Lectura + subida', FULL: 'Acceso completo', ADMIN: 'Administrador' }[this.permission] ?? this.permission;
   }
 
   ngOnInit() {
@@ -264,6 +358,43 @@ export class DocumentManagerComponent implements OnInit {
   viewInBrowser(doc: CaseDocument) {
     this.http.get<{ url: string }>(`${API_BASE}/documents/${doc.id}/download-url`)
       .subscribe({ next: r => window.open(r.url, '_blank'), error: () => {} });
+  }
+
+  openPreview(doc: CaseDocument) {
+    this.http.get<{ url: string }>(`${API_BASE}/documents/${doc.id}/download-url`)
+      .subscribe({
+        next: r => {
+          this.previewDoc = doc;
+          this.previewUrl = doc.contentType === 'application/pdf'
+            ? this.sanitizer.bypassSecurityTrustResourceUrl(r.url)
+            : r.url;
+        },
+        error: () => this.toast.show('No se pudo obtener la URL de vista previa', 'error')
+      });
+  }
+
+  closePreview() { this.previewDoc = null; this.previewUrl = ''; }
+
+  openPermissions(doc: CaseDocument) {
+    this.permissionsDoc = doc;
+    this.permissionsEntries = Object.entries((doc as any).userPermissions ?? {})
+      .map(([userId, level]) => ({ userId, level: level as string }));
+  }
+
+  addPermission() {
+    if (!this.newPermUserId.trim() || !this.permissionsDoc) return;
+    const body: Record<string, string> = { [this.newPermUserId.trim()]: this.newPermLevel };
+    this.http.put<CaseDocument>(`${API_BASE}/documents/${this.permissionsDoc.id}/user-permissions`, body)
+      .subscribe({
+        next: updated => {
+          Object.assign(this.permissionsDoc!, updated);
+          this.permissionsEntries = Object.entries((updated as any).userPermissions ?? {})
+            .map(([userId, level]) => ({ userId, level: level as string }));
+          this.newPermUserId = '';
+          this.toast.show('Permiso asignado correctamente', 'success');
+        },
+        error: () => this.toast.show('Error al asignar permiso', 'error')
+      });
   }
 
   openCollaborative(doc: CaseDocument) {

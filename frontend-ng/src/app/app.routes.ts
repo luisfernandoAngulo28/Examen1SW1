@@ -21,6 +21,7 @@ export const routes: Routes = [
       { path: 'nuevo-proceso', loadComponent: () => import('./pages/nuevo-proceso/nuevo-proceso.component').then(m => m.NuevoProcesComponent) },
       { path: 'reports', loadComponent: () => import('./pages/reports/reports.component').then(m => m.ReportsComponent) },
       { path: 'my-cases', loadComponent: () => import('./pages/my-cases/my-cases.component').then(m => m.MyCasesComponent) },
+      { path: 'agent', loadComponent: () => import('./pages/agent-intake/agent-intake.component').then(m => m.AgentIntakeComponent) },
     ]
   },
   { path: '**', redirectTo: '' }

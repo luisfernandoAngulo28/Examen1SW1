@@ -185,4 +185,37 @@ public class DocumentService {
     }
 
     public boolean isS3Available() { return s3Available; }
+
+    // ── User-level permissions ────────────────────────────────────────────────
+
+    public java.util.Optional<CaseDocument> updateUserPermissions(
+            String docId, java.util.Map<String, String> permissions,
+            com.workflow.engine.model.User currentUser) {
+
+        return documentRepository.findById(docId).map(doc -> {
+            // Only uploader or ADMIN can change permissions
+            boolean isUploader = currentUser.getId().equals(doc.getUploadedBy());
+            boolean isAdmin = currentUser.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().contains("ADMIN"));
+            if (!isUploader && !isAdmin) return doc; // silently ignore
+
+            doc.getUserPermissions().putAll(permissions);
+
+            DocumentAudit audit = new DocumentAudit();
+            audit.setUserId(currentUser.getId());
+            audit.setUserName(currentUser.getName());
+            audit.setAction("PERMISSIONS_UPDATED");
+            doc.getAuditLogs().add(audit);
+            return documentRepository.save(doc);
+        });
+    }
+
+    public String getEffectivePermission(String docId, String userId) {
+        return documentRepository.findById(docId).map(doc -> {
+            if (doc.getUserPermissions().containsKey(userId)) {
+                return doc.getUserPermissions().get(userId);
+            }
+            return "EDIT"; // default
+        }).orElse("NONE");
+    }
 }

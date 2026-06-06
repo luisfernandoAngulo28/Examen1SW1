@@ -6,6 +6,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Download Spanish spaCy model for deep learning NLP
+RUN python -m spacy download es_core_news_lg
+
 # Copy source
 COPY . .
 

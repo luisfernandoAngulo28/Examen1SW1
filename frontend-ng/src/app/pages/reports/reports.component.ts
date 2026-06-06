@@ -100,10 +100,20 @@ const EXAMPLE_QUERIES = [
                 <em>"{{ result.query }}"</em>
               </div>
             </div>
-            <button (click)="exportCsv()" class="btn btn-ghost btn-sm"
-              style="display:inline-flex;align-items:center;gap:4px">
-              ⬇ Exportar CSV
-            </button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button (click)="exportCsv()" class="btn btn-ghost btn-sm"
+                style="display:inline-flex;align-items:center;gap:4px">
+                📋 CSV
+              </button>
+              <button (click)="exportExcel()" class="btn btn-ghost btn-sm"
+                style="display:inline-flex;align-items:center;gap:4px;color:#217346">
+                📊 Excel
+              </button>
+              <button (click)="exportPdf()" class="btn btn-ghost btn-sm"
+                style="display:inline-flex;align-items:center;gap:4px;color:#c0392b">
+                📄 PDF
+              </button>
+            </div>
           </div>
 
           <!-- Summary KPIs -->
@@ -258,6 +268,79 @@ export class ReportsComponent {
     a.download = `reporte_${this.result.reportType}_${new Date().toISOString().substring(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    this.toast.show('CSV exportado', 'success');
+    this.toast.show('CSV exportado correctamente', 'success');
+  }
+
+  exportExcel() {
+    if (!this.result || this.result.rows.length === 0) return;
+    const cols = this.tableColumns;
+    const headerRow = cols.map(c => `<th style="background:#1677ff;color:#fff;font-weight:bold;padding:6px 10px;border:1px solid #aaa">${c.replace(/_/g,' ')}</th>`).join('');
+    const dataRows = this.result.rows.map(r =>
+      `<tr>${cols.map(c => `<td style="padding:4px 8px;border:1px solid #ddd">${r[c] ?? ''}</td>`).join('')}</tr>`
+    ).join('');
+    const summaryRows = Object.entries(this.result.summary ?? {})
+      .map(([k, v]) => `<tr><td style="font-weight:bold;padding:4px 8px">${k}</td><td style="padding:4px 8px">${v}</td></tr>`)
+      .join('');
+
+    const html = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+      <x:Name>${this.result.title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+      </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+      <body>
+        <h2>${this.result.title}</h2>
+        <p>Consulta: ${this.result.query} | Generado: ${new Date().toLocaleString('es-BO')}</p>
+        <table border="1"><thead><tr>${headerRow}</tr></thead><tbody>${dataRows}</tbody></table>
+        <br/><h3>Resumen</h3><table border="1"><tbody>${summaryRows}</tbody></table>
+      </body></html>`;
+
+    const blob = new Blob(['﻿' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_${this.result.reportType}_${new Date().toISOString().substring(0, 10)}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.toast.show('Excel exportado correctamente', 'success');
+  }
+
+  exportPdf() {
+    if (!this.result) return;
+    const cols = this.tableColumns;
+    const headerCells = cols.map(c => `<th>${c.replace(/_/g,' ')}</th>`).join('');
+    const dataRows = this.result.rows.map(r =>
+      `<tr>${cols.map(c => `<td>${r[c] ?? ''}</td>`).join('')}</tr>`
+    ).join('');
+
+    const win = window.open('', '_blank')!;
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>${this.result.title}</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:20px;color:#222}
+        h1{font-size:18px;margin-bottom:4px}
+        p{font-size:12px;color:#666;margin-bottom:16px}
+        table{border-collapse:collapse;width:100%;font-size:12px}
+        th{background:#1677ff;color:#fff;padding:6px 10px;text-align:left;border:1px solid #aaa}
+        td{padding:5px 10px;border:1px solid #ddd}
+        tr:nth-child(even){background:#f5f5f5}
+        .summary{margin-top:20px;font-size:13px}
+        .kpi{display:inline-block;background:#f0f5ff;border:1px solid #d6e4ff;border-radius:6px;padding:8px 16px;margin:4px;text-align:center}
+        .kpi-val{font-size:20px;font-weight:bold;color:#1677ff}
+        .kpi-lbl{font-size:11px;color:#888;text-transform:capitalize}
+        @media print{button{display:none}}
+      </style></head><body>
+      <button onclick="window.print()" style="position:fixed;top:10px;right:10px;padding:8px 20px;background:#1677ff;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px">🖨 Imprimir / Guardar PDF</button>
+      <h1>${this.result.title}</h1>
+      <p>Consulta: <em>"${this.result.query}"</em> — Generado: ${new Date().toLocaleString('es-BO')}</p>
+      <div class="summary">
+        ${Object.entries(this.result.summary ?? {}).map(([k,v]) =>
+          `<div class="kpi"><div class="kpi-val">${v}</div><div class="kpi-lbl">${k.replace(/_/g,' ')}</div></div>`
+        ).join('')}
+      </div>
+      <br/>
+      <table><thead><tr>${headerCells}</tr></thead><tbody>${dataRows}</tbody></table>
+      </body></html>`);
+    win.document.close();
+    this.toast.show('PDF listo para imprimir', 'success');
   }
 }

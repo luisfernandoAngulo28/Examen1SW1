@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Document management endpoints — Mejora 1 (Ciclo 2).
@@ -85,6 +86,33 @@ public class DocumentController {
         User currentUser = currentUser();
         documentService.delete(id, currentUser.getId(), currentUser.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    // ── User-level permissions ────────────────────────────────────────────────
+
+    /**
+     * Updates per-user permissions on a document.
+     * Body: { "userId": "permission" }  (VIEW | UPLOAD | EDIT | ADMIN)
+     * Only the uploader or an ADMIN can change permissions.
+     */
+    @PutMapping("/{id}/user-permissions")
+    public ResponseEntity<CaseDocument> updateUserPermissions(
+            @PathVariable String id,
+            @RequestBody Map<String, String> permissions) {
+
+        return documentService.updateUserPermissions(id, permissions, currentUser())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Returns effective permission for the current user on a document.
+     * VIEW | UPLOAD | EDIT | ADMIN | NONE
+     */
+    @GetMapping("/{id}/my-permission")
+    public ResponseEntity<Map<String, String>> myPermission(@PathVariable String id) {
+        String perm = documentService.getEffectivePermission(id, currentUser().getId());
+        return ResponseEntity.ok(Map.of("permission", perm));
     }
 
     // ── Node document permissions ─────────────────────────────────────────────

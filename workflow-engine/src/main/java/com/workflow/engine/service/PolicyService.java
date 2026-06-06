@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.workflow.engine.model.Policy;
 import com.workflow.engine.model.PolicyEdge;
 import com.workflow.engine.model.PolicyNode;
+import com.workflow.engine.model.PolicyRequirement;
 import com.workflow.engine.repository.PolicyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -64,5 +65,14 @@ public class PolicyService {
 
     public void delete(String id) {
         policyRepository.deleteById(id);
+    }
+
+    public Policy updateNodeRequirements(String policyId, String nodeId, List<PolicyRequirement> requirements) {
+        Policy policy = findById(policyId);
+        policy.getNodes().stream()
+                .filter(n -> n.getId().equals(nodeId))
+                .findFirst()
+                .ifPresent(n -> n.setRequirements(requirements));
+        return policyRepository.save(policy);
     }
 }

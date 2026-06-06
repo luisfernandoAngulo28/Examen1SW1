@@ -19,6 +19,19 @@ import re
 from datetime import date, timedelta
 from typing import Any
 
+# Carga diferida del modelo spaCy
+_nlp = None
+
+def _get_spacy():
+    global _nlp
+    if _nlp is None:
+        try:
+            import spacy
+            _nlp = spacy.load("es_core_news_lg")
+        except Exception:
+            _nlp = False
+    return _nlp if _nlp else None
+
 
 # ─────────────────────────────────────────── tablas de referencia ─────────────
 
@@ -76,7 +89,12 @@ class NlpFormService:
             except Exception:
                 pass  # degradar al motor de reglas
 
-        return self._fill_rule_based(transcript, fields)
+        # Deep Learning path: spaCy NER
+        nlp = _get_spacy()
+        result = self._fill_rule_based(transcript, fields)
+        if nlp is not None:
+            result = self._enhance_with_spacy(result, transcript, fields, nlp)
+        return result
 
     # ────────────────────────────────────────────── camino OpenAI ─────────────
 
@@ -328,6 +346,62 @@ class NlpFormService:
         after = text[idx + len(keyword):].strip()
         after = re.sub(r"^(?:es|son|fue|será|de|:|\s)+", "", after).strip()
         return self._cut_to_boundary(after, ftype)
+
+    # ─────────────────────────── spaCy NER enhancement ────────────────────────
+
+    def _enhance_with_spacy(
+        self, result: dict, transcript: str, fields: list[dict], nlp: Any
+    ) -> dict:
+        """Usa spaCy NER (es_core_news_lg) para rellenar campos que el motor de reglas dejó vacíos."""
+        try:
+            doc = nlp(transcript)
+            ner_map: dict[str, list[str]] = {}
+            for ent in doc.ents:
+                ner_map.setdefault(ent.label_, []).append(ent.text)
+
+            values = result.get("values", {})
+            confidence = result.get("confidence", {})
+
+            for field in fields:
+                name = field.get("name", "")
+                ftype = field.get("type", "text")
+                if values.get(name):  # ya tiene valor del motor de reglas
+                    continue
+
+                # Mapeo de tipo de campo a etiquetas NER de spaCy en español
+                if ftype in ("text",) and "nombre" in field.get("label", "").lower():
+                    persons = ner_map.get("PER", [])
+                    if persons:
+                        values[name] = persons[0]
+                        confidence[name] = 0.82
+
+                elif ftype in ("text",) and any(
+                    kw in field.get("label", "").lower()
+                    for kw in ["organización", "empresa", "entidad", "institución"]
+                ):
+                    orgs = ner_map.get("ORG", [])
+                    if orgs:
+                        values[name] = orgs[0]
+                        confidence[name] = 0.80
+
+                elif ftype in ("text",) and any(
+                    kw in field.get("label", "").lower()
+                    for kw in ["lugar", "dirección", "ubicación", "ciudad"]
+                ):
+                    locs = ner_map.get("LOC", []) + ner_map.get("GPE", [])
+                    if locs:
+                        values[name] = locs[0]
+                        confidence[name] = 0.78
+
+                elif ftype == "date":
+                    dates = ner_map.get("DATE", [])
+                    if dates:
+                        values[name] = dates[0]
+                        confidence[name] = 0.75
+
+            return {"values": values, "confidence": confidence}
+        except Exception:
+            return result
 
 
 # Singleton del servicio

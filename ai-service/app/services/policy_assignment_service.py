@@ -8,14 +8,27 @@ Flujo:
 
 Estrategia:
   - Si OPENAI_API_KEY disponible → delega a GPT-4o-mini para máxima precisión.
-  - Si no → motor de reglas local basado en palabras clave extraídas del nombre
-    y nodos de cada política.
+  - Si spaCy es_core_news_lg disponible → similitud vectorial con embeddings de la lengua.
+  - Si no → motor de reglas local basado en palabras clave extraídas del nombre.
 """
 from __future__ import annotations
 
 import os
 import re
 from typing import Any
+
+# Carga diferida del modelo spaCy para no ralentizar el arranque
+_nlp = None
+
+def _get_spacy():
+    global _nlp
+    if _nlp is None:
+        try:
+            import spacy
+            _nlp = spacy.load("es_core_news_lg")
+        except Exception:
+            _nlp = False  # marca que no está disponible
+    return _nlp if _nlp else None
 
 
 class PolicyAssignmentService:
@@ -43,6 +56,13 @@ class PolicyAssignmentService:
         openai_key = os.getenv("OPENAI_API_KEY", "").strip()
         if openai_key:
             result = self._assign_with_openai(transcript, policies, openai_key)
+            if result:
+                return result
+
+        # Deep Learning path: spaCy vector similarity (es_core_news_lg)
+        nlp = _get_spacy()
+        if nlp is not None:
+            result = self._assign_with_spacy(transcript, policies, nlp)
             if result:
                 return result
 
@@ -78,6 +98,42 @@ class PolicyAssignmentService:
                 temperature=0,
             )
             return json.loads(resp.choices[0].message.content)
+        except Exception:
+            return None
+
+    # ──────────────────────────────────── spaCy vector path ──────────────────
+
+    def _assign_with_spacy(
+        self, transcript: str, policies: list[dict], nlp: Any
+    ) -> dict | None:
+        try:
+            doc_transcript = nlp(transcript.lower())
+            if not doc_transcript.has_vector:
+                return None
+
+            scores: list[tuple[float, dict]] = []
+            for policy in policies:
+                doc_policy = nlp(policy["name"].lower())
+                similarity = doc_transcript.similarity(doc_policy) if doc_policy.has_vector else 0.0
+                scores.append((similarity, policy))
+
+            scores.sort(key=lambda x: x[0], reverse=True)
+            best_score, best_policy = scores[0]
+
+            if best_score < 0.30:
+                return None  # baja confianza — dejar al motor de reglas
+
+            level = "Alta" if best_score >= 0.75 else "Moderada" if best_score >= 0.50 else "Baja"
+            return {
+                "policyId": best_policy["id"],
+                "policyName": best_policy["name"],
+                "confidence": round(float(best_score), 2),
+                "explanation": (
+                    f"{level} similitud semántica con '{best_policy['name']}' "
+                    f"usando modelo de lenguaje (spaCy es_core_news_lg). "
+                    f"Confianza: {round(best_score * 100)}%."
+                ),
+            }
         except Exception:
             return None
 

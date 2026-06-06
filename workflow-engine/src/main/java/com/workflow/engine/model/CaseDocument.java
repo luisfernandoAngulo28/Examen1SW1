@@ -6,7 +6,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Metadata de un documento almacenado en S3.
@@ -36,6 +38,12 @@ public class CaseDocument {
     private Instant uploadedAt = Instant.now();
 
     private boolean deleted = false;
+
+    /**
+     * Permisos por usuario: userId → "VIEW" | "UPLOAD" | "EDIT" | "ADMIN"
+     * Si está vacío, todos los usuarios del trámite tienen VIEW_EDIT por defecto.
+     */
+    private Map<String, String> userPermissions = new HashMap<>();
 
     private List<DocumentAudit> auditLogs = new ArrayList<>();
 }

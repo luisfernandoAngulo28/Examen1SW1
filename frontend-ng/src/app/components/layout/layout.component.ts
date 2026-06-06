@@ -26,11 +26,15 @@ import { AuthService } from '../../services/auth.service';
             </a>
           }
 
-          <!-- CLIENT: dashboard + mis trámites -->
+          <!-- CLIENT: dashboard + agente + mis trámites -->
           @if (user?.role === 'CLIENT') {
             <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="sidebar-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
               Dashboard
+            </a>
+            <a routerLink="/agent" routerLinkActive="active" class="sidebar-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+              Iniciar Trámite
             </a>
             <a routerLink="/my-cases" routerLinkActive="active" class="sidebar-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>

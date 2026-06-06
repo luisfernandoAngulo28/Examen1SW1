@@ -1,6 +1,7 @@
 package com.workflow.engine.controller;
 
 import com.workflow.engine.model.Policy;
+import com.workflow.engine.model.PolicyRequirement;
 import com.workflow.engine.service.EventPublisher;
 import com.workflow.engine.service.PolicyService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/policies")
@@ -51,9 +53,22 @@ public class PolicyController {
     @PutMapping("/{id}/graph")
     @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
     public ResponseEntity<Policy> updateGraph(@PathVariable String id,
-                                               @RequestBody java.util.Map<String, Object> body) {
+                                               @RequestBody Map<String, Object> body) {
         Policy saved = policyService.updateGraph(id, body);
         eventPublisher.emitPolicyUpdated(id);
+        return ResponseEntity.ok(saved);
+    }
+
+    /** Updates requirements for a specific node (documents the agent will request from the client). */
+    @PutMapping("/{policyId}/nodes/{nodeId}/requirements")
+    @PreAuthorize("hasRole('DESIGNER') or hasRole('ADMIN')")
+    public ResponseEntity<Policy> updateNodeRequirements(
+            @PathVariable String policyId,
+            @PathVariable String nodeId,
+            @RequestBody Map<String, List<PolicyRequirement>> body) {
+
+        List<PolicyRequirement> requirements = body.getOrDefault("requirements", List.of());
+        Policy saved = policyService.updateNodeRequirements(policyId, nodeId, requirements);
         return ResponseEntity.ok(saved);
     }
 }

@@ -385,6 +385,32 @@ function nodeColor(type: string) {
                 @if (!savingForm) { <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> }
                 {{ savingForm ? 'Guardando...' : 'Guardar formulario' }}
               </button>
+
+              <!-- Requirements section -->
+              <hr style="margin:16px 0;border-color:var(--border)">
+              <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                <span>📋 Requisitos del trámite</span>
+                <span style="font-size:10px;color:#999;font-weight:400">(documentos que pide el agente)</span>
+              </h4>
+              @for (req of nodeRequirements; track $index; let ri = $index) {
+                <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:10px;margin-bottom:8px">
+                  <div style="display:flex;gap:6px;margin-bottom:6px">
+                    <input [(ngModel)]="req.name" placeholder="Nombre del requisito" class="form-input" style="flex:1;font-size:12px" />
+                    <button (click)="removeRequirement(ri)" class="btn btn-danger btn-sm" style="padding:4px 8px">✕</button>
+                  </div>
+                  <input [(ngModel)]="req.description" placeholder="Instrucción para el cliente (opcional)" class="form-input" style="width:100%;font-size:12px;margin-bottom:6px" />
+                  <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                    <input type="checkbox" [(ngModel)]="req.required" />
+                    Obligatorio
+                  </label>
+                </div>
+              }
+              <button (click)="addRequirement()" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;border-color:#ffe58f;color:#d48806">
+                + Agregar requisito
+              </button>
+              <button (click)="saveRequirements()" class="btn btn-sm" style="width:100%;background:#faad14;color:#fff;border:none">
+                Guardar requisitos
+              </button>
             }
           </div>
         }
@@ -404,6 +430,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   selectedNodeId = '';
   selectedNodeTitle = '';
   formFields: { name: string; label: string; type: string; required: boolean; columns?: string; buttonLabel?: string }[] = [];
+  nodeRequirements: { name: string; description: string; required: boolean }[] = [];
   savingForm = false;
   rightTab: 'ai' | 'form' = 'ai';
   aiPrompt = '';
@@ -521,12 +548,35 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
     if (n?.data?.['nodeId']) {
       this.http.get<any>(`${API_BASE}/forms/template/${n.id}`).subscribe({ next: t => { if (t?.schemaJson) this.parseFormSchema(t.schemaJson); }, error: () => {} });
     }
+    // Load requirements for this node
+    this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe({
+      next: policy => {
+        const node_ = policy.nodes?.find((nd: any) => nd.id === this.selectedNodeId);
+        this.nodeRequirements = (node_?.requirements ?? []).map((r: any) => ({
+          name: r.name ?? '', description: r.description ?? '', required: r.required ?? true
+        }));
+      },
+      error: () => { this.nodeRequirements = []; }
+    });
   }
 
   openFormEditor() { this.rightTab = 'form'; }
 
   addField() { this.formFields.push({ name: `field_${Date.now()}`, label: '', type: 'text', required: false }); }
   removeField(i: number) { this.formFields.splice(i, 1); }
+
+  addRequirement() { this.nodeRequirements.push({ name: '', description: '', required: true }); }
+  removeRequirement(i: number) { this.nodeRequirements.splice(i, 1); }
+
+  saveRequirements() {
+    if (!this.selectedNodeId) return;
+    this.http.put(`${API_BASE}/policies/${this.policyId}/nodes/${this.selectedNodeId}/requirements`,
+      { requirements: this.nodeRequirements }
+    ).subscribe({
+      next: () => this.toast.show('Requisitos guardados', 'success'),
+      error: () => this.toast.show('Error al guardar requisitos', 'error')
+    });
+  }
 
   saveForm() {
     if (!this.selectedNodeId) return;
