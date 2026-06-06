@@ -33,7 +33,7 @@ else:
 
 def req(method, path, body=None, token=None):
     url = f"{API}/api{path}"
-    data = json.dumps(body).encode() if body else None
+    data = json.dumps(body).encode() if body is not None else None
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
