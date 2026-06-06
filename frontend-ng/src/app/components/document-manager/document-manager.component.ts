@@ -26,6 +26,8 @@ interface AuditEntry {
   timestamp: string;
 }
 
+interface PermissionEntry { userId: string; level: string; }
+
 @Component({
   selector: 'app-document-manager',
   standalone: true,
@@ -251,8 +253,6 @@ interface AuditEntry {
     }
   `
 })
-interface PermissionEntry { userId: string; level: string; }
-
 export class DocumentManagerComponent implements OnInit {
   @Input() caseId!: string;
   @Input() nodeId: string | null = null;
