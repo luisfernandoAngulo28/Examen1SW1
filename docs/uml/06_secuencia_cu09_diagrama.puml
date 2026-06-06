@@ -1,0 +1,20 @@
+@startuml Sec_CU09
+!theme plain
+actor "Diseñador" as Actor
+boundary "I.Lienzo" as UI
+control "C.Diagrama" as Ctrl
+entity "E.Nodo" as Nodo
+
+Actor -> UI : 1. agregarNodo(datos)
+activate UI
+UI -> Ctrl : 2. addNode(datos)
+activate Ctrl
+Ctrl -> Nodo : 3. save(nodo)
+activate Nodo
+Nodo --> Ctrl : nodo_guardado
+deactivate Nodo
+Ctrl --> UI : confirmación
+deactivate Ctrl
+UI --> Actor : 4. actualizar lienzo
+deactivate UI
+@enduml

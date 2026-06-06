@@ -1,0 +1,32 @@
+@startuml Vista_Usuario
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Usuario" {
+    usecase "CU01 Gestionar Inicio\nde Sesión" as CU01
+    usecase "CU02 Gestionar Cierre\nde Sesión" as CU02
+    usecase "CU03 Gestionar Perfil\nde Usuario" as CU03
+    usecase "CU05 Gestionar Deptos\ny Usuarios" as CU05
+}
+
+Usuario --> CU01
+Usuario --> CU02
+Usuario --> CU03
+Diseñador --> CU05
+
+CU02 ..> CU01 : <<include>>
+CU03 ..> CU01 : <<include>>
+CU05 ..> CU01 : <<include>>
+@enduml

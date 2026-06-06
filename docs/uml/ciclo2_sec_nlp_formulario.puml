@@ -1,0 +1,62 @@
+@startuml CU_Secuencia_NLP_Formulario_Ciclo2
+title Diagrama de Secuencia — Llenado de Formulario por Voz (NLP)\nCiclo 2 | WorkflowSW1
+
+actor Funcionario as F
+participant "Frontend\nAngular" as FE
+participant "Web Speech\nAPI (Browser)" as WSA
+participant "Backend\nSpring Boot" as BE
+participant "AI Service\nFastAPI" as AI
+participant "OpenAI\nGPT-4o-mini" as OAI
+participant "MongoDB" as DB
+
+autonumber
+
+F -> FE : Abre detalle de tarea asignada
+FE -> BE : GET /api/tasks/{taskId}
+BE -> DB : TaskRepository.findById(taskId)
+DB --> BE : Task + FormTemplate (JSON)
+BE --> FE : Task + campos del formulario
+FE --> F : Renderiza formulario dinámico
+
+F -> FE : Presiona botón "Dictar respuesta" 🎤
+FE -> WSA : SpeechRecognition.start()\nlang: 'es-ES', continuous: false
+WSA --> F : Indicador de escucha activa
+
+F -> WSA : Habla: "El nombre es Juan Pérez,\nfecha de nacimiento veinte de marzo de dos mil,\ntiene cédula cero uno dos tres cuatro"
+WSA --> FE : SpeechRecognitionEvent.results\ntranscript: "El nombre es Juan Pérez..."
+
+FE -> BE : POST /api/ai-assistant/fill-form\n{\n  "transcript": "El nombre es Juan Pérez...",\n  "formFields": [{name, label, type}...]\n}
+
+BE -> AI : POST /nlp/fill-form\n{\n  "transcript": "...",\n  "fields": [...]\n}
+
+group Motor de Reglas Local
+  AI -> AI : Intenta extraer valores\ncon regex + sinónimos\n(anclaje por etiqueta de campo)
+  AI -> AI : fecha: detecta "veinte de marzo\nde dos mil" → "2000-03-20"
+  AI -> AI : cedula: regex \\d+ → "01234"
+end
+
+alt Todos los campos resueltos por motor de reglas
+  AI --> BE : { "nombre": "Juan Pérez",\n  "fechaNacimiento": "2000-03-20",\n  "cedula": "01234",\n  "source": "rules" }
+else Campos sin resolver → escala a OpenAI
+  AI -> OAI : POST /v1/chat/completions\n{\n  "model": "gpt-4o-mini",\n  "messages": [\n    {role: system, content: "Extrae campos..."},\n    {role: user, content: transcript}\n  ]\n}
+  OAI --> AI : Respuesta JSON con campos extraídos
+  AI --> BE : Campos resueltos\n{ ..., "source": "openai" }
+end
+
+BE --> FE : { "filledValues": { nombre, fechaNacimiento, cedula } }
+
+FE -> FE : Llena automáticamente\nlos campos del formulario\ncon los valores extraídos
+
+FE --> F : Formulario pre-llenado\ncon datos del dictado
+
+F -> FE : Revisa y corrige si hay errores
+F -> FE : Presiona "Completar tarea"
+
+FE -> BE : POST /api/tasks/{taskId}/complete\n{ formData: {...}, documents: [...] }
+BE -> BE : WorkflowService.completeTask()\nAvanza al siguiente nodo del diagrama
+BE -> DB : Actualiza Task.status = COMPLETED\nRegistra EventLog
+DB --> BE : OK
+BE --> FE : { "nextStep": "Aprobación Gerente", "status": "OK" }
+FE --> F : "Tarea completada exitosamente ✓"
+
+@enduml

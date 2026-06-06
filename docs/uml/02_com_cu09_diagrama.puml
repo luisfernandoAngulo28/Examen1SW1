@@ -1,0 +1,18 @@
+@startuml Com_CU09
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Diseñador" as Actor
+boundary "I.Lienzo" as UI
+control "C.Diagrama" as Ctrl
+entity "E.Nodo" as EntNodo
+entity "E.Arista" as EntArista
+
+Actor --> UI : 1. agregarNodo(datos)\n4. conectarNodos(origen, destino)
+UI --> Ctrl : 2. addNode(datos)\n5. addEdge(origen, destino)
+Ctrl --> EntNodo : 3. save(nodo)
+Ctrl --> EntArista : 6. save(arista)
+Ctrl --> UI : 7. enviar confirmación
+UI --> Actor : 8. actualizar lienzo
+@enduml

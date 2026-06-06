@@ -1,0 +1,67 @@
+@startuml CU_Documentos_S3_Ciclo2
+title Diagrama de Actividad — Gestión Documental con AWS S3\nCiclo 2 | WorkflowSW1
+
+|Funcionario|
+start
+:Accede al detalle de una tarea asignada;
+:Visualiza formulario dinámico;
+:Completa los campos del formulario;
+:Selecciona archivo(s) a adjuntar\n(PDF, imagen, documento);
+
+|Frontend Angular|
+:Valida tipo y tamaño del archivo\n(< 10 MB, extensiones permitidas);
+
+if (¿Archivo válido?) then (No)
+  :Muestra mensaje de error al funcionario;
+  stop
+else (Sí)
+endif
+
+:Envía multipart/form-data a\nPOST /api/documents/upload;
+
+|Backend (Spring Boot)|
+:AuthFilter valida token JWT del funcionario;
+
+if (¿Token válido y rol OFFICER?) then (No)
+  :Retorna 401 Unauthorized;
+  stop
+else (Sí)
+endif
+
+:DocumentController recibe el archivo;
+:DocumentService genera clave S3:\ncases/{caseId}/{timestamp}_{filename};
+
+|AWS S3|
+:S3Client.putObject() con:\n- bucket: flowgov-documents\n- key generada\n- ContentType detectado\n- Acceso: privado (IAM);
+
+if (¿Subida exitosa?) then (No)
+  |Backend (Spring Boot)|
+  :Lanza excepción S3Exception;
+  :Retorna 500 con mensaje de error;
+  stop
+else (Sí)
+endif
+
+|Backend (Spring Boot)|
+:Construye entidad CaseDocument con:\n- caseId, taskId, uploadedBy\n- s3Key, originalFilename\n- timestamp, fileSize;
+:DocumentRepository.save(caseDocument);
+
+|MongoDB|
+:Persiste metadatos del documento;
+
+|Backend (Spring Boot)|
+:DocumentAudit registra evento:\n- userId, acción: UPLOAD\n- ip de origen, timestamp;
+:Retorna 200 con URL de acceso al documento;
+
+|Frontend Angular|
+:Muestra documento adjunto en la UI\ncon ícono de descarga;
+:Funcionario continúa y\nenvía el formulario completado;
+
+|Backend (Spring Boot)|
+:WorkflowService avanza el trámite\nal siguiente nodo del diagrama;
+
+|Funcionario|
+:Ve confirmación de tarea completada;
+stop
+
+@enduml

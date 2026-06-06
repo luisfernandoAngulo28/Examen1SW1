@@ -1,0 +1,24 @@
+@startuml Trace_Proyectos
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+component "Módulo de Gestión\nde Proyectos" as Modulo
+
+usecase "CU04 Gestionar Políticas\nde Negocio" as CU04
+usecase "CU06 Gestionar Búsqueda\nde Trámites" as CU06
+usecase "CU07 Gestionar Reportes\nde Desempeño" as CU07
+usecase "CU08 Gestionar Motor\nde Workflow" as CU08
+usecase "CU10 Gestionar Bandeja\nen Tiempo Real" as CU10
+usecase "CU14 Gestionar Toma de\nDecisiones Condicionales" as CU14
+usecase "CU15 Gestionar Trazabilidad\nCompleta del Trámite" as CU15
+
+Modulo ..> CU04 : <<trace>>
+Modulo ..> CU06 : <<trace>>
+Modulo ..> CU07 : <<trace>>
+Modulo ..> CU08 : <<trace>>
+Modulo ..> CU10 : <<trace>>
+Modulo ..> CU14 : <<trace>>
+Modulo ..> CU15 : <<trace>>
+@enduml

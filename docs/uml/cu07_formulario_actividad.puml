@@ -9,15 +9,11 @@ title CU07 — Registrar Avance con Formulario
 
 ' ── Actores ──
 actor "Funcionario" as OFFICER
-actor "Diseñador"   as DESIGNER
-actor "Usuario"     as USER
 actor "Sistema IA"  as AI
 
-OFFICER  --|> USER
-DESIGNER --|> USER
+
 
 ' ── Casos de uso ──
-usecase "Configurar campos\ndel formulario\n(template)"    as UC_TPL
 usecase "Ver formulario\nde una actividad"                 as UC_VIEW
 usecase "Ingresar datos\nmanualmente"                      as UC_MANUAL
 usecase "Dictar datos\npor voz"                            as UC_VOICE
@@ -26,7 +22,6 @@ usecase "Guardar\nformulario"                              as UC_SAVE
 usecase "Ver formulario\nguardado"                         as UC_READ
 
 ' ── Relaciones ──
-DESIGNER --> UC_TPL
 OFFICER  --> UC_VIEW
 OFFICER  --> UC_MANUAL
 OFFICER  --> UC_VOICE
@@ -40,12 +35,5 @@ UC_SAVE   ..> UC_VIEW   : <<include>>
 
 AI ..> UC_NLP : procesa
 
-note right of UC_TPL
-  El Diseñador define los
-  campos: text, textarea,
-  number, date, select.
-  Se guarda en el nodo
-  como schemaJson.
-end note
 
 @enduml

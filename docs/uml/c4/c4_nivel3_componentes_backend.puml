@@ -1,0 +1,62 @@
+@startuml C4_Componentes_Backend_WorkflowSW1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 — Nivel 3: Componentes del Workflow Engine\nWorkflowSW1 — Backend Spring Boot (Ciclo 2)
+
+Container_Ext(frontend, "Frontend Angular", "Angular 18", "Interfaz web del sistema.")
+Container_Ext(mobile_app, "App Móvil", "Flutter", "Aplicación móvil.")
+Container_Ext(ai_service, "AI Service", "FastAPI Python", "Microservicio NLP.")
+Container_Ext(ml_service, "ML Service", "FastAPI + TensorFlow", "Microservicio ML.")
+
+System_Boundary(backend, "Workflow Engine — Spring Boot") {
+
+    Component(auth_ctrl, "AuthController", "REST Controller\n@RestController", "Gestiona registro, login y refresco de tokens JWT. Endpoints: POST /auth/login, /auth/register.")
+
+    Component(policy_ctrl, "PolicyController", "REST Controller", "CRUD de políticas de negocio (diagramas JSON). Endpoints: GET/POST/PUT/DELETE /policies.")
+
+    Component(case_ctrl, "CaseController", "REST Controller", "Instancia trámites a partir de una política. Endpoints: POST /cases, GET /cases/{id}.")
+
+    Component(task_ctrl, "FormsController + TaskController", "REST Controller", "Gestiona tareas asignadas y formularios dinámicos. Provee bandeja de funcionario.")
+
+    Component(document_ctrl, "DocumentController", "REST Controller", "Sube y recupera documentos de AWS S3 / MongoDB GridFS. Endpoints: POST /documents/upload.")
+
+    Component(analytics_ctrl, "AnalyticsController", "REST Controller", "Genera KPIs, detecta cuellos de botella y estadísticas de rendimiento.")
+
+    Component(ai_ctrl, "AiAssistantController", "REST Controller", "Proxy hacia AI Service para comandos NLP y TTS.")
+
+    Component(ml_ctrl, "MlController", "REST Controller", "Proxy hacia ML Service para predicciones de demora y prioridad.")
+
+    Component(ws_handler, "WebSocket Handler\n(STOMP)", "WebSocket Controller", "Emite eventos en tiempo real (estado de trámites, semáforos) hacia el frontend y la app móvil.")
+
+    Component(workflow_svc, "WorkflowService", "Spring Service\n@Service", "Núcleo del motor de workflow. Interpreta el JSON del diagrama, avanza nodos, asigna tareas a departamentos y valida condiciones.")
+
+    Component(security_cfg, "SecurityConfig + JwtFilter", "Spring Security\n@Configuration", "Configura CORS, protección de endpoints por rol (ADMIN, OFFICER, CLIENT) y valida tokens JWT en cada request.")
+
+    Component(mongo_repos, "Repositories (Spring Data)", "MongoRepository", "PolicyRepository, CaseRepository, TaskRepository, UserRepository, DocumentRepository — acceso a MongoDB.")
+}
+
+ContainerDb_Ext(mongodb, "MongoDB", "MongoDB 7", "Base de datos NoSQL.")
+System_Ext(aws_s3, "AWS S3", "Almacenamiento de archivos.")
+System_Ext(firebase, "Firebase FCM", "Notificaciones push.")
+
+Rel(frontend, auth_ctrl, "POST /auth/login", "JSON / HTTPS")
+Rel(frontend, policy_ctrl, "CRUD /policies", "JSON / HTTPS")
+Rel(frontend, case_ctrl, "Gestión de trámites", "JSON / HTTPS")
+Rel(frontend, ws_handler, "Suscripción eventos", "STOMP / WebSocket")
+Rel(mobile_app, case_ctrl, "Consulta trámites", "JSON / HTTPS")
+Rel(mobile_app, task_ctrl, "Procesa tareas", "JSON / HTTPS")
+
+Rel(auth_ctrl, security_cfg, "Valida credenciales")
+Rel(case_ctrl, workflow_svc, "Instancia y avanza workflow")
+Rel(task_ctrl, workflow_svc, "Completa tareas")
+Rel(workflow_svc, mongo_repos, "Lee/escribe estado del workflow")
+Rel(document_ctrl, aws_s3, "Sube documentos", "AWS SDK v2")
+Rel(analytics_ctrl, mongo_repos, "Consulta eventos y métricas")
+Rel(ai_ctrl, ai_service, "Delega NLP", "HTTP REST")
+Rel(ml_ctrl, ml_service, "Delega predicciones", "HTTP REST")
+Rel(ws_handler, firebase, "Envía push FCM")
+Rel(mongo_repos, mongodb, "CRUD documentos", "MongoDB Driver")
+
+@enduml

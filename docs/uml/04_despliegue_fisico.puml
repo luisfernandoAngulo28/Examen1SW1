@@ -1,0 +1,64 @@
+@startuml Diagrama_Despliegue
+!theme plain
+top to bottom direction
+
+skinparam node {
+    BackgroundColor<<aws>> #FFCE54
+    BackgroundColor<<external>> #E8EAF6
+    BackgroundColor<<device>> #A0D492
+    BorderColor #2C3E50
+}
+skinparam componentBackgroundColor #FFFFFF
+
+node "Dispositivos de Usuario" {
+    node "<<device>>\nDesktop Diseñador" as Editor <<device>> {
+        component "Web Browser\n(Angular SPA)" as BrowserEditor
+    }
+
+    node "<<device>>\nDesktop Funcionario" as Creador <<device>> {
+        component "Web Browser\n(Angular SPA)" as BrowserCreador
+    }
+}
+
+node "Amazon Web Services (AWS)" as AWS <<aws>> {
+    
+    node "<<Service>>\nAmazon S3 + CloudFront" as S3 {
+        component "Frontend Assets\n(Angular SPA build)" as FrontendApp
+    }
+
+    node "<<EC2 Instance>>\nServidor Backend" as EC2 {
+        component "Nginx\n(Reverse Proxy)" as Nginx
+        component "Spring Boot 3.x\n(Workflow Engine)" as SpringBoot
+        component "WebSocket\n(STOMP Broker)" as WS
+        
+        Nginx -down-> SpringBoot : HTTP :8080
+        Nginx -down-> WS : WS/WSS
+    }
+
+    node "<<Database Instance>>\nServidor de Base de Datos" as DBNode {
+        component "SGBD\nMongoDB" as MongoDB
+    }
+}
+
+node "Servicios Externos" as Externos <<external>> {
+    component "OpenAI API\n(GPT-4)" as OpenAI
+    component "Firebase\n(Cloud Messaging)" as Firebase
+}
+
+' Relaciones Clientes -> AWS
+BrowserEditor --> S3 : HTTPS (Descarga SPA)
+BrowserCreador --> S3 : HTTPS (Descarga SPA)
+
+BrowserEditor --> Nginx : HTTPS / REST
+BrowserCreador --> Nginx : HTTPS / REST
+BrowserEditor --> WS : WSS (Sockets reales)
+BrowserCreador --> WS : WSS (Sockets reales)
+
+' Relaciones internas AWS
+SpringBoot --> MongoDB : TCP/IP (mongodb://)
+
+' Relaciones AWS -> Externos
+SpringBoot --> OpenAI : HTTPS (Análisis IA)
+SpringBoot --> Firebase : HTTPS (Notificaciones)
+
+@enduml

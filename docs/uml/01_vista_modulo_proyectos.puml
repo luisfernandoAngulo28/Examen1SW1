@@ -1,0 +1,39 @@
+@startuml Vista_Proyectos
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Proyectos" {
+    usecase "CU04 Gestionar Políticas\nde Negocio" as CU04
+    usecase "CU06 Gestionar Búsqueda\nde Trámites" as CU06
+    usecase "CU07 Gestionar Reportes\nde Desempeño" as CU07
+    usecase "CU08 Gestionar Motor\nde Workflow" as CU08
+    usecase "CU10 Gestionar Bandeja\nen Tiempo Real" as CU10
+    usecase "CU14 Gestionar Toma de\nDecisiones Condicionales" as CU14
+    usecase "CU15 Gestionar Trazabilidad\nCompleta del Trámite" as CU15
+}
+
+Diseñador --> CU04
+Diseñador --> CU07
+Usuario --> CU06
+Usuario --> CU08
+Usuario --> CU15
+Funcionario --> CU10
+Funcionario --> CU14
+
+CU08 ..> CU04 : <<include>>
+CU10 ..> CU08 : <<include>>
+CU14 ..> CU10 : <<extend>>
+CU15 ..> CU08 : <<include>>
+@enduml

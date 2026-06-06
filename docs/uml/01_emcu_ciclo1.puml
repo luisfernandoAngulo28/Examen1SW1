@@ -1,0 +1,34 @@
+@startuml EMCU_Ciclo1
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #D5F5E3
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Ciclo de Vida #1 (Core & Config)" {
+    usecase "CU01 Gestionar Inicio Sesión" as CU01
+    usecase "CU02 Gestionar Cierre Sesión" as CU02
+    usecase "CU04 Gestionar Políticas" as CU04
+    usecase "CU05 Gestionar Deptos y Usuarios" as CU05
+    usecase "CU06 Búsqueda de Trámites" as CU06
+}
+
+A1 --> CU01
+A2 --> CU01
+A3 --> CU01
+A1 --> CU02
+A2 --> CU02
+A3 --> CU02
+A1 --> CU04
+A1 --> CU05
+A1 --> CU06
+A2 --> CU06
+A3 --> CU06
+@enduml

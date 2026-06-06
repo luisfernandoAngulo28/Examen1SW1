@@ -1,0 +1,34 @@
+@startuml C4_Contexto_WorkflowSW1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 — Nivel 1: Contexto del Sistema\nWorkflowSW1 — Sistema de Gestión de Trámites (Ciclo 2)
+
+Person(cliente, "Cliente / Ciudadano", "Inicia trámites, consulta el estado de su solicitud mediante la app móvil o el portal web.")
+Person(funcionario, "Funcionario", "Procesa las tareas asignadas en su bandeja, completa formularios y gestiona documentos.")
+Person(administrador, "Administrador / Diseñador", "Diseña políticas de negocio (flujos UML), gestiona departamentos y usuarios.")
+Person(gerente, "Gerente", "Consulta KPIs, analítica de cuellos de botella y reportes de rendimiento.")
+
+System(workflowSW1, "WorkflowSW1", "Sistema de gestión de políticas de negocio y trámites. Permite diseñar flujos UML, ejecutar workflows automáticos, gestionar documentos y asistir mediante IA.")
+
+System_Ext(openai, "OpenAI API", "Proporciona el modelo GPT-4o-mini para el procesamiento de lenguaje natural (NLP) y llenado inteligente de formularios.")
+System_Ext(firebase, "Firebase Cloud Messaging", "Envía notificaciones push a la aplicación móvil Flutter cuando hay novedades en un trámite.")
+System_Ext(elevenlabs, "ElevenLabs API", "Síntesis de voz (Text-to-Speech) para el asistente virtual del sistema.")
+System_Ext(aws_s3, "AWS S3", "Almacenamiento de documentos adjuntos a los trámites (bucket: flowgov-documents).")
+System_Ext(aws_ec2, "AWS EC2", "Infraestructura de cómputo donde se despliegan todos los servicios del sistema (instancia t3.medium, región sa-east-1).")
+System_Ext(mongodb, "MongoDB Atlas", "Base de datos NoSQL para la persistencia de políticas, trámites, usuarios y eventos.")
+
+Rel(cliente, workflowSW1, "Inicia trámites, consulta estado", "HTTPS / App Móvil")
+Rel(funcionario, workflowSW1, "Procesa tareas, completa formularios", "HTTPS / WebSocket")
+Rel(administrador, workflowSW1, "Diseña flujos, gestiona usuarios", "HTTPS")
+Rel(gerente, workflowSW1, "Consulta analítica y KPIs", "HTTPS")
+
+Rel(workflowSW1, openai, "Envía transcripciones para NLP", "HTTPS / REST API")
+Rel(workflowSW1, firebase, "Envía notificaciones push", "HTTPS / FCM API")
+Rel(workflowSW1, elevenlabs, "Solicita síntesis de voz", "HTTPS / REST API")
+Rel(workflowSW1, aws_s3, "Almacena y recupera documentos", "AWS SDK v2")
+Rel(workflowSW1, mongodb, "Persiste y consulta datos", "MongoDB Driver")
+Rel(aws_ec2, workflowSW1, "Hospeda el sistema completo", "Docker Compose")
+
+@enduml

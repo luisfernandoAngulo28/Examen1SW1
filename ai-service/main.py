@@ -9,7 +9,7 @@ Rol: Microservicio de Inteligencia Artificial que expone endpoints de NLP,
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import prompt_router, nlp_router, tts_router
+from app.routers import prompt_router, nlp_router, tts_router, report_router
 
 app = FastAPI(
     title="Workflow AI Service",
@@ -37,8 +37,9 @@ app.add_middleware(
 )
 
 app.include_router(prompt_router.router, tags=["Workflow AI — Prompts"])
-app.include_router(nlp_router.router, prefix="/nlp", tags=["NLP — Form Filler"])
+app.include_router(nlp_router.router, prefix="/nlp", tags=["NLP — Form Filler & Policy Assignment"])
 app.include_router(tts_router.router, tags=["Text-to-Speech"])
+app.include_router(report_router.router, prefix="/reports", tags=["Reports — NL Query Parser"])
 
 
 @app.get("/health", tags=["Health"])

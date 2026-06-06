@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'services/api_service.dart';
 import 'services/push_notification_service.dart';
+import 'services/websocket_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/tasks_provider.dart';
 import 'providers/cases_provider.dart';
+import 'providers/policy_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/tracking_screen.dart';
+import 'screens/policy_list_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,12 +24,15 @@ class WorkflowApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final apiService = ApiService();
+    final wsService = WebSocketService(ApiService.defaultBase);
     return MultiProvider(
       providers: [
         Provider<ApiService>.value(value: apiService),
+        ChangeNotifierProvider<WebSocketService>.value(value: wsService),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiService)),
         ChangeNotifierProvider(create: (_) => TasksProvider(apiService)),
         ChangeNotifierProvider(create: (_) => CasesProvider(apiService)),
+        ChangeNotifierProvider(create: (_) => PolicyProvider(apiService)),
       ],
       child: MaterialApp(
         title: 'Workflow SW1',
@@ -60,9 +66,12 @@ class _SplashRouterState extends State<_SplashRouter> {
 
   Future<void> _checkAuth() async {
     final auth = context.read<AuthProvider>();
+    final api = context.read<ApiService>();
+    final ws = context.read<WebSocketService>();
     final loggedIn = await auth.tryAutoLogin();
     if (loggedIn) {
-      try { final push = PushNotificationService(context.read<ApiService>()); await push.init(); } catch (_) {}
+      try { final push = PushNotificationService(api); await push.init(); } catch (_) {}
+      ws.connect();
     }
     if (mounted) setState(() => _checking = false);
   }
@@ -80,9 +89,9 @@ class _SplashRouterState extends State<_SplashRouter> {
     }
     final auth = context.read<AuthProvider>();
     if (!auth.isLoggedIn) return const LoginScreen();
-    // Route by role: CLIENTs see tracking, officers/designers see tasks
     final role = auth.user?.role ?? '';
     if (role == 'CLIENT') return const TrackingScreen();
+    if (role == 'DESIGNER') return const PolicyListScreen();
     return const TasksScreen();
   }
 }

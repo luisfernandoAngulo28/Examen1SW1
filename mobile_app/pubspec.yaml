@@ -41,6 +41,9 @@ dependencies:
   # Intl (fechas)
   intl: ^0.20.2
 
+  # WebSocket / STOMP (colaboración en tiempo real)
+  stomp_dart_client: 3.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

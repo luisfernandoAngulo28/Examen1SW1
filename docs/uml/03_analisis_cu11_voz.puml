@@ -1,0 +1,28 @@
+@startuml Class_CU11
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Funcionario" as Actor
+
+class "InterfazFormulario" as UI <<boundary>> {
+  + activarMicrofono()
+  + inyectarTexto()
+}
+
+class "SpeechAPIController" as Ctrl <<control>> {
+  + procesarAudio()
+  + extraerTexto()
+}
+
+class "FormSubmission" as Ent <<entity>> {
+  + id: number
+  + payloadJson: json
+  + taskId: number
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Ent
+@enduml

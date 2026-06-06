@@ -1,21 +1,14 @@
 """
-Router: NLP Form Filler
-Endpoint:
-  POST /nlp/fill-form — extrae valores de formulario desde transcripción de voz
-
-Flujo de uso esperado:
-  1. Funcionario dicta un párrafo libre describiendo los datos del formulario.
-  2. El frontend captura la transcripción con SpeechRecognition.
-  3. Envía la transcripción + esquema del formulario a este endpoint.
-  4. El servicio retorna los campos prellenados con nivel de confianza.
-  5. El funcionario revisa, corrige si es necesario y confirma.
+Router: NLP endpoints
+  POST /nlp/fill-form       — llenado de formulario desde transcripción de voz
+  POST /nlp/assign-policy   — asignación automática de política por descripción de voz
 """
 from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from app.services import nlp_form_service
+from app.services import nlp_form_service, policy_assignment_service
 
 router = APIRouter()
 
@@ -71,3 +64,38 @@ async def fill_form(req: FillFormRequest) -> FillFormResponse:
         values=result.get("values", {}),
         confidence=result.get("confidence", {}),
     )
+
+
+# ── Policy Assignment ─────────────────────────────────────────────────────────
+
+class PolicyInfo(BaseModel):
+    id: str
+    name: str
+    keywords: str = ""
+
+
+class AssignPolicyRequest(BaseModel):
+    transcript: str = Field(..., description="Descripción de la situación del cliente en voz")
+    policies: list[PolicyInfo] = Field(..., description="Lista de políticas disponibles")
+
+
+class AssignPolicyResponse(BaseModel):
+    policyId: str | None
+    policyName: str | None
+    confidence: float
+    explanation: str
+
+
+@router.post(
+    "/assign-policy",
+    response_model=AssignPolicyResponse,
+    summary="Asignar política de negocio automáticamente desde descripción de voz",
+)
+async def assign_policy(req: AssignPolicyRequest) -> AssignPolicyResponse:
+    """
+    El cliente describe su situación por voz. El sistema analiza el texto
+    y retorna la política de negocio más apropiada con un nivel de confianza.
+    """
+    policies_raw = [p.model_dump() for p in req.policies]
+    result = policy_assignment_service.assign_policy(req.transcript, policies_raw)
+    return AssignPolicyResponse(**result)

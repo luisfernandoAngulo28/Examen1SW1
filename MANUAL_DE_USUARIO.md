@@ -1,702 +1,583 @@
-# 📘 Manual de Usuario — Sistema de Gestión de Políticas de Negocio (WorkflowSW1)
+# Manual de Usuario — Sistema de Gestión de Políticas de Negocio (WorkflowSW1)
 
 ## Índice
 
 1. [Introducción](#1-introducción)
-2. [Requisitos del Sistema](#2-requisitos-del-sistema)
-3. [Instalación y Puesta en Marcha](#3-instalación-y-puesta-en-marcha)
-4. [Acceso al Sistema (Login)](#4-acceso-al-sistema-login)
-5. [Roles de Usuario](#5-roles-de-usuario)
-6. [Panel Principal (Dashboard)](#6-panel-principal-dashboard)
-7. [Gestión de Departamentos](#7-gestión-de-departamentos)
-8. [Crear una Política de Negocio](#8-crear-una-política-de-negocio)
-9. [Editor Visual de Diagramas de Actividad](#9-editor-visual-de-diagramas-de-actividad)
-   - 9.1 [Agregar Nodos (Actividades)](#91-agregar-nodos-actividades)
-   - 9.2 [Conectar Nodos (Flujos)](#92-conectar-nodos-flujos)
-   - 9.3 [Swimlanes (Calles por Departamento)](#93-swimlanes-calles-por-departamento)
-   - 9.4 [Diseñar Formularios por Actividad](#94-diseñar-formularios-por-actividad)
-   - 9.5 [Guardar el Diagrama](#95-guardar-el-diagrama)
-10. [Asistente de IA](#10-asistente-de-ia)
-    - 10.1 [IA por Texto](#101-ia-por-texto)
-    - 10.2 [IA por Voz](#102-ia-por-voz)
-    - 10.3 [IA por Imagen](#103-ia-por-imagen)
-11. [Gestión de Trámites (Casos)](#11-gestión-de-trámites-casos)
-    - 11.1 [Iniciar un Trámite](#111-iniciar-un-trámite)
-    - 11.2 [Detalle del Trámite](#112-detalle-del-trámite)
-    - 11.3 [Asignar Tareas](#113-asignar-tareas)
-    - 11.4 [Completar Tareas y Formularios](#114-completar-tareas-y-formularios)
-    - 11.5 [Formularios por Voz](#115-formularios-por-voz)
-    - 11.6 [Cancelar un Trámite](#116-cancelar-un-trámite)
-12. [Semáforo Visual de Estados](#12-semáforo-visual-de-estados)
-13. [Monitor en Tiempo Real](#13-monitor-en-tiempo-real)
-14. [Analíticas y Detección de Cuellos de Botella](#14-analíticas-y-detección-de-cuellos-de-botella)
-15. [Referencia Rápida de Navegación](#15-referencia-rápida-de-navegación)
-16. [Flujo de Prueba Completo (Paso a Paso)](#16-flujo-de-prueba-completo-paso-a-paso)
-17. [Preguntas Frecuentes (FAQ)](#17-preguntas-frecuentes-faq)
+2. [Acceso al Sistema](#2-acceso-al-sistema)
+3. [Roles de Usuario](#3-roles-de-usuario)
+4. [Panel Principal (Dashboard)](#4-panel-principal-dashboard)
+5. [Gestión de Departamentos](#5-gestión-de-departamentos)
+6. [Crear una Política de Negocio](#6-crear-una-política-de-negocio)
+7. [Editor Visual de Diagramas de Actividad UML](#7-editor-visual-de-diagramas-de-actividad-uml)
+8. [Diseñador de Formularios Dinámicos](#8-diseñador-de-formularios-dinámicos)
+9. [Asistente de Inteligencia Artificial](#9-asistente-de-inteligencia-artificial)
+10. [Gestión de Trámites (Casos)](#10-gestión-de-trámites-casos)
+11. [Bandeja del Funcionario](#11-bandeja-del-funcionario)
+12. [Monitor en Tiempo Real](#12-monitor-en-tiempo-real)
+13. [Analítica y Detección de Cuellos de Botella](#13-analítica-y-detección-de-cuellos-de-botella)
+14. [Semáforo Visual de Estados](#14-semáforo-visual-de-estados)
+15. [Flujo de Prueba Completo](#15-flujo-de-prueba-completo)
+16. [Credenciales de Demo](#16-credenciales-de-demo)
+17. [Preguntas Frecuentes](#17-preguntas-frecuentes)
 
 ---
 
 ## 1. Introducción
 
-**WorkflowSW1** es un Sistema de Gestión de Políticas de Negocio basado en Diagramas de Actividad UML. Permite a las organizaciones:
+**WorkflowSW1** es un sistema de gestión de políticas de negocio basado en Diagramas de Actividad UML 2.5. Permite a las organizaciones diseñar, ejecutar, monitorear y analizar procesos de negocio de forma visual e inteligente.
 
-- **Diseñar** procesos de negocio visualmente usando diagramas de actividad con calles (swimlanes)
-- **Ejecutar** esos procesos como trámites (casos) con tareas asignables a funcionarios
-- **Monitorear** en tiempo real el avance de cada trámite mediante WebSocket
-- **Analizar** el rendimiento e identificar cuellos de botella con inteligencia artificial
-- **Crear diagramas asistidos por IA** mediante texto, voz o imagen
+### Capacidades principales
 
-**Stack tecnológico:** NestJS (backend) + React con Vite (frontend) + PostgreSQL + Prisma + Socket.IO + React Flow
-
----
-
-## 2. Requisitos del Sistema
-
-| Componente | Requisito |
+| Capacidad | Descripción |
 |---|---|
-| **Navegador** | Google Chrome (recomendado para voz), Firefox, Edge |
-| **Node.js** | v18 o superior |
-| **PostgreSQL** | v14 o superior |
-| **Puerto backend** | 3000 (por defecto) |
-| **Puerto frontend** | 5173 (por defecto) |
+| Diseño visual UML | Editor de diagramas de actividad con nodos, aristas y swimlanes |
+| Motor de workflow | Ejecución automática del flujo definido en el diagrama |
+| Formularios dinámicos | Captura de datos por nodo con 8 tipos de componentes |
+| Asistente IA | Diseño por texto, voz e imagen con NLP |
+| Monitor en tiempo real | WebSocket STOMP con semáforo rojo/amarillo/verde |
+| Analítica | Detección automática de cuellos de botella con IA |
+| App mobile | Cliente Flutter para funcionarios y clientes |
 
-> **Nota:** La funcionalidad de voz (🎤) requiere Google Chrome y permisos de micrófono.
+### Stack tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Backend | Spring Boot 3 (Java) — puerto 8080 |
+| Base de datos | MongoDB 7 |
+| IA / NLP | FastAPI (Python) — puerto 8000 |
+| Frontend | Angular 18 + Nginx |
+| Mobile | Flutter |
+| Infraestructura | AWS EC2 (t3.medium, sa-east-1) |
+
+### URL del sistema en producción
+
+```
+Frontend:  http://18.231.192.169:4200
+API REST:  http://18.231.192.169:8080/api
+IA Service: http://18.231.192.169:8000
+```
 
 ---
 
-## 3. Instalación y Puesta en Marcha
+## 2. Acceso al Sistema
 
-### 3.1 Base de Datos
+### 2.1 Iniciar sesión
 
-```bash
-# Crear la base de datos en PostgreSQL
-createdb workflow_sw1
-```
+1. Abrir el navegador en `http://18.231.192.169:4200`
+2. Se muestra la pantalla de login con el título **"Flujo de trabajo SW1"**
+3. Ingresar **correo electrónico** y **contraseña**
+4. Hacer clic en **"Iniciar sesión"**
+5. El sistema redirige al Dashboard según el rol del usuario
 
-### 3.2 Backend
+> La funcionalidad de voz (🎤) requiere **Google Chrome** y permisos de micrófono activados.
 
-```bash
-cd backend
-npm install
-npx prisma migrate dev      # Aplica las migraciones
-npx prisma db seed           # (opcional) Carga datos iniciales
-npm run start:dev            # Inicia en http://localhost:3000
-```
+### 2.2 Registrar un nuevo usuario (solo DESIGNER)
 
-### 3.3 Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev                  # Inicia en http://localhost:5173
-```
-
-### 3.4 Primer Usuario
-
-Registrar un usuario desde la API directamente:
-
-```bash
-curl -X POST http://localhost:3000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@test.com","password":"123456","name":"Administrador","role":"DESIGNER"}'
-```
-
-O usar los datos de prueba si ya fueron cargados:
-- **Email:** admin@test.com
-- **Contraseña:** 123456
-- **Rol:** DESIGNER
+1. En la pantalla de login, clic en **"¿No tienes cuenta? Registrarse"**
+2. Completar: nombre, correo, contraseña y rol
+3. Clic en **"Registrarse"**
 
 ---
 
-## 4. Acceso al Sistema (Login)
+## 3. Roles de Usuario
 
-1. Abrir el navegador en `http://localhost:5173`
-2. Se mostrará la pantalla de inicio de sesión
+El sistema tiene tres roles con permisos diferenciados:
 
-![Pantalla de Login](docs/images/01-login.png)
-*Figura 1: Pantalla de inicio de sesión con campos de email y contraseña*
-
-3. Ingresar **email** y **contraseña**
-4. Hacer clic en **"Iniciar Sesión"**
-5. El sistema redirige al **Dashboard** automáticamente
-6. El token JWT se almacena en `localStorage` y se envía en cada petición
-
-> **Importante:** Si el token expira, el sistema redirige al Login automáticamente.
-
----
-
-## 5. Roles de Usuario
-
-El sistema tiene dos roles que determinan las acciones disponibles:
-
-| Rol | Descripción | Permisos Principales |
+| Rol | Descripción | Permisos principales |
 |---|---|---|
-| **DESIGNER** | Diseñador de procesos | Crear/editar políticas, diseñar diagramas, configurar formularios, usar IA, ver analíticas |
-| **OFFICER** | Funcionario / Operador | Ejecutar trámites, completar tareas, llenar formularios, ver monitor |
-
-Ambos roles pueden ver el **Dashboard**, **Monitor** y **Analíticas**.
-
----
-
-## 6. Panel Principal (Dashboard)
-
-Al iniciar sesión, se presenta el Dashboard con:
-
-![Dashboard](docs/images/02-dashboard.png)
-*Figura 2: Panel principal con KPIs y tabla de políticas*
-
-### 6.1 Tarjetas KPI (Indicadores Clave)
-- 📊 **Total de Trámites** — Cantidad total de casos en el sistema
-- ⚡ **Trámites Activos** — Casos en estado OPEN o IN_PROGRESS
-- ✅ **Completados** — Casos finalizados exitosamente
-- 📋 **Tareas Pendientes** — Tareas que aún no se completan
-
-### 6.2 Tabla de Políticas
-Muestra todas las políticas creadas con:
-- Nombre de la política
-- Estado (ACTIVE / INACTIVE)
-- Fecha de creación
-- Acciones disponibles:
-  - **✏️ Editar** → Abre el editor visual del diagrama
-  - **📋 Trámites** → Ve los trámites/casos de esa política
-  - **🗑️ Eliminar** → Elimina la política (con confirmación)
-
-### 6.3 Botón "+ Nueva Política"
-Crea una nueva política de negocio (ver sección 8).
+| **DESIGNER** | Diseñador de procesos / Administrador | Crear y editar políticas, diseñar diagramas, configurar formularios, gestionar usuarios y departamentos, ver analíticas, monitorear |
+| **OFFICER** | Funcionario / Operador | Ejecutar tareas asignadas, llenar formularios, ver su bandeja de trabajo, recibir notificaciones push |
+| **CLIENT** | Cliente externo | Iniciar trámites, ver el estado de sus trámites, consultar historial |
 
 ---
 
-## 7. Gestión de Departamentos
+## 4. Panel Principal (Dashboard)
+
+Al iniciar sesión el DESIGNER ve el Dashboard principal con:
+
+### 4.1 Tarjetas KPI
+
+| Tarjeta | Color | Qué muestra |
+|---|---|---|
+| Trámites totales | Azul | Total de casos en el sistema |
+| En progreso | Amarillo | Casos activos actualmente |
+| Completados | Verde | Casos finalizados con éxito |
+| Tareas pendientes | Rojo | Tareas sin atender |
+
+### 4.2 Tabla de Políticas de Negocio
+
+Muestra todas las políticas con:
+- **Nombre** de la política
+- **Estado**: ACTIVO / INACTIVO
+- **Fecha** de creación
+- **Acciones**:
+  - **Editar** → Abre el editor visual del diagrama
+  - **Trámites** → Lista los casos de esa política
+
+### 4.3 Botón "+ Nueva Política"
+
+Crea una nueva política de negocio. Ver sección 6.
+
+---
+
+## 5. Gestión de Departamentos
 
 **Ruta:** Barra lateral → **"Departamentos"**
 
-Los departamentos representan las áreas organizacionales que participan en los procesos.
+Los departamentos representan las áreas organizacionales que participan en los procesos. Cada nodo del diagrama se asigna a un departamento.
 
-![Departamentos](docs/images/03-departamentos.png)
-*Figura 3: Gestión de departamentos — crear y ver lista*
+### Crear un departamento
 
-### Crear un Departamento
-1. Escribir el nombre en el campo de texto
-2. Hacer clic en **"+ Crear"**
-3. El departamento aparece en la lista
+1. Ingresar el **nombre** (ej: "Recursos Humanos")
+2. Ingresar una **descripción** opcional
+3. Clic en **"Crear"**
 
-### Ver Personal del Departamento
-Cada departamento muestra la cantidad de usuarios asignados.
+### Gestión de usuarios por departamento
 
-### Eliminar un Departamento
-1. Hacer clic en **"🗑️ Eliminar"** junto al departamento
-2. Confirmar la eliminación
+Desde la pantalla de departamentos se puede ver cuántos usuarios están asignados a cada área.
 
-> **Nota:** Se deben crear los departamentos ANTES de diseñar el diagrama, ya que cada actividad se asigna a un departamento.
+> Crear los departamentos ANTES de diseñar el diagrama, ya que cada nodo ACTION requiere un departamento asignado.
 
 ---
 
-## 8. Crear una Política de Negocio
+## 6. Crear una Política de Negocio
 
-1. En el Dashboard, hacer clic en **"+ Nueva Política"**
-2. Ingresar el **nombre** de la política (ej: "Solicitud de Crédito", "Aprobación de Vacaciones")
-3. Hacer clic en **"Crear"**
-4. El sistema redirige automáticamente al **Editor Visual** del diagrama
+1. En el Dashboard, clic en **"+ Nueva Política"**
+2. Ingresar el **nombre** del proceso (ej: "Solicitud de Crédito Empresarial")
+3. Ingresar una **descripción** del proceso
+4. Clic en **"Crear"**
+5. El sistema redirige al **Editor Visual** del diagrama
 
 ---
 
-## 9. Editor Visual de Diagramas de Actividad
+## 7. Editor Visual de Diagramas de Actividad UML
 
-**Ruta:** Dashboard → Política → **"✏️ Editar"**
+**Ruta:** Dashboard → Política → **"Editar"**
 
-El editor es la herramienta principal del sistema. Permite diseñar diagramas de actividad UML de manera visual.
+El editor es la herramienta central. Permite diseñar diagramas de actividad UML 2.5 de forma visual con swimlanes por departamento.
 
-![Editor Visual](docs/images/04-editor-general.png)
-*Figura 4: Vista general del Editor Visual con nodos, conexiones y panel lateral*
+### 7.1 Tipos de nodos disponibles
 
-### 9.1 Agregar Nodos (Actividades)
+| Nodo | Color | Equivalente UML 2.5 | Descripción |
+|---|---|---|---|
+| **INITIAL** | Verde | Nodo inicial (círculo relleno) | Punto de inicio del proceso |
+| **ACTION** | Azul | Acción / Actividad (rectángulo) | Tarea que ejecuta un departamento |
+| **DECISION** | Amarillo | Decisión (rombo) | Bifurcación condicional |
+| **FORK** | Violeta | Fork (barra horizontal) | Divide el flujo en ramas paralelas |
+| **JOIN** | Cyan | Join (barra horizontal) | Sincroniza las ramas paralelas |
+| **FINAL** | Rojo | Nodo final (círculo con borde) | Fin del proceso |
 
-En la **barra superior** del editor se encuentra el formulario para agregar actividades:
+### 7.2 Agregar un nodo
 
-1. **Seleccionar el departamento** en el dropdown de la izquierda (ej: "Ventas", "Legal", "Finanzas")
-2. **Escribir el nombre** de la actividad en el campo **"Nombre actividad"** (ej: "Revisar Solicitud")
-3. Hacer clic en el botón **"+ Actividad"** (botón verde)
-4. El nodo aparece en el lienzo posicionado automáticamente dentro de la calle (swimlane) de su departamento
+1. En el panel derecho, seleccionar el **tipo de nodo** (ACTION, DECISION, FORK, JOIN, etc.)
+2. Para nodos ACTION: ingresar el **nombre** de la actividad y seleccionar el **departamento** responsable
+3. Clic en **"+ Agregar"**
+4. El nodo aparece en el lienzo dentro de la swimlane del departamento
 
-![Agregar Nodo](docs/images/05-agregar-nodo.png)
-*Figura 5: Barra superior del editor — selector de departamento, campo de nombre y botón "+ Actividad"*
+### 7.3 Conectar nodos (aristas)
 
-**Cada nodo representa una actividad** del proceso que será ejecutada como una tarea cuando se inicie un trámite.
+1. Pasar el cursor sobre un nodo hasta ver los puntos de conexión
+2. Hacer clic y arrastrar desde un nodo hasta otro
+3. Se crea una arista (flecha)
+4. Para conexiones desde DECISION: ingresar la **etiqueta de condición** (ej: "Aprobado", "Rechazado")
 
-### 9.2 Conectar Nodos (Flujos)
+### 7.4 Swimlanes (calles por departamento)
 
-Para crear una conexión entre dos nodos:
+Las swimlanes son carriles visuales que agrupan los nodos ACTION por departamento, siguiendo la notación de carriles del diagrama de actividad UML.
 
-1. **Pasar el cursor** sobre un nodo hasta ver los puntos de conexión (handles)
-2. **Hacer clic y arrastrar** desde el punto de un nodo hasta otro nodo
-3. Se crea una arista (edge) con tipo **SEQUENTIAL** por defecto
+- **Vista calles**: muestra franjas horizontales/verticales por departamento
+- **Vista grafo**: muestra los nodos como grafo libre
+- El botón de vista está en la barra superior del editor
 
-**Tipos de flujo disponibles:**
+### 7.5 Patrones de flujo soportados
 
-| Tipo | Símbolo | Descripción |
+| Patrón | Nodos involucrados | Descripción |
 |---|---|---|
-| **SEQUENTIAL** | → | Flujo secuencial: una actividad después de otra |
-| **CONDITIONAL** | ◇→ | Flujo condicional: sigue una rama según condición |
-| **PARALLEL** | ═→ | Flujo paralelo: actividades simultáneas |
-| **ITERATIVE** | ↻ | Flujo iterativo: ciclo que se repite |
+| **Secuencial** | ACTION → ACTION | Una actividad después de otra |
+| **Condicional** | ACTION → DECISION → (rama A / rama B) | Bifurcación según condición |
+| **Paralelo** | ACTION → FORK → (rama 1 + rama 2) → JOIN → ACTION | Actividades simultáneas |
+| **Iterativo** | ACTION → DECISION → ACTION (hacia atrás) | Ciclo que se repite hasta condición |
 
-Para cambiar el tipo de flujo, se configura al conectar los nodos.
+### 7.6 Guardar el diagrama
 
-**Colores de cada tipo de flujo:**
+1. Clic en **"Guardar"** en la barra superior
+2. Se persisten todos los nodos (con posiciones, departamentos y formularios) y las aristas
+3. Aparece un mensaje de confirmación
 
-| Tipo | Color | Descripción |
+> El diagrama NO se guarda automáticamente. Guardar antes de salir del editor.
+
+---
+
+## 8. Diseñador de Formularios Dinámicos
+
+Cada nodo ACTION puede tener un formulario asociado. Los funcionarios lo llenan al ejecutar la tarea correspondiente.
+
+### 8.1 Abrir el diseñador de formularios
+
+1. En el editor, **seleccionar un nodo ACTION** haciendo clic sobre él
+2. En el panel derecho, ir a la pestaña **"Formulario"**
+3. Se muestra el diseñador de campos para ese nodo
+
+### 8.2 Agregar campos al formulario
+
+1. Clic en **"+ Campo"**
+2. Completar:
+   - **Etiqueta**: texto visible al funcionario (ej: "Monto solicitado")
+   - **Tipo**: seleccionar del dropdown
+3. Repetir para cada campo necesario
+4. Clic en **"Guardar formulario"**
+
+### 8.3 Tipos de componentes disponibles
+
+| Tipo | Descripción | Caso de uso |
 |---|---|---|
-| SEQUENTIAL | 🔵 Azul | Flujo normal secuencial |
-| CONDITIONAL | 🟠 Naranja | Rama condicional |
-| PARALLEL | 🟢 Cyan (animado) | Actividades simultáneas |
-| ITERATIVE | 🟣 Morado | Ciclo que se repite |
+| **Texto** | Campo de texto libre de una línea | Nombre, dirección, código |
+| **Número** | Campo numérico | Monto, cantidad, porcentaje |
+| **Fecha** | Selector de fecha | Fecha de solicitud, vencimiento |
+| **Párrafo** | Área de texto multilínea + dictado por voz | Observaciones, descripción detallada |
+| **Selección** | Lista desplegable con opciones | Estado, categoría, decisión |
+| **Grid (tabla)** | Tabla editable con columnas configurables y filas dinámicas | Ítems de una compra, listado de documentos |
+| **Botón acción** | Botón configurable dentro del formulario | Ejecutar una acción específica del proceso |
+| **Label** | Etiqueta de solo lectura | Títulos de sección, instrucciones |
 
-**Cómo cambiar el tipo de flujo:**
-- **Al crear:** Seleccionar el tipo en el dropdown de la barra superior ANTES de conectar los nodos
-- **Después de crear:** Hacer clic sobre una conexión existente para cambiar el tipo (cada clic rota al siguiente tipo)
+### 8.4 Configurar un campo Grid
 
-![Conexiones](docs/images/06-conexiones-flujo.png)
-*Figura 6: Nodos conectados con flechas mostrando el flujo del proceso*
+1. Seleccionar tipo **"Grid (tabla)"**
+2. En el campo de columnas, ingresar los nombres separados por coma (ej: `Descripción,Cantidad,Precio`)
+3. Guardar el formulario
+4. Al ejecutar la tarea, el funcionario puede agregar filas dinámicamente con el botón **"+ Agregar fila"**
 
-### 9.3 Swimlanes (Calles por Departamento)
+### 8.5 Configurar un Botón de acción
 
-Las **swimlanes** son carriles visuales que agrupan las actividades por departamento.
-
-1. Hacer clic en el botón **"▦ Calles ON"** en la barra de herramientas superior
-2. Se muestran franjas verticales de colores, una por cada departamento
-3. Cada franja tiene un encabezado con el nombre del departamento
-4. Al agregar un nodo, se posiciona automáticamente dentro de la calle de su departamento
-5. Para desactivar las calles: clic en **"▦ Calles OFF"**
-
-![Swimlanes](docs/images/07-swimlanes.png)
-*Figura 7: Swimlanes (calles) activadas mostrando carriles por departamento*
-
-> **Las swimlanes son una representación visual del diagrama de actividad UML** que muestra qué departamento es responsable de cada actividad.
-
-### 9.4 Diseñar Formularios por Actividad
-
-Cada actividad puede tener un formulario asociado que los funcionarios llenarán al ejecutar la tarea.
-
-1. **Seleccionar un nodo** haciendo clic sobre él en el lienzo
-2. En el panel derecho aparece la sección **"📝 Formulario para: [nombre del nodo]"**
-3. Agregar campos al formulario:
-   - **Nombre del campo** (identificador interno, ej: "monto")
-   - **Etiqueta** (texto visible, ej: "Monto Solicitado")
-   - **Tipo:** text, number, email, date, textarea, select, checkbox
-   - **Obligatorio:** marcar si es requerido
-   - **Placeholder:** texto de ayuda dentro del campo
-   - **Opciones** (solo para tipo select): valores separados por coma
-4. Hacer clic en **"+ Agregar Campo"** para cada campo
-5. Hacer clic en **"💾 Guardar Plantilla"** para guardar el formulario
-
-![Formulario Template](docs/images/08-formulario-template.png)
-*Figura 8: Diseño de formulario para una actividad — agregar campos con tipos*
-
-**Tipos de campo disponibles:**
-
-| Tipo | Descripción | Ejemplo |
-|---|---|---|
-| `text` | Texto libre | Nombre, dirección |
-| `number` | Número | Monto, cantidad |
-| `email` | Correo electrónico | Email de contacto |
-| `date` | Fecha | Fecha de solicitud |
-| `textarea` | Texto largo multilínea | Observaciones, descripción |
-| `select` | Lista desplegable | Estado, categoría |
-| `checkbox` | Casilla de verificación | ¿Acepta términos? |
-
-### 9.5 Guardar el Diagrama
-
-1. Hacer clic en **"💾 Guardar Diagrama"** en la barra de herramientas
-2. Se guardan todos los nodos (con posiciones y departamentos) y las conexiones
-3. Aparece un mensaje de confirmación ✅
-
-> **⚠️ Importante:** El diagrama NO se guarda automáticamente. Recuerda hacer clic en "Guardar" antes de salir del editor.
+1. Seleccionar tipo **"Botón acción"**
+2. Ingresar el texto del botón (ej: "Calcular total", "Verificar identidad")
+3. Guardar el formulario
+4. El botón aparece en el formulario del funcionario y registra su ejecución
 
 ---
 
-## 10. Asistente de IA
+## 9. Asistente de Inteligencia Artificial
 
-El editor incluye un **panel de Asistente de IA** que permite crear elementos del diagrama mediante lenguaje natural.
+El editor incluye un asistente de IA en el panel lateral derecho que permite diseñar el diagrama mediante lenguaje natural.
 
-### 10.1 IA por Texto
+### 9.1 Asistente por texto
 
-1. En el editor, localizar el panel **"🤖 Asistente IA"** (parte inferior del panel izquierdo)
-2. Escribir una instrucción en español en el campo de texto, por ejemplo:
-   - `"Crear actividad Revisar Solicitud en Ventas"`
-   - `"Agregar nodo Aprobar Crédito en el departamento Finanzas"`
-   - `"Conectar Revisar Solicitud con Aprobar Crédito"`
-   - `"Crear flujo para proceso de compras con 3 pasos"`
-3. Hacer clic en **"Enviar"** o presionar Enter
-4. La IA interpreta el texto y genera los nodos y conexiones automáticamente
-5. Los nuevos elementos aparecen en el lienzo
+1. En el editor, ir a la pestaña **"IA"** del panel derecho
+2. Escribir una instrucción en español, por ejemplo:
+   - `"Agrega un nodo de revisión de documentos en Legal"`
+   - `"Crea un flujo de aprobación con decisión"`
+   - `"Conecta el nodo inicial con Revisar Solicitud"`
+3. Clic en **"Enviar"**
+4. La IA interpreta el texto y genera los nodos/conexiones en el diagrama
+5. La respuesta aparece en el chat y los cambios se reflejan en el lienzo
 
-![IA por Texto](docs/images/09-ia-texto.png)
-*Figura 09: Asistente IA por texto con comando y resultado generado en el lienzo*
+### 9.2 Asistente por voz
 
-**Comandos soportados:**
-- **Crear/Agregar nodo** → `"agregar actividad [nombre] en [departamento]"`
-- **Eliminar nodo** → `"eliminar nodo [nombre]"`
-- **Conectar nodos** → `"conectar [nodo A] con [nodo B]"`
-- **Sugerir flujo** → `"crear flujo para [descripción del proceso]"`
+1. Clic en el botón **🎤** junto al campo de texto del asistente
+2. El botón cambia a 🔴 (grabando)
+3. Hablar en español la instrucción
+4. El sistema transcribe la voz y la procesa igual que texto
+5. Usar Google Chrome para mejor compatibilidad
 
-### 10.2 IA por Voz
+### 9.3 Asistente por imagen (OCR)
 
-1. Hacer clic en el botón **"🎤"** junto al campo de texto del Asistente IA
-2. **Hablar en español** con la instrucción deseada
-3. El sistema usa la **Web Speech API** para convertir voz a texto
-4. El texto transcrito se envía automáticamente a la IA
-5. Los nodos/conexiones se generan igual que con texto
+1. Clic en el botón de imagen (📷) en el panel de IA
+2. Seleccionar una imagen de un diagrama (foto, captura, escaneo)
+3. El sistema usa OCR (Tesseract.js) para extraer texto de la imagen
+4. La IA interpreta el contenido y genera los nodos correspondientes
 
-![IA por Voz](docs/images/10-ia-voz.png)
-*Figura 10: Asistente IA por voz usando el botón de micrófono*
+### 9.4 Dictado inteligente NLP en formularios
 
-> **Requisito:** Google Chrome + permisos de micrófono activados.
+En los formularios de ejecución de tareas:
 
-### 10.3 IA por Imagen
-
-1. Hacer clic en el botón **"📷"** en el panel del Asistente IA
-2. Seleccionar una **imagen** de un diagrama (foto, captura de pantalla, escaneo)
-3. El sistema solicita una **descripción** de lo que contiene la imagen
-4. Escribir qué representa la imagen (ej: "Diagrama de aprobación de compras con 4 actividades")
-5. La IA procesa el texto descriptivo y genera los nodos y conexiones correspondientes
-
-![IA por Imagen](docs/images/11-ia-imagen.png)
-*Figura 11: Asistente IA por imagen con actividad generada desde archivo cargado*
-
-![IA por Imagen - Apoyo](docs/images/11-ia-imagen2.png)
-*Figura 11b: Cuadro de descripción de imagen antes de procesar la solicitud*
-
-> **Tip:** Para mejores resultados, describe las actividades y conexiones que ves en la imagen. Por ejemplo: "La imagen muestra: Solicitar → Revisar → Aprobar → Notificar. Solicitar en Ventas, Revisar en Legal, Aprobar en Finanzas."
+1. Clic en **"🎙️ Dictar todo"** en la barra superior del formulario
+2. Describir todos los datos en una sola frase (ej: "El monto es 5000 dólares, la empresa es ACME, el riesgo es medio")
+3. El servicio NLP extrae los valores y los mapea automáticamente a los campos
+4. Aparece un indicador de **confianza** (verde ≥80%, amarillo ≥60%, rojo <60%) por campo
+5. Revisar y corregir los valores antes de guardar
 
 ---
 
-## 11. Gestión de Trámites (Casos)
+## 10. Gestión de Trámites (Casos)
 
-Los **trámites** (casos) son instancias de ejecución de una política/proceso.
+Los trámites son instancias de ejecución de una política.
 
-### 11.1 Iniciar un Trámite
+### 10.1 Iniciar un trámite
 
-1. En el Dashboard, hacer clic en **"📋 Trámites"** de una política
-2. Se muestra la lista de trámites existentes
-3. Hacer clic en **"+ Iniciar Trámite"**
-4. Se crea un nuevo caso y se genera la primera tarea automáticamente (nodo inicial del diagrama)
-5. El trámite comienza en estado **OPEN**
+**Como DESIGNER o CLIENT:**
 
-![Lista Trámites](docs/images/12-lista-tramites.png)
-*Figura 12: Lista de trámites de una política con semáforo de estado*
+1. En el Dashboard, clic en **"Trámites"** de una política activa
+2. Clic en **"+ Nuevo Trámite"**
+3. Se crea el caso y el motor genera automáticamente las primeras tareas según el diagrama
+4. El trámite comienza en estado **IN_PROGRESS**
 
-![Nuevo Trámite](docs/images/12b-nuevo-tramite.png)
-*Figura 12b: Nuevo trámite iniciado en estado IN_PROGRESS*
+### 10.2 Ver el detalle de un trámite
 
-### 11.2 Detalle del Trámite
+Al hacer clic en un trámite de la lista, se muestra:
 
-Al hacer clic en un trámite de la lista, se abre el **Detalle del Trámite** que muestra:
+- **Encabezado**: ID, estado con semáforo, política y fechas
+- **Lista de tareas**: cada tarea corresponde a un nodo del diagrama
+  - Estado de la tarea (semáforo)
+  - Departamento y funcionario asignado
+  - Formulario asociado (si tiene)
+- **Línea de tiempo**: historial cronológico de eventos del caso
 
-- **Encabezado:** ID del caso, estado con semáforo visual, fecha de inicio
-- **Lista de Tareas:** Cada tarea corresponde a un nodo/actividad del diagrama
-- **Registro de Eventos:** Historial cronológico de todos los eventos del trámite
+### 10.3 Completar una tarea
 
-![Detalle Trámite](docs/images/13-detalle-tramite.png)
-*Figura 13: Detalle de un trámite mostrando tareas con semáforo y formularios*
+1. Localizar una tarea en estado **PENDING** (rojo) o **IN_PROGRESS** (amarillo)
+2. Si la tarea tiene formulario, llenarlo completamente (ver sección 8)
+3. Usar el botón 🎤 por campo para dictado individual, o **"🎙️ Dictar todo"** para NLP global
+4. Clic en **"Guardar Formulario"**
+5. Clic en **"Completar Tarea"**
+6. La tarea pasa a **DONE** (verde)
+7. El motor de workflow evalúa el diagrama y genera las siguientes tareas automáticamente
 
-### 11.3 Asignar Tareas
+### 10.4 Lógica del motor de workflow
 
-1. En el detalle del trámite, localizar una tarea en estado **PENDING** (🔴)
-2. Seleccionar un **usuario** del dropdown "Asignar a"
-3. Hacer clic en **"Asignar"**
-4. La tarea pasa a estado **IN_PROGRESS** (🟡)
-5. El funcionario asignado recibe una notificación en tiempo real
+| Tipo de nodo completado | Qué genera el motor |
+|---|---|
+| **ACTION** secuencial | Crea la siguiente tarea en el nodo siguiente |
+| **DECISION** | Evalúa la condición elegida y sigue el ramal correspondiente |
+| **FORK** | Crea tareas paralelas simultáneas en todos los nodos hijos |
+| **JOIN** | Espera que todas las tareas paralelas se completen antes de continuar |
+| **FINAL** | Marca el trámite como COMPLETED |
 
-![Asignar Tarea](docs/images/14-asignar-tarea.png)
-*Figura 14: Dropdown para asignar una tarea a un funcionario*
+### 10.5 Cancelar un trámite
 
-### 11.4 Completar Tareas y Formularios
-
-1. Si la tarea tiene un **formulario asociado**, este se muestra debajo de la tarea
-2. Llenar todos los campos requeridos (marcados con *)
-3. Hacer clic en **"💾 Guardar formulario"**
-4. Luego hacer clic en **"✅ Completar Tarea"**
-5. La tarea pasa a estado **DONE** (🟢)
-6. El **motor de workflow** automáticamente avanza al siguiente nodo y crea la siguiente tarea
-
-**Flujo automático del motor:**
-```
-Tarea PENDING → Asignar → IN_PROGRESS → Completar → DONE
-          ↓
-    Se crea la siguiente tarea según las conexiones del diagrama
-          ↓
-    Si no hay más nodos → Caso COMPLETED ✅
-```
-
-### 11.5 Formularios por Voz
-
-En los formularios de las tareas, cada campo de texto, email o área de texto tiene un botón **"🎤"**:
-
-1. Hacer clic en **"🎤"** junto al campo que quieres llenar
-2. El botón se pone **rojo** (⏹) indicando que está grabando
-3. **Hablar en español** con el contenido del campo
-4. La voz se transcribe automáticamente y se coloca en el campo
-5. Revisar el texto y corregir si es necesario
-6. El formulario registra que se usó modo **VOZ** para ese envío
-
-![Formulario Voz](docs/images/15-formulario-voz.png)
-*Figura 15: Formulario con botón 🎤 por cada campo — el botón se pone rojo al grabar*
-
-> **Indicador visual:** Cuando el micrófono está activo, el botón pulsa en rojo. Hacer clic de nuevo para detener.
-
-### 11.6 Cancelar un Trámite
-
-1. En el detalle del trámite, hacer clic en **"❌ Cancelar Trámite"**
-2. Confirmar la cancelación
-3. El caso pasa a estado **CANCELLED** (gris)
-4. Todas las tareas pendientes se cancelan
+1. En el detalle del trámite, clic en **"Cancelar Trámite"**
+2. Confirmar la acción
+3. El caso pasa a estado CANCELLED y se cancelan todas las tareas pendientes
 
 ---
 
-## 12. Semáforo Visual de Estados
+## 11. Bandeja del Funcionario
 
-El sistema usa un **semáforo visual** (🔴🟡🟢) en todas las vistas para indicar el estado de trámites y tareas:
+**Ruta:** Barra lateral → **"Mis Tareas"** (visible para rol OFFICER)
 
-| Color | Estado del Trámite | Estado de la Tarea |
-|---|---|---|
-| 🟢 **Verde** | COMPLETED (finalizado) | DONE (completada) |
-| 🟡 **Amarillo** | IN_PROGRESS (en curso) | IN_PROGRESS (en progreso) |
-| 🔴 **Rojo** | OPEN (pendiente) | PENDING / BLOCKED |
-| ⚫ **Gris** | CANCELLED (cancelado) | — |
+La bandeja muestra todas las tareas asignadas al funcionario autenticado.
 
-El semáforo aparece en:
-- **Tabla de trámites** (CasesPage) — columna de estado
-- **Detalle del trámite** (CaseDetailPage) — encabezado + cada tarea
-- **Monitor en tiempo real** (MonitorPage) — cada caso y tarea activa
+### Vista de tareas
 
-El punto de color tiene una **animación de pulso brillante** para mejor visibilidad.
+Cada tarjeta muestra:
+- Nombre de la tarea (nodo del diagrama)
+- Nombre del trámite y política
+- Estado con semáforo
+- Botón **"Ver detalle"** para abrir el formulario
 
-![Semáforo Visual](docs/images/16-semaforo.png)
-*Figura 16: Ejemplo del semáforo visual — 🟢 completado, 🟡 en progreso, 🔴 pendiente*
+### Proceso del funcionario
+
+1. Ingresar a **"Mis Tareas"**
+2. Seleccionar una tarea pendiente
+3. Llenar el formulario (manualmente, por voz o con NLP)
+4. Clic en **"Completar"**
+5. La tarea desaparece de la bandeja y el workflow avanza
 
 ---
 
-## 13. Monitor en Tiempo Real
+## 12. Monitor en Tiempo Real
 
-**Ruta:** Barra lateral → **"Monitor"**
+**Ruta:** Barra lateral → **"Monitor en Vivo"**
 
-El monitor permite supervisar la actividad del sistema en vivo.
+El monitor muestra el estado del sistema en tiempo real usando **WebSocket STOMP**.
 
-![Monitor](docs/images/17-monitor.png)
-*Figura 17: Monitor en tiempo real con casos activos y feed de eventos*
+### Componentes del monitor
 
-### Componentes del Monitor
+| Componente | Descripción |
+|---|---|
+| Semáforo de casos | Cada caso activo con indicador rojo/amarillo/verde |
+| Lista de tareas activas | Tareas en progreso con funcionario asignado |
+| Feed de eventos | Flujo de eventos en tiempo real (inicio, completado, asignado) |
 
-1. **Usuarios Conectados** — Muestra cuántos usuarios están en línea en este momento
-2. **Casos Activos** — Lista de todos los trámites en progreso con:
-   - Nombre de la política
-   - Estado con semáforo
-   - Tareas activas con estado y asignación
-3. **Feed de Eventos** — Flujo cronológico en tiempo real de:
-   - 🆕 Trámite iniciado
-   - ✅ Tarea completada
-   - 👤 Tarea asignada
-   - 🏁 Trámite finalizado
-   - ❌ Trámite cancelado
+### Indicadores del semáforo
 
-### Funcionamiento en Tiempo Real
+| Color | Significado |
+|---|---|
+| Rojo | Tarea/caso pendiente sin atender |
+| Amarillo | Tarea/caso en progreso |
+| Verde | Tarea/caso completado |
 
-El monitor usa **WebSocket (Socket.IO)** para actualizar automáticamente:
+### Funcionamiento en tiempo real
+
 - No es necesario recargar la página
-- Los eventos aparecen instantáneamente
-- Cuando otro usuario completa una tarea, se ve reflejado inmediatamente
-- La lista de usuarios en línea se actualiza al conectar/desconectar
+- Los cambios aparecen instantáneamente vía WebSocket
+- Cuando un funcionario completa una tarea, el semáforo cambia de color automáticamente
+- Conecta a `ws://18.231.192.169:4200/ws` (proxeado por nginx al backend)
 
 ---
 
-## 14. Analíticas y Detección de Cuellos de Botella
+## 13. Analítica y Detección de Cuellos de Botella
 
-**Ruta:** Barra lateral → **"Analíticas"**
+**Ruta:** Barra lateral → **"Analítica"**
 
-### 14.1 KPIs Globales (Indicadores)
+### 13.1 KPIs globales
 
-- **Total de Trámites** en el sistema
-- **Trámites Activos** actualmente
-- **Trámites Completados** exitosamente
-- **Tareas Pendientes** sin resolver
-- **Distribución por departamento**
+- Tasa de completitud de trámites
+- Duración promedio por nodo/actividad
+- Distribución de tareas pendientes por departamento
+- Cantidad de trámites activos vs completados
 
-![Analíticas](docs/images/18-analiticas.png)
-*Figura 18: Panel de analíticas con KPIs globales y detección de cuellos de botella*
-
-### 14.2 Análisis por Política
+### 13.2 Análisis por política
 
 Seleccionar una política para ver:
-- Cantidad de casos
-- Duración promedio de los trámites
-- Estadísticas por nodo/actividad:
-  - Tareas completadas
-  - Tareas pendientes
-  - Duración promedio por actividad
+- Estadísticas por nodo del diagrama
+- Tiempo promedio de cada actividad
+- Acumulación de tareas pendientes por departamento
 
-### 14.3 Detección de Cuellos de Botella 🔴
+### 13.3 Detección automática de cuellos de botella
 
-El sistema identifica automáticamente **cuellos de botella** usando esta lógica:
+El sistema identifica automáticamente qué nodos son cuellos de botella aplicando **tres criterios combinados**:
 
-> Una actividad es cuello de botella si su **duración promedio** es **1.5 veces mayor** que el promedio global Y tiene **tareas pendientes acumuladas**.
+| Criterio | Umbral |
+|---|---|
+| Tareas pendientes acumuladas | ≥ 2 tareas sin completar en el nodo |
+| Duración promedio elevada | > 1.5× el promedio global del proceso |
+| Concentración de carga | ≥ 40% de todas las tareas pendientes en ese nodo |
 
-Las actividades identificadas como cuello de botella se muestran con un indicador visual rojo, permitiendo a los gestores tomar acciones correctivas como:
-- Asignar más personal a esa actividad
-- Simplificar el formulario asociado
-- Rediseñar el flujo del proceso
+Los nodos identificados se destacan visualmente y se acompañan de una **recomendación en lenguaje natural** generada por el servicio de IA (ej: "El nodo 'Revisión Legal' concentra el 65% de las tareas pendientes. Se recomienda asignar personal adicional al departamento Legal o simplificar el formulario.").
 
 ---
 
-## 15. Referencia Rápida de Navegación
+## 14. Semáforo Visual de Estados
 
-| Sección | Ruta | Desde la Barra Lateral |
+El sistema usa un semáforo visual consistente en todas las vistas:
+
+| Semáforo | Estado del trámite | Estado de la tarea |
 |---|---|---|
-| Dashboard | `/` | 🏠 Dashboard |
-| Departamentos | `/departments` | 🏢 Departamentos |
-| Nueva Política | `/policies/new` | Botón en Dashboard |
-| Editor de Diagrama | `/policies/:id/editor` | ✏️ Editar en política |
-| Trámites de Política | `/policies/:id/cases` | 📋 Trámites en política |
-| Detalle de Trámite | `/cases/:id` | Clic en trámite |
-| Monitor | `/monitor` | 📡 Monitor |
-| Analíticas | `/analytics` | 📈 Analíticas |
+| Verde | COMPLETED — finalizado con éxito | DONE — completada |
+| Amarillo | IN_PROGRESS — en ejecución | IN_PROGRESS — siendo atendida |
+| Rojo | IN_PROGRESS con tareas bloqueadas | PENDING — sin asignar |
+
+El semáforo aparece en: Dashboard, lista de trámites, detalle del trámite, bandeja del funcionario y monitor en tiempo real.
 
 ---
 
-## 16. Flujo de Prueba Completo (Paso a Paso)
+## 15. Flujo de Prueba Completo
 
-Esta sección describe un flujo completo de prueba del sistema, desde crear una política hasta completar un trámite. Úsala como guía práctica.
+Guía paso a paso para probar todas las funciones del sistema.
 
-### Fase 1 — Crear Departamentos
-1. Ir a **Departamentos** desde la barra lateral
-2. Crear 3 departamentos: `Ventas`, `Legal`, `Finanzas`
+### Fase 1 — Preparación (como admin@demo.com)
 
-![Departamentos](docs/images/03-departamentos.png)
-*Captura: Página de departamentos con los 3 departamentos creados*
+1. Ir a **Departamentos** → verificar que existen: Recursos Humanos, Legal, Finanzas, Operaciones
+2. En el Dashboard → verificar las políticas activas
 
-### Fase 2 — Crear la Política de Negocio
-3. Ir al **Dashboard**
-4. Clic en **"+ Nueva Política"**
-5. Nombre: `Solicitud de Crédito` → Crear
+### Fase 2 — Crear una nueva política
 
-### Fase 3 — Diseñar el Diagrama
-6. En el editor, agregar 3 nodos desde la barra superior:
-   - Dropdown **Ventas** → `Recibir solicitud` → **+ Actividad**
-   - Dropdown **Legal** → `Revisar documentos` → **+ Actividad**
-   - Dropdown **Finanzas** → `Aprobar pago` → **+ Actividad**
-7. Activar **"▦ Calles ON"** para ver las swimlanes
+1. Clic en **"+ Nueva Política"**
+2. Nombre: `Aprobación de Préstamo Personal`
+3. Descripción: `Flujo con evaluación y decisión de aprobación`
+4. Clic en **"Crear"** → se abre el editor
 
-![Editor con Swimlanes](docs/images/07-swimlanes.png)
-*Captura: Editor con los 3 nodos posicionados en sus calles*
+### Fase 3 — Diseñar el diagrama en el editor
 
-8. Conectar los nodos arrastrando desde los puntos (●):
-   - `Recibir solicitud` → `Revisar documentos`
-   - `Revisar documentos` → `Aprobar pago`
-9. (Opcional) Cambiar tipo de flujo haciendo clic en una conexión
+5. Agregar nodo **INITIAL** → clic en "Agregar"
+6. Agregar nodo **ACTION** → nombre: `Recibir Solicitud` → departamento: `Operaciones`
+7. Agregar nodo **ACTION** → nombre: `Evaluar Documentos` → departamento: `Legal`
+8. Agregar nodo **DECISION** → nombre: `Documentos completos?`
+9. Agregar nodo **ACTION** → nombre: `Aprobar Préstamo` → departamento: `Finanzas`
+10. Agregar nodo **ACTION** → nombre: `Solicitar Corrección` → departamento: `Operaciones`
+11. Agregar nodo **FINAL**
+12. Conectar: INITIAL → Recibir Solicitud → Evaluar Documentos → DECISION
+13. Desde DECISION: conectar con etiqueta `"Aprobado"` → Aprobar Préstamo → FINAL
+14. Desde DECISION: conectar con etiqueta `"Rechazado"` → Solicitar Corrección → Evaluar Documentos (ciclo iterativo)
+15. Clic en **"Guardar"**
 
-![Conexiones](docs/images/06-conexiones-flujo.png)
-*Captura: Nodos conectados con tipos de flujo y colores*
+### Fase 4 — Diseñar formularios
 
-10. Clic en **"Guardar"**
+16. Clic en el nodo **"Recibir Solicitud"** → pestaña Formulario
+17. Agregar campos:
+    - Etiqueta: `Nombre del solicitante` / Tipo: Texto
+    - Etiqueta: `Monto solicitado (USD)` / Tipo: Número
+    - Etiqueta: `Documentos presentados` / Tipo: Grid / Columnas: `Documento,Fecha,Estado`
+    - Etiqueta: `Observaciones` / Tipo: Párrafo
+18. Clic en **"Guardar formulario"**
+19. Repetir para el nodo **"Evaluar Documentos"** con:
+    - Etiqueta: `Resultado de evaluación` / Tipo: Selección / opciones: `Aprobado,Rechazado`
+    - Etiqueta: `Observaciones legales` / Tipo: Párrafo
+    - Etiqueta: `Verificar identidad` / Tipo: Botón acción
 
-### Fase 4 — Diseñar Formularios
-11. Clic en el nodo **"Recibir solicitud"**
-12. En el panel Formulario, agregar campos:
-    - `Nombre del solicitante` (texto, requerido)
-    - `Monto solicitado` (número, requerido)
-    - `Observaciones` (área de texto)
-13. Clic en **"Guardar"** del formulario
+### Fase 5 — Probar el asistente IA
 
-![Formulario](docs/images/08-formulario-template.png)
-*Captura: Panel de formulario con los 3 campos configurados*
+20. En el editor, panel derecho → pestaña IA
+21. Escribir: `"Agrega una actividad de notificación al cliente en Operaciones"`
+22. Ver cómo el nodo se crea automáticamente
+23. Probar con voz: clic en 🎤 → decir "conecta Aprobar Préstamo con Notificar Cliente"
 
-14. Repetir para los otros nodos si se desea
+### Fase 6 — Iniciar un trámite (como cliente@demo.com)
 
-### Fase 5 — Probar la IA
-15. En el panel **Asistente IA**, escribir: `Agregar actividad Notificar cliente en Ventas`
-16. Clic en **→** (Enviar) — se crea el nodo automáticamente
+24. Cerrar sesión → iniciar como `cliente@demo.com` / `Admin1234!`
+25. Dashboard → clic en **"Trámites"** de la política creada
+26. Clic en **"+ Nuevo Trámite"**
+27. Se generan automáticamente las primeras tareas
 
-![IA Texto](docs/images/09-ia-texto.png)
-*Captura: Asistente IA con un comando de texto y nodo creado*
+### Fase 7 — Ejecutar tareas (como rrhh@demo.com / operaciones)
 
-17. (Opcional) Probar 🎤 voz y 📷 imagen
+28. Cerrar sesión → iniciar como `rrhh@demo.com` / `Admin1234!`
+29. Ir a **"Mis Tareas"** → ver la tarea `Recibir Solicitud`
+30. Abrir la tarea → llenar el formulario:
+    - Usar **"🎙️ Dictar todo"**: decir "El solicitante es Juan Pérez, el monto es diez mil dólares"
+    - Ver cómo el NLP llena los campos automáticamente con indicadores de confianza
+    - En el grid, agregar filas con los documentos
+31. Clic en **"Guardar formulario"** → **"Completar"**
+32. La tarea pasa a verde y se genera la siguiente tarea
 
-### Fase 6 — Iniciar un Trámite
-18. Ir al **Dashboard** → clic en **"Trámites"** de la política
-19. Clic en **"+ Iniciar Trámite"**
-20. Se crea un nuevo caso con la primera tarea (Recibir solicitud)
+### Fase 8 — Monitorear (como admin@demo.com)
 
-![Lista Trámites](docs/images/12-lista-tramites.png)
-*Captura: Lista de trámites con el semáforo de estado*
+33. Iniciar sesión como `admin@demo.com`
+34. Ir a **"Monitor en Vivo"**
+35. Observar el caso activo con su semáforo en tiempo real
+36. Completar la siguiente tarea desde otra pestaña y ver cómo el monitor se actualiza sin recargar
 
-### Fase 7 — Ejecutar Tareas
-21. Clic en el trámite para ver el detalle
-22. La primera tarea aparece como **PENDING** (🔴)
-23. Asignar la tarea a un usuario desde el dropdown
-24. La tarea pasa a **IN_PROGRESS** (🟡)
+### Fase 9 — Ver analítica
 
-![Detalle Trámite](docs/images/13-detalle-tramite.png)
-*Captura: Detalle del trámite con tareas y semáforos*
-
-25. Llenar el formulario (campos: nombre, monto, observaciones)
-    - Opcionalmente usar los botones **🎤** para dictar por voz
-
-![Formulario Voz](docs/images/15-formulario-voz.png)
-*Captura: Formulario con botones de micrófono por cada campo*
-
-26. Clic en **"💾 Guardar formulario"**
-27. Clic en **"✅ Completar Tarea"**
-28. La tarea pasa a **DONE** (🟢) y se crea la siguiente tarea automáticamente
-29. Repetir para cada tarea hasta que el trámite esté **COMPLETED**
-
-### Fase 8 — Monitorear en Tiempo Real
-30. Ir a **Monitor en Vivo** desde la barra lateral
-31. Ver los casos activos y el feed de eventos en tiempo real
-
-![Monitor](docs/images/17-monitor.png)
-*Captura: Monitor con casos activos y eventos en tiempo real*
-
-### Fase 9 — Ver Analíticas
-32. Ir a **Analytics** desde la barra lateral
-33. Ver KPIs globales, análisis por política y cuellos de botella
-
-![Analíticas](docs/images/18-analiticas.png)
-*Captura: Panel de analíticas con KPIs y detección de cuellos de botella*
+37. Ir a **"Analítica"**
+38. Seleccionar la política del préstamo
+39. Ver los tiempos por nodo y la detección de cuellos de botella con recomendación IA
 
 ---
 
-## 17. Preguntas Frecuentes (FAQ)
+## 16. Credenciales de Demo
 
-### ¿Cómo registro un nuevo usuario?
-Actualmente se hace mediante la API: `POST /auth/register` con los datos del usuario (email, password, name, role, departmentId).
+| Rol | Email | Contraseña | Acceso |
+|---|---|---|---|
+| Administrador / Diseñador | admin@demo.com | Admin1234! | Dashboard completo, editor, analítica |
+| Funcionario RRHH | rrhh@demo.com | Admin1234! | Bandeja de tareas, formularios |
+| Funcionario Legal | legal@demo.com | Admin1234! | Bandeja de tareas, formularios |
+| Funcionario Finanzas | finanzas@demo.com | Admin1234! | Bandeja de tareas, formularios |
+| Cliente | cliente@demo.com | Admin1234! | Iniciar trámites, ver estado |
 
-### ¿Puedo editar un diagrama después de haber iniciado trámites?
-Sí, pero los trámites ya iniciados seguirán usando la versión del diagrama que tenían al momento de su creación. Los nuevos trámites usarán la versión actualizada.
+**URL del sistema:** http://18.231.192.169:4200
 
-### ¿Por qué no funciona el micrófono (🎤)?
-- Asegúrate de usar **Google Chrome**
-- Verifica que el navegador tiene **permisos de micrófono** activados
-- El sitio debe cargarse por **localhost** o **HTTPS** (requisito de la Web Speech API)
+---
+
+## 17. Preguntas Frecuentes
+
+### ¿Por qué no funciona el micrófono?
+Asegúrate de usar **Google Chrome**. El sitio debe cargarse por HTTPS o localhost (requisito de la Web Speech API). Verificar que el navegador tiene permisos de micrófono activados.
+
+### ¿Puedo editar un diagrama si ya hay trámites activos?
+Sí. Los trámites ya iniciados continúan con el diagrama de cuando fueron creados. Los nuevos trámites usarán la versión actualizada del diagrama.
 
 ### ¿Qué pasa si una tarea se queda bloqueada?
-Puedes cancelar el trámite completo desde el detalle del caso. También puedes reasignar la tarea a otro funcionario.
+El DESIGNER puede cancelar el trámite desde el detalle del caso. También puede reasignar la tarea a otro funcionario desde el panel de administración.
 
-### ¿Cómo sé si hay un cuello de botella?
-Ve a **Analíticas** → selecciona una política. Las actividades marcadas en rojo son cuellos de botella (duración > 1.5x el promedio con tareas pendientes acumuladas).
+### ¿El sistema requiere conexión a internet para la IA?
+No para las funciones básicas. El servicio de IA (FastAPI) usa lógica basada en reglas que se ejecuta localmente. Las claves de OpenAI y ElevenLabs son opcionales para funciones avanzadas.
 
-### ¿El sistema soporta flujos paralelos?
-Sí. Al conectar nodos en el editor, puedes elegir el tipo de flujo **PARALLEL** para representar actividades que se ejecutan simultáneamente.
+### ¿Cómo funciona el flujo paralelo (FORK/JOIN)?
+Al llegar a un nodo FORK, el motor crea simultáneamente tareas en todos los nodos hijos. Cada una es atendida por su departamento en paralelo. Al completarse todas, el nodo JOIN activa la tarea siguiente.
 
-### ¿Puedo usar la IA sin internet?
-Sí. El asistente de IA usa un motor de NLP basado en reglas que se ejecuta localmente en el backend. No requiere conexión a servicios externos de IA.
+### ¿Cuándo se detecta un cuello de botella?
+Cuando un nodo acumula ≥2 tareas pendientes, su duración promedio supera 1.5× el promedio global, Y concentra ≥40% de toda la carga pendiente del proceso.
 
-### ¿Cómo configuro la conexión a la base de datos?
-Editar el archivo `backend/.env`:
-```
-DATABASE_URL="postgresql://postgres:12345678@localhost:5432/workflow_sw1"
-```
+### ¿Cómo funciona el grid en los formularios?
+Al definir un campo de tipo Grid en el diseñador, se especifican los nombres de las columnas separados por coma. Durante la ejecución, el funcionario puede agregar y eliminar filas con datos tabulares. Los datos se almacenan como JSON y se incluyen en el historial del trámite.
+
+### ¿Los botones en formularios realizan acciones automáticas?
+Actualmente los botones registran su ejecución con timestamp en el formulario. La lógica de acción personalizada (llamar a un servicio externo, calcular valores) puede configurarse en el backend por el equipo técnico.
 
 ---
 
-**Desarrollado para:** Materia SW1 — Primer Parcial 2025  
-**Tecnologías:** NestJS · React · PostgreSQL · Prisma · Socket.IO · React Flow  
-**Repositorio:** https://github.com/luisfernandoAngulo28/Examen1SW1
+**Sistema:** WorkflowSW1 — Gestión de Políticas de Negocio
+**Materia:** Ingeniería de Software I — Primer Parcial 2026
+**Tecnologías:** Spring Boot · Angular 18 · MongoDB · FastAPI · Flutter · AWS EC2
+**Autor:** Fernando Angulo

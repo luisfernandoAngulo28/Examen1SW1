@@ -1,0 +1,56 @@
+@startuml CU_Prediccion_ML_Ciclo2
+title Diagrama de Actividad — Predicción de Riesgo con Machine Learning\nCiclo 2 | WorkflowSW1
+
+|Gerente / Dashboard|
+start
+:Accede al Dashboard de KPIs;
+:Solicita vista de trámites activos\ncon indicador de riesgo;
+
+|Frontend Angular|
+:Envía GET /api/ml/predictions/active-cases;
+
+|Backend (Spring Boot)|
+:MlController recibe solicitud;
+:Consulta CaseRepository:\nobtiene trámites activos con métricas\n(horas transcurridas, carga del dpto.,\ncomplejidad, SLA, tareas pendientes);
+
+:Construye vector de features\npor cada trámite:\n[horasTranscurridas, ratioPendientes,\ncargaDpto, complejidad, diasSLA];
+
+:MlController envía POST al ML Service:\n/predict/delay-risk (batch);
+
+|ML Service (TensorFlow)|
+:Recibe array de vectores de features;
+:MinMaxScaler normaliza los valores\na rango [0, 1];
+:Red neuronal densa ejecuta inferencia:\nInput(5) → Dense(16,relu) →\nDense(8,relu) → Dense(1,sigmoid);
+:Retorna array de probabilidades\nde demora [0.0 — 1.0] por trámite;
+
+|Backend (Spring Boot)|
+:MlController procesa respuesta;
+:Clasifica cada trámite por nivel de riesgo:
+
+if (probabilidad >= 0.7) then
+  :Riesgo ALTO 🔴\n(semáforo rojo en dashboard);
+else if (probabilidad >= 0.4) then
+  :Riesgo MEDIO 🟡\n(semáforo amarillo);
+else
+  :Riesgo BAJO 🟢\n(semáforo verde);
+endif
+
+:PriorityScorer ordena bandeja\nde funcionarios según score;
+:Retorna lista de trámites\ncon nivel de riesgo y score de prioridad;
+
+|Frontend Angular|
+:Renderiza dashboard con semáforos\nde color por trámite;
+:Muestra gráficos de distribución\nde riesgo por departamento;
+
+|Gerente / Dashboard|
+:Identifica trámites críticos;
+
+if (¿Hay trámites con riesgo ALTO?) then (Sí)
+  :Toma acción: reasigna tareas o\nalerta al departamento responsable;
+else (No)
+  :Monitorea métricas normales;
+endif
+
+stop
+
+@enduml

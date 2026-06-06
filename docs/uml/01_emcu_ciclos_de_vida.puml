@@ -1,0 +1,78 @@
+@startuml EMCU
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #EAECEE
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Sistema de Gestión de Trámites y Workflows" {
+    
+    package "Ciclo de Vida #1 (Core & Config)" #D5F5E3 {
+        usecase "CU01 Gestionar Inicio Sesión" as CU01
+        usecase "CU02 Gestionar Cierre Sesión" as CU02
+        usecase "CU04 Gestionar Políticas" as CU04
+        usecase "CU05 Gestionar Deptos y Usuarios" as CU05
+        usecase "CU06 Búsqueda de Trámites" as CU06
+    }
+    
+    package "Ciclo de Vida #2 (Engine & Real-Time)" #FCF3CF {
+        usecase "CU03 Gestionar Perfil" as CU03
+        usecase "CU07 Gestionar Reportes" as CU07
+        usecase "CU08 Motor de Workflow" as CU08
+        usecase "CU09 Editor Diagrama Actividad" as CU09
+        usecase "CU10 Bandeja en Tiempo Real" as CU10
+    }
+    
+    package "Ciclo de Vida #3 (IA & Advanced UX)" #FADBD8 {
+        usecase "CU11 Formularios por Voz" as CU11
+        usecase "CU12 Extracción Texto (OCR)" as CU12
+        usecase "CU13 Analizar Cuellos de Botella (IA)" as CU13
+        usecase "CU14 Decisiones Condicionales" as CU14
+        usecase "CU15 Trazabilidad Completa" as CU15
+    }
+}
+
+' Relaciones Ciclo 1
+A1 --> CU01
+A2 --> CU01
+A3 --> CU01
+A1 --> CU02
+A2 --> CU02
+A3 --> CU02
+A1 --> CU04
+A1 --> CU05
+A1 --> CU06
+A2 --> CU06
+A3 --> CU06
+
+' Relaciones Ciclo 2
+A1 --> CU03
+A2 --> CU03
+A3 --> CU03
+A1 --> CU07
+A1 --> CU08
+A2 --> CU08
+A3 --> CU08
+A1 --> CU09
+A1 --> CU10
+A2 --> CU10
+
+' Relaciones Ciclo 3
+A2 --> CU11
+A3 --> CU11
+A2 --> CU12
+A3 --> CU12
+A1 --> CU13
+A2 --> CU14
+A1 --> CU15
+A2 --> CU15
+A3 --> CU15
+
+@enduml

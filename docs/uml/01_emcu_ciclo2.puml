@@ -1,0 +1,33 @@
+@startuml EMCU_Ciclo2
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FCF3CF
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Ciclo de Vida #2 (Engine & Real-Time)" {
+    usecase "CU03 Gestionar Perfil" as CU03
+    usecase "CU07 Gestionar Reportes" as CU07
+    usecase "CU08 Motor de Workflow" as CU08
+    usecase "CU09 Editor Diagrama Actividad" as CU09
+    usecase "CU10 Bandeja en Tiempo Real" as CU10
+}
+
+A1 --> CU03
+A2 --> CU03
+A3 --> CU03
+A1 --> CU07
+A1 --> CU08
+A2 --> CU08
+A3 --> CU08
+A1 --> CU09
+A1 --> CU10
+A2 --> CU10
+@enduml

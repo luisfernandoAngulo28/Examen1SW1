@@ -2,19 +2,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/models.dart';
+import '../models/policy_models.dart';
 
 /// Central API client — talks to Spring Boot backend on [baseUrl].
 class ApiService {
   // ── Change this to your local IP or cloud URL ──────────────────────────
-  static const String _defaultBase = 'http://localhost:8080/api'; // Flutter web / mismo equipo
   // Para dispositivo fisico en WiFi: 'http://192.168.0.2:8080/api'
   // Para emulador Android: 'http://10.0.2.2:8080/api'
   // For cloud deployment: 'https://your-backend.onrender.com/api'
+  static const String defaultBase = 'http://18.231.192.169:4200/api';
 
   final String baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  ApiService({this.baseUrl = _defaultBase});
+  ApiService({this.baseUrl = defaultBase});
 
   // ── Auth ────────────────────────────────────────────────────────────────
 
@@ -157,6 +158,74 @@ class ApiService {
       return jsonDecode(res.body) as Map<String, dynamic>;
     }
     return {};
+  }
+
+  // ── Departments ──────────────────────────────────────────────────────────
+
+  Future<List<Department>> getDepartments() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/departments'),
+      headers: await _authHeaders(),
+    );
+    _assertOk(res);
+    final list = jsonDecode(res.body) as List<dynamic>;
+    return list.map((e) => Department.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  // ── Policies ──────────────────────────────────────────────────────────────
+
+  Future<List<PolicyModel>> getPolicies() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/policies'),
+      headers: await _authHeaders(),
+    );
+    _assertOk(res);
+    final list = jsonDecode(res.body) as List<dynamic>;
+    return list.map((e) => PolicyModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  Future<PolicyModel> getPolicyById(String id) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/policies/$id'),
+      headers: await _authHeaders(),
+    );
+    _assertOk(res);
+    return PolicyModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<PolicyModel> createPolicy(String name) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/policies'),
+      headers: await _authHeaders(),
+      body: jsonEncode({'name': name, 'status': 'ACTIVE', 'nodes': [], 'edges': []}),
+    );
+    _assertOk(res);
+    return PolicyModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<PolicyModel> updatePolicyGraph(
+    String policyId, {
+    required List<PolicyNode> nodes,
+    required List<PolicyEdge> edges,
+  }) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/policies/$policyId/graph'),
+      headers: await _authHeaders(),
+      body: jsonEncode({
+        'nodes': nodes.map((n) => n.toJson()).toList(),
+        'edges': edges.map((e) => e.toJson()).toList(),
+      }),
+    );
+    _assertOk(res);
+    return PolicyModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  Future<void> deletePolicy(String id) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/policies/$id'),
+      headers: await _authHeaders(),
+    );
+    _assertOk(res);
   }
 
   // ── AI prompt ─────────────────────────────────────────────────────────────

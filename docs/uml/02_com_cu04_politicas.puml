@@ -1,0 +1,18 @@
+@startuml Com_CU04
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor "Diseñador\n(Usuario)" as Actor
+boundary "I.Politica" as UI
+control "C.Politica" as Ctrl
+entity "E.Politica" as Ent
+entity "E.Diagrama" as Diagrama
+
+Actor --> UI : 1. RegistrarPolitica()\n5. ActualizarPolitica()\n9. EliminarPolitica()
+UI --> Ctrl : 2. registrarPolitica(datos)\n6. actualizarPolitica(id, datos)\n10. eliminarPolitica(id)
+Ctrl --> Ent : 3. save(politica)\n7. update(id, politica)\n8. existePolitica(id)\n11. delete(id)
+Ctrl --> Diagrama : 4. crearLienzo(politicaId)
+UI --> Actor : 12. mostrar respuesta
+@enduml

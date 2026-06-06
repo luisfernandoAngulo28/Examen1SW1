@@ -1,0 +1,67 @@
+@startuml Diagrama_Capas
+!theme plain
+skinparam packageStyle folder
+skinparam packageBackgroundColor #FAD77B
+skinparam packageBorderColor #2C3E50
+
+package "Diagrama de capas" <<frame>> {
+    
+    package "Capa de Módulos" as Capa1 {
+        package "P1: Gestión de\nusuarios" as P1
+        package "P2: Gestión de\npolíticas" as P2
+        package "P3: Gestión de\ntrámites" as P3
+    }
+    
+    package "Capa Frontend" as Capa2 {
+        package "App (SPA)" as FApp
+        package "Services" as FServ
+    }
+    
+    package "Capa Backend" as Capa3 {
+        package "App (Backend)" as BApp
+        package "Presentation" as BPres
+        package "Infrastructure" as BInfra
+        package "Domain" as BDom
+        package "Shared" as BShared
+    }
+    
+    package "Capa de Tecnologías" as Capa4 {
+        package "App Angular" as TReact
+        package "App Spring Boot" as TSpring
+        package "MongoDB" as TDB
+    }
+    
+    package "Capa de Infraestructura Cloud" as Capa5 {
+        package "Amazon S3" as CFront
+        package "Amazon EC2" as CBack
+    }
+    
+    Capa1 -[hidden]down-> Capa2
+    Capa2 -[hidden]down-> Capa3
+    Capa3 -[hidden]down-> Capa4
+    Capa4 -[hidden]down-> Capa5
+}
+
+P1 ..> FApp
+P2 ..> FApp
+P3 ..> FApp
+
+FApp ..> FServ
+FApp ..> BPres
+
+BApp ..> BPres
+BPres ..> BInfra
+BPres ..> BDom
+BPres ..> BShared
+
+FApp ..> TReact
+BApp ..> TSpring
+
+TReact ..> TSpring
+TSpring ..> TDB
+
+TReact ..> CFront
+TSpring ..> CBack
+TDB ..> CBack
+
+@enduml

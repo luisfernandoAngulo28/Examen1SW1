@@ -1,0 +1,16 @@
+@startuml Com_CU11
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Funcionario" as Actor
+boundary "I.Formulario" as UI
+control "C.SpeechAPI" as Ctrl
+entity "E.FormSubmission" as Ent
+
+Actor --> UI : 1. activarMicrofono()\n2. dictarDatos()
+UI --> Ctrl : 3. procesarAudio()
+Ctrl --> UI : 4. devolverTextoTranscribido()
+UI --> Ent : 5. inyectarTextoEnCampo()
+UI --> Actor : 6. mostrar texto en pantalla
+@enduml

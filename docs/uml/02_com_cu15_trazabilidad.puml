@@ -1,0 +1,15 @@
+@startuml Com_CU15
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Sistema" as Actor
+boundary "I.Listener" as UI
+control "C.Trazabilidad" as Ctrl
+entity "E.EventLog" as EntLog
+
+Actor --> UI : 1. triggerEvento(tipo, datos)
+UI --> Ctrl : 2. registrarEvento(datosEvento)
+Ctrl --> EntLog : 3. save(eventLog)
+Ctrl --> UI : 4. eventoRegistrado()
+@enduml

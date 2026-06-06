@@ -10,11 +10,9 @@ title CU12 — Motor de Ejecución del Workflow
 ' ── Actores ──
 actor "Funcionario" as OFFICER
 actor "Diseñador"   as DESIGNER
-actor "Usuario"     as USER
 actor "Sistema\n(Motor)"  as ENGINE
 
-OFFICER  --|> USER
-DESIGNER --|> USER
+
 
 ' ── Casos de uso ──
 usecase "Enrutar al siguiente\nnodo automáticamente"       as UC_ROUTE
@@ -46,19 +44,5 @@ UC_ROUTE   ..> UC_ITER     : <<extend>>\nnodo iterativo
 UC_ROUTE   ..> UC_FINAL    : <<extend>>\nnodo FINAL
 UC_FINAL   ..> UC_EVENT    : <<include>>
 
-note right of UC_JOIN
-  JOIN espera que TODAS
-  las ramas paralelas
-  estén en DONE antes
-  de avanzar al siguiente
-  nodo del flujo principal.
-end note
-
-note right of UC_ITER
-  Bucle: si la condición
-  es "No" vuelve al nodo
-  de validación anterior
-  (flujo iterativo UML).
-end note
 
 @enduml

@@ -1,0 +1,18 @@
+@startuml Com_CU08
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Cliente / Funcionario" as Actor
+boundary "I.Tramite" as UI
+control "C.MotorWorkflow" as Ctrl
+entity "E.Case" as EntCase
+entity "E.Task" as EntTask
+
+Actor --> UI : 1. IniciarTramite(politicaId)
+UI --> Ctrl : 2. startWorkflow(politicaId)
+Ctrl --> EntCase : 3. createCase(politicaId)
+Ctrl --> EntTask : 4. assignInitialTask(caseId, deptoId)
+Ctrl --> UI : 5. notificar asignación
+UI --> Actor : 6. mostrar estado del trámite
+@enduml

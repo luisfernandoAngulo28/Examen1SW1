@@ -10,11 +10,10 @@ title CU09 — Analítica e Identificación de Cuellos de Botella
 ' ── Actores ──
 actor "Diseñador"    as DESIGNER
 actor "Administrador" as ADMIN
-actor "Usuario"      as USER
+
 actor "Sistema IA"   as AI
 
-DESIGNER --|> USER
-ADMIN    --|> USER
+
 
 ' ── Casos de uso ──
 usecase "Ver KPIs\ngenerales"                            as UC_KPI
@@ -41,13 +40,5 @@ UC_NODE_STAT  ..> UC_DURATION   : <<include>>
 AI ..> UC_BOTTLENECK : analiza
 AI ..> UC_RECOMMEND  : genera
 
-note right of UC_BOTTLENECK
-  Criterios de detección:
-  - pendingTasks >= 2
-  - avgDuration > globalAvg * 1.5
-  - pendingRatio >= 40% del total
-  Insights con severidad:
-  critical / warning / info / success
-end note
 
 @enduml

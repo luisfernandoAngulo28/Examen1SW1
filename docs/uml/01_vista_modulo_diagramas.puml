@@ -1,0 +1,32 @@
+@startuml Vista_Diagramas
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Diagramas" {
+    usecase "CU09 Gestionar Diagrama\nde Actividad" as CU09
+    usecase "CU11 Llenado de Formularios\nmediante Voz" as CU11
+    usecase "CU12 Extracción de Texto\nmediante OCR" as CU12
+    usecase "CU13 Análisis de Cuellos\nde Botella (IA)" as CU13
+}
+
+Diseñador --> CU09
+Diseñador --> CU13
+Funcionario --> CU11
+Funcionario --> CU12
+Cliente --> CU11
+Cliente --> CU12
+
+CU13 ..> CU09 : <<extend>>
+@enduml

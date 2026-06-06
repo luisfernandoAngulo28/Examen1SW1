@@ -151,3 +151,90 @@ cd mobile_app
 flutter build apk --release
 # APK en: build/outputs/flutter-apk/app-release.apk
 ¿Por dónde querés empezar? ¿Primero ponés el google-services.json y el firebase-credentials.json y me decís cuando los tenés, o avanzamos con el EC2 primero?
+--------------------------------------------------------------------------------------------------------------------
+El proyecto ya tiene Docker y docker-compose.yml configurado, lo que hace el despliegue en AWS mucho más simple. La estrategia más rápida para el examen es una sola instancia EC2 con docker-compose.
+
+Plan de despliegue — EC2 + Docker Compose
+Paso 1 — Lanzar instancia EC2
+En la consola AWS (ya estás en sa-east-1):
+
+Ir a EC2 → Instancias → Lanzar instancia
+Configurar:
+Nombre: sw1-workflow-engine
+AMI: Ubuntu Server 24.04 LTS (gratis)
+Tipo: t3.medium (2 vCPU, 4 GB RAM — necesario para 4 servicios)
+Par de claves: Crear uno nuevo, descargarlo (.pem)
+En Grupo de seguridad, abrir estos puertos:
+Tipo	Puerto	Origen
+SSH	22	Tu IP
+HTTP	80	0.0.0.0/0
+Custom TCP	8080	0.0.0.0/0
+Custom TCP	8000	0.0.0.0/0
+Almacenamiento: 20 GB gp3 (mínimo)
+Lanzar instancia
+Paso 2 — Conectar y preparar el servidor
+Una vez que la instancia esté running, abre CloudShell o tu terminal local:
+
+
+# Dar permisos a la clave
+chmod 400 tu-clave.pem
+
+# Conectar (reemplaza <IP_PUBLICA> con la IP de la instancia)
+ssh -i tu-clave.pem ubuntu@<IP_PUBLICA>
+Una vez conectado al servidor, instalar Docker:
+
+
+# Actualizar e instalar Docker
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y docker.io docker-compose-plugin git
+
+# Dar permisos al usuario ubuntu
+sudo usermod -aG docker ubuntu
+newgrp docker
+
+# Verificar
+docker --version
+docker compose version
+Paso 3 — Subir el proyecto
+Tengo que saber cómo prefieres transferir el código. Hay dos opciones:
+
+Opción A — Git push (recomendada si el repo es público o tienes GitHub)
+
+
+# En el servidor
+git clone https://github.com/TU_USUARIO/PrimerParcialSW1.git
+cd PrimerParcialSW1
+Opción B — Copiar archivos directamente con scp
+
+
+# Desde tu PC local (nueva terminal)
+scp -i tu-clave.pem -r "d:/Universidad/SW1S12025/PrimerParcialSW1" ubuntu@<IP_PUBLICA>:~/PrimerParcialSW1
+Paso 4 — Configurar variables y levantar
+
+# En el servidor, dentro del directorio del proyecto
+cd ~/PrimerParcialSW1
+
+# Crear archivo .env con la IP pública de EC2
+cat > .env << EOF
+JWT_SECRET=sw1-workflow-engine-secret-key-2026
+CORS_EXTRA_ORIGINS=http://<IP_PUBLICA>
+ELEVENLABS_API_KEY=
+OPENAI_API_KEY=
+EOF
+
+# Construir y levantar todos los servicios
+docker compose up -d --build
+
+# Ver logs
+docker compose logs -f
+Paso 5 — Verificar URLs
+Una vez que todo esté corriendo:
+
+Servicio	URL
+Frontend Angular	http://<IP_PUBLICA>:4200 → o http://<IP_PUBLICA> si configuras el 80
+Backend Spring Boot	http://<IP_PUBLICA>:8080/api
+IA Service	http://<IP_PUBLICA>:8000/health
+¿Quieres que empiece con el Paso 3 — preparar el proyecto para subida? Necesito saber:
+
+¿Tienes el repo en GitHub o prefieres copiar con scp?
+¿Ya tienes la instancia EC2 lanzada?

@@ -36,18 +36,6 @@ ADMIN  --> UC_DEPT_ASSIGN
 UC_ROLE        ..> UC_LIST        : <<include>>
 UC_DEPT_ASSIGN ..> UC_LIST        : <<include>>
 
-note right of UC_ROLE
-  Roles disponibles:
-  - DESIGNER: crea y edita políticas
-  - OFFICER: atiende tareas
-  - CLIENT: inicia trámites
-end note
 
-note right of UC_FCM
-  Registra el token del
-  dispositivo móvil para
-  recibir notificaciones push
-  de Firebase Cloud Messaging.
-end note
 
 @enduml

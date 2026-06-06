@@ -11,12 +11,9 @@ title CU15 — Historial y Trazabilidad del Trámite
 actor "Cliente"      as CLIENT
 actor "Funcionario"  as OFFICER
 actor "Diseñador /\nAdministrador" as ADMIN
-actor "Usuario"      as USER
-actor "Sistema\n(Motor)"  as ENGINE
 
-CLIENT  --|> USER
-OFFICER --|> USER
-ADMIN   --|> USER
+
+
 
 ' ── Casos de uso ──
 usecase "Ver historial de\neventos del trámite"      as UC_EVENTS
@@ -25,7 +22,6 @@ usecase "Ver quién atendió\ncada actividad"           as UC_WHO
 usecase "Ver duración de\ncada etapa"                 as UC_DURATION
 usecase "Ver resultado\nde cada decisión"             as UC_DECISIONS
 usecase "Ver estado final\ndel trámite\n(Aprobado / Rechazado)" as UC_RESULT
-usecase "Registrar evento\nen el log"                 as UC_LOG
 
 ' ── Relaciones ──
 CLIENT  --> UC_EVENTS
@@ -43,26 +39,8 @@ UC_EVENTS ..> UC_DURATION  : <<include>>
 UC_EVENTS ..> UC_DECISIONS : <<extend>>
 UC_EVENTS ..> UC_RESULT    : <<extend>>
 
-ENGINE ..> UC_LOG : registra automáticamente
 
-note right of UC_LOG
-  El motor registra:
-  CASE_STARTED
-  TASK_ASSIGNED
-  TASK_COMPLETED
-  DECISION_TAKEN
-  FORK_CREATED
-  JOIN_COMPLETED
-  CASE_COMPLETED
-  CASE_CANCELLED
-end note
 
-note right of UC_RESULT
-  El nodo FINAL puede tener
-  etiqueta: "Aprobado",
-  "Rechazado", "Derivado".
-  Queda en el historial
-  para auditoría.
-end note
+
 
 @enduml

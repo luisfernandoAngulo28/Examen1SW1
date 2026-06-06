@@ -37,6 +37,16 @@
   - [Pantallas y Flujos](#pantallas-y-flujos)
   - [Notificaciones Push FCM](#notificaciones-push-fcm)
   - [Integración con el Backend](#integración-con-el-backend)
+- [Parte I — Fundamentación Teórica (Segundo Parcial)](#parte-i--fundamentación-teórica-segundo-parcial)
+  - [8. Sistema de Gestión Documental](#8-sistema-de-gestión-documental)
+  - [9. Deep Learning y Procesamiento de Lenguaje Natural (NLP)](#9-deep-learning-y-procesamiento-de-lenguaje-natural-nlp)
+  - [10. Infraestructura en la Nube — Amazon Web Services (AWS)](#10-infraestructura-en-la-nube--amazon-web-services-aws)
+- [Parte II — Proceso de Desarrollo (Ciclo 2)](#parte-ii--proceso-de-desarrollo-ciclo-2)
+  - [Ciclo 2 — Segundo Parcial](#ciclo-2--segundo-parcial)
+  - [Arquitectura C4 — Ciclo 2](#arquitectura-c4--ciclo-2)
+  - [Diagramas UML Ciclo 2](#diagramas-uml-ciclo-2)
+  - [Comparativa Ciclo 1 vs Ciclo 2](#comparativa-ciclo-1-vs-ciclo-2)
+- [Anexos — Estándares de Codificación (Clean Code)](#anexos--estándares-de-codificación-clean-code)
 
 ---
 
@@ -586,15 +596,120 @@ Actor externo que inicia los trámites, proporciona la información requerida (p
 | **Flujo Alterno** | N/A |
 | **Postcondición** | Trazabilidad asegurada. |
 
-#### 3.1.5 Estructura de Modelo de Casos de uso EMCU 
-**Ciclo de vida #1** 
-![Diagrama EMCU Ciclo 1](/diagramas/emcu-ciclo1.png)
+#### 3.1.5 Estructura de Modelo de Casos de uso (EMCU) 
 
-**Ciclo #2** 
-![Diagrama EMCU Ciclo 2](/diagramas/emcu-ciclo2.png)
+A continuación, se presenta la organización de los casos de uso agrupados por **Ciclos de Vida** (Releases), evidenciando los límites del sistema y la interacción con los tres actores principales:
 
-**Ciclo #3** 
-![Diagrama EMCU Ciclo 3](/diagramas/emcu-ciclo3.png)
+**Ciclo de vida #1 (Core & Config)**
+```plantuml
+@startuml EMCU_Ciclo1
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #D5F5E3
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Ciclo de Vida #1 (Core & Config)" {
+    usecase "CU01 Gestionar Inicio Sesión" as CU01
+    usecase "CU02 Gestionar Cierre Sesión" as CU02
+    usecase "CU04 Gestionar Políticas" as CU04
+    usecase "CU05 Gestionar Deptos y Usuarios" as CU05
+    usecase "CU06 Búsqueda de Trámites" as CU06
+}
+
+A1 --> CU01
+A2 --> CU01
+A3 --> CU01
+A1 --> CU02
+A2 --> CU02
+A3 --> CU02
+A1 --> CU04
+A1 --> CU05
+A1 --> CU06
+A2 --> CU06
+A3 --> CU06
+@enduml
+```
+
+**Ciclo #2 (Engine & Real-Time)**
+```plantuml
+@startuml EMCU_Ciclo2
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FCF3CF
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Ciclo de Vida #2 (Engine & Real-Time)" {
+    usecase "CU03 Gestionar Perfil" as CU03
+    usecase "CU07 Gestionar Reportes" as CU07
+    usecase "CU08 Motor de Workflow" as CU08
+    usecase "CU09 Editor Diagrama Actividad" as CU09
+    usecase "CU10 Bandeja en Tiempo Real" as CU10
+}
+
+A1 --> CU03
+A2 --> CU03
+A3 --> CU03
+A1 --> CU07
+A1 --> CU08
+A2 --> CU08
+A3 --> CU08
+A1 --> CU09
+A1 --> CU10
+A2 --> CU10
+@enduml
+```
+
+**Ciclo #3 (IA & Advanced UX)**
+```plantuml
+@startuml EMCU_Ciclo3
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FADBD8
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+package "Ciclo de Vida #3 (IA & Advanced UX)" {
+    usecase "CU11 Formularios por Voz" as CU11
+    usecase "CU12 Extracción Texto (OCR)" as CU12
+    usecase "CU13 Analizar Cuellos de Botella (IA)" as CU13
+    usecase "CU14 Decisiones Condicionales" as CU14
+    usecase "CU15 Trazabilidad Completa" as CU15
+}
+
+A2 --> CU11
+A3 --> CU11
+A2 --> CU12
+A3 --> CU12
+A1 --> CU13
+A2 --> CU14
+A1 --> CU15
+A2 --> CU15
+A3 --> CU15
+@enduml
+```
 
 
 ---
@@ -604,57 +719,525 @@ Actor externo que inicia los trámites, proporciona la información requerida (p
 #### 3.2.1 Análisis de Arquitectura
 
 ##### 3.2.1.1 Identificar Paquetes
-- Paquete de Usuario
-- Paquete de Proyectos
-- Paquete de Diagramas
+Para modularizar la arquitectura del sistema y organizar las responsabilidades, se han identificado tres paquetes principales:
+- **Paquete de Usuario:** Gestiona todo lo relacionado con la identidad, seguridad, autenticación y la estructura organizativa (departamentos).
+- **Paquete de Proyectos:** Administra el ciclo de vida central del negocio, controlando las políticas, el motor de ejecución de trámites (workflows), asignación de tareas a los funcionarios y la trazabilidad.
+- **Paquete de Diagramas:** Encapsula la lógica de diseño visual (lienzo interactivo) y las herramientas avanzadas y de IA (reconocimiento de voz, OCR, análisis de cuellos de botella).
 
 ##### 3.2.1.2 Relacionar Paquete y Casos de uso
-- **Paquete de Gestión de Usuario**
-- **Paquete de Gestión de proyectos**
-- **Modulo de Gestión de Diagramas**
+
+**Paquete de Gestión de Usuario**
+- CU01 Gestionar Inicio de Sesión
+- CU02 Gestionar Cierre de Sesión
+- CU03 Gestionar Perfil de Usuario
+- CU05 Gestionar Departamentos y Usuarios
+
+```plantuml
+@startuml Trace_Usuario
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+component "Módulo de Gestión\nde Usuario" as Modulo
+
+usecase "CU01 Gestionar Inicio\nde Sesión" as CU01
+usecase "CU02 Gestionar Cierre\nde Sesión" as CU02
+usecase "CU03 Gestionar Perfil\nde Usuario" as CU03
+usecase "CU05 Gestionar Deptos\ny Usuarios" as CU05
+
+Modulo ..> CU01 : <<trace>>
+Modulo ..> CU02 : <<trace>>
+Modulo ..> CU03 : <<trace>>
+Modulo ..> CU05 : <<trace>>
+@enduml
+```
+
+**Paquete de Gestión de Proyectos**
+- CU04 Gestionar Políticas de Negocio
+- CU06 Gestionar Búsqueda de Trámites
+- CU07 Gestionar Reportes de Desempeño
+- CU08 Gestionar Motor de Workflow
+- CU10 Gestionar Bandeja en Tiempo Real
+- CU14 Gestionar Toma de Decisiones Condicionales
+- CU15 Gestionar Trazabilidad Completa del Trámite
+
+```plantuml
+@startuml Trace_Proyectos
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+component "Módulo de Gestión\nde Proyectos" as Modulo
+
+usecase "CU04 Gestionar Políticas\nde Negocio" as CU04
+usecase "CU06 Gestionar Búsqueda\nde Trámites" as CU06
+usecase "CU07 Gestionar Reportes\nde Desempeño" as CU07
+usecase "CU08 Gestionar Motor\nde Workflow" as CU08
+usecase "CU10 Gestionar Bandeja\nen Tiempo Real" as CU10
+usecase "CU14 Gestionar Toma de\nDecisiones Condicionales" as CU14
+usecase "CU15 Gestionar Trazabilidad\nCompleta del Trámite" as CU15
+
+Modulo ..> CU04 : <<trace>>
+Modulo ..> CU06 : <<trace>>
+Modulo ..> CU07 : <<trace>>
+Modulo ..> CU08 : <<trace>>
+Modulo ..> CU10 : <<trace>>
+Modulo ..> CU14 : <<trace>>
+Modulo ..> CU15 : <<trace>>
+@enduml
+```
+
+**Módulo de Gestión de Diagramas**
+- CU09 Gestionar Diagrama de Actividad
+- CU11 Gestionar Llenado de Formularios mediante Voz
+- CU12 Gestionar Extracción de Texto mediante OCR
+- CU13 Gestionar Análisis de Cuellos de Botella mediante IA
+
+```plantuml
+@startuml Trace_Diagramas
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+component "Módulo de Gestión\nde Diagramas" as Modulo
+
+usecase "CU09 Gestionar Diagrama\nde Actividad" as CU09
+usecase "CU11 Llenado de Formularios\nmediante Voz" as CU11
+usecase "CU12 Extracción de Texto\nmediante OCR" as CU12
+usecase "CU13 Análisis de Cuellos\nde Botella (IA)" as CU13
+
+Modulo ..> CU09 : <<trace>>
+Modulo ..> CU11 : <<trace>>
+Modulo ..> CU12 : <<trace>>
+Modulo ..> CU13 : <<trace>>
+@enduml
+```
 
 ##### 3.2.1.3 Vista de Casos de uso
-*(Imágenes o descripciones de vista de casos de uso)*
+
+A continuación se detalla la vista de casos de uso para cada uno de los tres módulos principales, adaptando la herencia de actores (Diseñador, Funcionario, Cliente) que interactúan con el sistema central:
+
+**1. Módulo de Gestión de Usuario**
+```plantuml
+@startuml Vista_Usuario
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Usuario" {
+    usecase "CU01 Gestionar Inicio\nde Sesión" as CU01
+    usecase "CU02 Gestionar Cierre\nde Sesión" as CU02
+    usecase "CU03 Gestionar Perfil\nde Usuario" as CU03
+    usecase "CU05 Gestionar Deptos\ny Usuarios" as CU05
+}
+
+Usuario --> CU01
+Usuario --> CU02
+Usuario --> CU03
+Diseñador --> CU05
+
+CU02 ..> CU01 : <<include>>
+CU03 ..> CU01 : <<include>>
+CU05 ..> CU01 : <<include>>
+@enduml
+```
+
+**2. Módulo de Gestión de Proyectos (Trámites/Workflows)**
+```plantuml
+@startuml Vista_Proyectos
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Proyectos" {
+    usecase "CU04 Gestionar Políticas\nde Negocio" as CU04
+    usecase "CU06 Gestionar Búsqueda\nde Trámites" as CU06
+    usecase "CU07 Gestionar Reportes\nde Desempeño" as CU07
+    usecase "CU08 Gestionar Motor\nde Workflow" as CU08
+    usecase "CU10 Gestionar Bandeja\nen Tiempo Real" as CU10
+    usecase "CU14 Gestionar Toma de\nDecisiones Condicionales" as CU14
+    usecase "CU15 Gestionar Trazabilidad\nCompleta del Trámite" as CU15
+}
+
+Diseñador --> CU04
+Diseñador --> CU07
+Usuario --> CU06
+Usuario --> CU08
+Usuario --> CU15
+Funcionario --> CU10
+Funcionario --> CU14
+
+CU08 ..> CU04 : <<include>>
+CU10 ..> CU08 : <<include>>
+CU14 ..> CU10 : <<extend>>
+CU15 ..> CU08 : <<include>>
+@enduml
+```
+
+**3. Módulo de Gestión de Diagramas (Lienzo e IA)**
+```plantuml
+@startuml Vista_Diagramas
+!theme plain
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+actor Usuario
+actor "Diseñador de\nProcesos" as Diseñador
+actor Funcionario
+actor Cliente
+
+Diseñador -up-|> Usuario
+Funcionario -up-|> Usuario
+Cliente -up-|> Usuario
+
+package "Módulo de Gestión de Diagramas" {
+    usecase "CU09 Gestionar Diagrama\nde Actividad" as CU09
+    usecase "CU11 Llenado de Formularios\nmediante Voz" as CU11
+    usecase "CU12 Extracción de Texto\nmediante OCR" as CU12
+    usecase "CU13 Análisis de Cuellos\nde Botella (IA)" as CU13
+}
+
+Diseñador --> CU09
+Diseñador --> CU13
+Funcionario --> CU11
+Funcionario --> CU12
+Cliente --> CU11
+Cliente --> CU12
+
+CU13 ..> CU09 : <<extend>>
+@enduml
+```
 
 #### 3.2.2 Analizar Casos de uso ”Diagrama de Comunicación”
 
-**Ciclo #1: CU04 Gestionar Proyectos**  
-**Descripción CU04 Gestionar Proyectos:**  
-Este caso de uso permite al usuario (Creador o Editor) realizar el ciclo completo de gestión de proyectos. Incluye registrar, actualizar, consultar y eliminar proyectos. Al crear un proyecto, automáticamente se genera un lienzo vacío con nodos y aristas disponibles para su posterior edición. El sistema valida la existencia del proyecto y responde con las operaciones correspondientes, garantizando el manejo básico de CRUD sobre los proyectos y su lienzo asociado.
+A continuación se presentan los diagramas de comunicación adaptados a los casos de uso principales de nuestra aplicación (Sistema de Gestión de Trámites y Workflows).
 
-**Ciclo #2:**  
-**CU09 Gestionar Diagrama de clases**  
-**Descripción CU09 Gestionar Diagrama de clases:**  
-Este caso de uso permite al usuario manipular el diagrama de clases asociado a un proyecto. El usuario puede crear, modificar, mover o relacionar clases dentro del lienzo. Mediante la opción de guardar, el sistema persiste el estado actual del diagrama, de modo que al iniciar una nueva sesión se recupera el mismo tal como fue guardado previamente. Asimismo, el sistema brinda la funcionalidad de obtener el diagrama existente para continuar su edición y garantizar la persistencia de los cambios realizados.
+**Ciclo #1: CU04 Gestionar Políticas de Negocio**  
+**Descripción:** Este caso de uso permite al Diseñador de Procesos realizar el ciclo completo de gestión de políticas (Workflows). Incluye registrar, actualizar, consultar y eliminar políticas. Al crear una política, automáticamente se genera un lienzo vacío (Diagrama) con nodos y aristas disponibles para su posterior edición.
+```plantuml
+@startuml Com_CU04
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
 
-**CU08 Gestionar Generación de Backend Spring Boot**  
-**Descripción CU08 Gestionar Generación de Backend Spring Boot:**  
-Este caso de uso permite al usuario generar automáticamente la estructura de un backend en Spring Boot a partir del proyecto y su diagrama. Al presionar la opción “Generar Backend”, el sistema ejecuta la lógica necesaria para crear el código base utilizando plantillas predefinidas, empaquetando el resultado en un archivo comprimido (ZIP) que contiene el backend con los métodos CRUD y listo para ser utilizado.
+actor "Diseñador\n(Usuario)" as Actor
+boundary "I.Politica" as UI
+control "C.Politica" as Ctrl
+entity "E.Politica" as Ent
+entity "E.Diagrama" as Diagrama
 
-**Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**  
-**Descripción de CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat:**  
-Este caso de uso permite al usuario crear objetos en el diagrama utilizando comandos de voz o texto. A través de un prompt o una orden de voz, el sistema interpreta la instrucción y genera automáticamente nuevos elementos, como clases completas o clases con relaciones asociadas, siempre orientadas al proceso de creación. De esta manera, se facilita la construcción del modelo sin necesidad de manipulación manual directa, optimizando la productividad del usuario.
+Actor --> UI : 1. RegistrarPolitica()\n5. ActualizarPolitica()\n9. EliminarPolitica()
+UI --> Ctrl : 2. registrarPolitica(datos)\n6. actualizarPolitica(id, datos)\n10. eliminarPolitica(id)
+Ctrl --> Ent : 3. save(politica)\n7. update(id, politica)\n8. existePolitica(id)\n11. delete(id)
+Ctrl --> Diagrama : 4. crearLienzo(politicaId)
+UI --> Actor : 12. mostrar respuesta
+@enduml
+```
 
-**CU15: Gestionar Generación de Sistema completo**  
-**Descripción de CU15 Gestionar Generación de Sistema completo:**  
-Este caso de uso permite al usuario ordenar mediante comandos de voz o texto la generación automática de un sistema completo. A partir del prompt ingresado y del proyecto asociado, el sistema interpreta la instrucción y produce la estructura integral del sistema, integrando los diferentes componentes necesarios. De esta manera, se facilita la creación de soluciones completas sin necesidad de construir cada elemento de forma manual.
+**Ciclo #2: CU09 Gestionar Diagrama de Actividad**  
+**Descripción:** Permite al Diseñador manipular el diagrama de actividad asociado a una política. Puede crear, modificar o relacionar nodos (acciones, decisiones). Mediante la opción de guardar, el sistema persiste el estado actual del diagrama (transacción en MongoDB) para recuperar el lienzo en sesiones futuras.
+```plantuml
+@startuml Com_CU09
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Diseñador" as Actor
+boundary "I.Lienzo" as UI
+control "C.Diagrama" as Ctrl
+entity "E.Nodo" as EntNodo
+entity "E.Arista" as EntArista
+
+Actor --> UI : 1. agregarNodo(datos)\n4. conectarNodos(origen, destino)
+UI --> Ctrl : 2. addNode(datos)\n5. addEdge(origen, destino)
+Ctrl --> EntNodo : 3. save(nodo)
+Ctrl --> EntArista : 6. save(arista)
+Ctrl --> UI : 7. enviar confirmación
+UI --> Actor : 8. actualizar lienzo
+@enduml
+```
+
+**Ciclo #2: CU08 Gestionar Motor de Workflow**  
+**Descripción:** Permite iniciar un trámite a partir de una política. El Motor de Workflow lee el diagrama desde el nodo inicial, enruta automáticamente el flujo, y asigna las tareas a los funcionarios correspondientes según los departamentos definidos.
+```plantuml
+@startuml Com_CU08
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Cliente / Funcionario" as Actor
+boundary "I.Tramite" as UI
+control "C.MotorWorkflow" as Ctrl
+entity "E.Case" as EntCase
+entity "E.Task" as EntTask
+
+Actor --> UI : 1. IniciarTramite(politicaId)
+UI --> Ctrl : 2. startWorkflow(politicaId)
+Ctrl --> EntCase : 3. createCase(politicaId)
+Ctrl --> EntTask : 4. assignInitialTask(caseId, deptoId)
+Ctrl --> UI : 5. notificar asignación
+UI --> Actor : 6. mostrar estado del trámite
+@enduml
+```
+
+**Ciclo #3: CU11 Gestionar Llenado de Formularios mediante Voz**  
+**Descripción:** Permite al funcionario completar los campos de un formulario asociado a su tarea dictando texto. El sistema captura la voz a través del micrófono, utiliza la Web Speech API para transcribirla, e inyecta la información en el formulario activo.
+```plantuml
+@startuml Com_CU11
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Funcionario" as Actor
+boundary "I.Formulario" as UI
+control "C.SpeechAPI" as Ctrl
+entity "E.FormSubmission" as Ent
+
+Actor --> UI : 1. activarMicrofono()\n2. dictarDatos()
+UI --> Ctrl : 3. procesarAudio()
+Ctrl --> UI : 4. devolverTextoTranscribido()
+UI --> Ent : 5. inyectarTextoEnCampo()
+UI --> Actor : 6. mostrar texto en pantalla
+@enduml
+```
+
+**Ciclo #3: CU15 Gestionar Trazabilidad Completa del Trámite**  
+**Descripción:** Mantiene una bitácora inmutable (EventLog) de todas las acciones del trámite. Cada vez que una tarea avanza o un formulario se llena, se registra automáticamente el actor, el tiempo y el cambio de estado para fines de auditoría.
+```plantuml
+@startuml Com_CU15
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+
+actor "Sistema" as Actor
+boundary "I.Listener" as UI
+control "C.Trazabilidad" as Ctrl
+entity "E.EventLog" as EntLog
+
+Actor --> UI : 1. triggerEvento(tipo, datos)
+UI --> Ctrl : 2. registrarEvento(datosEvento)
+Ctrl --> EntLog : 3. save(eventLog)
+Ctrl --> UI : 4. eventoRegistrado()
+@enduml
+```
 
 #### 3.2.3 Análisis de Clases
 
-**Ciclo #1: CU04 Gestionar Proyectos**
-*(Diagrama o análisis de clases)*
+**Ciclo #1: CU04 Gestionar Políticas de Negocio**
+```plantuml
+@startuml Class_CU04
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
 
-**Ciclo #2: CU09 Gestionar Diagrama de clases**
-*(Diagrama o análisis de clases)*
+actor "Diseñador\n(Usuario)" as Actor
 
-**CU08 Gestionar Generación de Backend Spring Boot**
-*(Diagrama o análisis de clases)*
+class "InterfazPolitica" as UI <<boundary>> {
+  + registrarPolitica()
+  + actualizarPolitica()
+  + eliminarPolitica()
+}
 
-**Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**
-*(Diagrama o análisis de clases)*
+class "PoliticaController" as Ctrl <<control>> {
+  + registrarPolitica(datos)
+  + actualizarPolitica(id, datos)
+  + eliminarPolitica(id)
+}
 
-**CU15: Gestionar Generación de Sistema completo**
-*(Diagrama o análisis de clases)*
+class "Policy" as Ent <<entity>> {
+  + id: number
+  + nombre: string
+  + descripcion: string
+}
+
+class "Diagrama" as Diag <<entity>> {
+  + id: number
+  + json_data: string
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Ent
+Ctrl -down-> Diag : crea
+Ent "1" -- "0..1" Diag
+@enduml
+```
+
+**Ciclo #2: CU09 Gestionar Diagrama de Actividad**
+```plantuml
+@startuml Class_CU09
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Diseñador" as Actor
+
+class "InterfazLienzo" as UI <<boundary>> {
+  + agregarNodo()
+  + conectarNodos()
+  + guardarLienzo()
+}
+
+class "DiagramaController" as Ctrl <<control>> {
+  + addNode(datos)
+  + addEdge(origen, destino)
+  + saveDiagram()
+}
+
+class "PolicyNode" as Nodo <<entity>> {
+  + id: number
+  + tipo: string
+  + configuracion: json
+}
+
+class "PolicyEdge" as Arista <<entity>> {
+  + id: number
+  + origenId: number
+  + destinoId: number
+  + condicion: json
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Nodo
+Ctrl -right-> Arista
+@enduml
+```
+
+**Ciclo #2: CU08 Gestionar Motor de Workflow**
+```plantuml
+@startuml Class_CU08
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Cliente / Funcionario" as Actor
+
+class "InterfazTramite" as UI <<boundary>> {
+  + iniciarTramite()
+  + verEstado()
+}
+
+class "MotorWorkflow" as Ctrl <<control>> {
+  + startWorkflow(politicaId)
+  + assignTask(caseId)
+}
+
+class "Case" as Caso <<entity>> {
+  + id: number
+  + politicaId: number
+  + currentNodeId: number
+  + estado: string
+}
+
+class "Task" as Tarea <<entity>> {
+  + id: number
+  + caseId: number
+  + assignedTo: string
+  + estado: string
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Caso
+Ctrl -right-> Tarea
+Caso "1" -- "1..*" Tarea
+@enduml
+```
+
+**Ciclo #3: CU11 Gestionar Llenado de Formularios mediante Voz**
+```plantuml
+@startuml Class_CU11
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Funcionario" as Actor
+
+class "InterfazFormulario" as UI <<boundary>> {
+  + activarMicrofono()
+  + inyectarTexto()
+}
+
+class "SpeechAPIController" as Ctrl <<control>> {
+  + procesarAudio()
+  + extraerTexto()
+}
+
+class "FormSubmission" as Ent <<entity>> {
+  + id: number
+  + payloadJson: json
+  + taskId: number
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Ent
+@enduml
+```
+
+**Ciclo #3: CU15 Gestionar Trazabilidad Completa del Trámite**
+```plantuml
+@startuml Class_CU15
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Sistema" as Actor
+
+class "ListenerEventos" as UI <<boundary>> {
+  + capturarEvento()
+}
+
+class "TrazabilidadController" as Ctrl <<control>> {
+  + registrarEvento(datos)
+}
+
+class "EventLog" as Ent <<entity>> {
+  + id: number
+  + actionType: string
+  + actorId: number
+  + timestamp: datetime
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Ent
+@enduml
+```
 
 #### 3.2.4 Análisis de Paquete
 *(Diagrama o análisis de paquetes)*
@@ -666,18 +1249,273 @@ Este caso de uso permite al usuario ordenar mediante comandos de voz o texto la 
 #### 3.3.1 Diseño de arquitectura
 
 ##### 3.3.1.1 Diseño Físico - Diagrama de Despliegue
-*(Diagrama de despliegue)*
+```plantuml
+@startuml Diagrama_Despliegue
+!theme plain
+top to bottom direction
+
+skinparam node {
+    BackgroundColor<<aws>> #FFCE54
+    BackgroundColor<<external>> #E8EAF6
+    BackgroundColor<<device>> #A0D492
+    BorderColor #2C3E50
+}
+skinparam componentBackgroundColor #FFFFFF
+
+node "Dispositivos de Usuario" {
+    node "<<device>>\nDesktop Diseñador" as Editor <<device>> {
+        component "Web Browser\n(Angular SPA)" as BrowserEditor
+    }
+
+    node "<<device>>\nDesktop Funcionario" as Creador <<device>> {
+        component "Web Browser\n(Angular SPA)" as BrowserCreador
+    }
+}
+
+node "Amazon Web Services (AWS)" as AWS <<aws>> {
+    
+    node "<<Service>>\nAmazon S3 + CloudFront" as S3 {
+        component "Frontend Assets\n(Angular SPA build)" as FrontendApp
+    }
+
+    node "<<EC2 Instance>>\nServidor Backend" as EC2 {
+        component "Nginx\n(Reverse Proxy)" as Nginx
+        component "Spring Boot 3.x\n(Workflow Engine)" as SpringBoot
+        component "WebSocket\n(STOMP Broker)" as WS
+        
+        Nginx -down-> SpringBoot : HTTP :8080
+        Nginx -down-> WS : WS/WSS
+    }
+
+    node "<<Database Instance>>\nServidor de Base de Datos" as DBNode {
+        component "SGBD\nMongoDB" as MongoDB
+    }
+}
+
+node "Servicios Externos" as Externos <<external>> {
+    component "OpenAI API\n(GPT-4)" as OpenAI
+    component "Firebase\n(Cloud Messaging)" as Firebase
+}
+
+' Relaciones Clientes -> AWS
+BrowserEditor --> S3 : HTTPS (Descarga SPA)
+BrowserCreador --> S3 : HTTPS (Descarga SPA)
+
+BrowserEditor --> Nginx : HTTPS / REST
+BrowserCreador --> Nginx : HTTPS / REST
+BrowserEditor --> WS : WSS (Sockets reales)
+BrowserCreador --> WS : WSS (Sockets reales)
+
+' Relaciones internas AWS
+SpringBoot --> MongoDB : TCP/IP (mongodb://)
+
+' Relaciones AWS -> Externos
+SpringBoot --> OpenAI : HTTPS (Análisis IA)
+SpringBoot --> Firebase : HTTPS (Notificaciones)
+
+@enduml
+```
 
 ##### 3.3.1.2 Diseño Lógico – Diagrama Organizado en capas
-*(Diagrama de capas)*
+```plantuml
+@startuml Diagrama_Capas
+!theme plain
+skinparam packageStyle folder
+skinparam packageBackgroundColor #FAD77B
+skinparam packageBorderColor #2C3E50
+
+package "Diagrama de capas" <<frame>> {
+    
+    package "Capa de Módulos" as Capa1 {
+        package "P1: Gestión de\nusuarios" as P1
+        package "P2: Gestión de\npolíticas" as P2
+        package "P3: Gestión de\ntrámites" as P3
+    }
+    
+    package "Capa Frontend" as Capa2 {
+        package "App (SPA)" as FApp
+        package "Services" as FServ
+    }
+    
+    package "Capa Backend" as Capa3 {
+        package "App (Backend)" as BApp
+        package "Presentation" as BPres
+        package "Infrastructure" as BInfra
+        package "Domain" as BDom
+        package "Shared" as BShared
+    }
+    
+    package "Capa de Tecnologías" as Capa4 {
+        package "App Angular" as TReact
+        package "App Spring Boot" as TSpring
+        package "MongoDB" as TDB
+    }
+    
+    package "Capa de Infraestructura Cloud" as Capa5 {
+        package "Amazon S3" as CFront
+        package "Amazon EC2" as CBack
+    }
+    
+    Capa1 -[hidden]down-> Capa2
+    Capa2 -[hidden]down-> Capa3
+    Capa3 -[hidden]down-> Capa4
+    Capa4 -[hidden]down-> Capa5
+}
+
+P1 ..> FApp
+P2 ..> FApp
+P3 ..> FApp
+
+FApp ..> FServ
+FApp ..> BPres
+
+BApp ..> BPres
+BPres ..> BInfra
+BPres ..> BDom
+BPres ..> BShared
+
+FApp ..> TReact
+BApp ..> TSpring
+
+TReact ..> TSpring
+TSpring ..> TDB
+
+TReact ..> CFront
+TSpring ..> CBack
+TDB ..> CBack
+
+@enduml
+```
 
 #### 3.3.2 Diagramas de Secuencia
 
-- **Ciclo #1: CU04 Gestionar Proyectos**
-- **Ciclo #2: CU09 Gestionar Diagrama de clases**
-- **CU08 Gestionar Generación de Backend Spring Boot**
-- **Ciclo #3: CU11 Gestionar Acción de Creación de Objetos mediante comando de voz y chat**
-- **CU15: Gestionar Generación de Sistema completo**
+- **Ciclo #1: CU04 Gestionar Políticas de Negocio**
+```plantuml
+@startuml Sec_CU04
+!theme plain
+actor "Diseñador" as Actor
+boundary "I.Politica" as UI
+control "C.Politica" as Ctrl
+entity "E.Politica" as Ent
+entity "E.Diagrama" as Diag
+
+Actor -> UI : 1. RegistrarPolitica()
+activate UI
+UI -> Ctrl : 2. registrarPolitica(datos)
+activate Ctrl
+Ctrl -> Ent : 3. save(politica)
+activate Ent
+Ent --> Ctrl : politica_creada
+deactivate Ent
+Ctrl -> Diag : 4. crearLienzo(politicaId)
+activate Diag
+Diag --> Ctrl : lienzo_creado
+deactivate Diag
+Ctrl --> UI : exito
+deactivate Ctrl
+UI --> Actor : 5. mostrar respuesta
+deactivate UI
+@enduml
+```
+
+- **Ciclo #2: CU09 Gestionar Diagrama de Actividad**
+```plantuml
+@startuml Sec_CU09
+!theme plain
+actor "Diseñador" as Actor
+boundary "I.Lienzo" as UI
+control "C.Diagrama" as Ctrl
+entity "E.Nodo" as Nodo
+
+Actor -> UI : 1. agregarNodo(datos)
+activate UI
+UI -> Ctrl : 2. addNode(datos)
+activate Ctrl
+Ctrl -> Nodo : 3. save(nodo)
+activate Nodo
+Nodo --> Ctrl : nodo_guardado
+deactivate Nodo
+Ctrl --> UI : confirmación
+deactivate Ctrl
+UI --> Actor : 4. actualizar lienzo
+deactivate UI
+@enduml
+```
+
+- **Ciclo #2: CU08 Gestionar Motor de Workflow**
+```plantuml
+@startuml Sec_CU08
+!theme plain
+actor "Cliente" as Actor
+boundary "I.Tramite" as UI
+control "C.Motor" as Ctrl
+entity "E.Case" as Caso
+entity "E.Task" as Tarea
+
+Actor -> UI : 1. IniciarTramite(politicaId)
+activate UI
+UI -> Ctrl : 2. startWorkflow(politicaId)
+activate Ctrl
+Ctrl -> Caso : 3. createCase(politicaId)
+activate Caso
+Caso --> Ctrl : caseId
+deactivate Caso
+Ctrl -> Tarea : 4. assignInitialTask(caseId)
+activate Tarea
+Tarea --> Ctrl : tareaAsignada
+deactivate Tarea
+Ctrl --> UI : notificar
+deactivate Ctrl
+UI --> Actor : 5. mostrar estado
+deactivate UI
+@enduml
+```
+
+- **Ciclo #3: CU11 Gestionar Llenado de Formularios mediante Voz**
+```plantuml
+@startuml Sec_CU11
+!theme plain
+actor "Funcionario" as Actor
+boundary "I.Formulario" as UI
+control "C.SpeechAPI" as Ctrl
+entity "E.FormSub" as Ent
+
+Actor -> UI : 1. dictarDatos()
+activate UI
+UI -> Ctrl : 2. procesarAudio(blob)
+activate Ctrl
+Ctrl --> UI : texto_transcrito
+deactivate Ctrl
+UI -> Ent : 3. inyectarTextoEnCampo()
+activate Ent
+Ent --> UI : ok
+deactivate Ent
+UI --> Actor : 4. mostrar texto
+deactivate UI
+@enduml
+```
+
+- **Ciclo #3: CU15 Gestionar Trazabilidad Completa del Trámite**
+```plantuml
+@startuml Sec_CU15
+!theme plain
+actor "Sistema" as Actor
+boundary "I.Listener" as UI
+control "C.Trazabilidad" as Ctrl
+entity "E.EventLog" as Ent
+
+Actor -> UI : 1. triggerEvento(datos)
+activate UI
+UI -> Ctrl : 2. registrarEvento()
+activate Ctrl
+Ctrl -> Ent : 3. save(eventLog)
+activate Ent
+Ent --> Ctrl : ok
+deactivate Ent
+Ctrl --> UI : evento_registrado
+deactivate Ctrl
+@enduml
+```
 
 #### 3.3.3 Diseño de Datos
 
@@ -813,7 +1651,62 @@ CREATE TABLE lienzos (
   - El sistema finaliza la sesión del usuario y lo redirige a la página de inicio o de login. 
   - El sistema libera los recursos asociados a la sesión y protege la información del usuario. 
 
-#COMPLETAR 
+**PF-3: Gestionar Políticas de Negocio (CU04)**
+- **Condición:**
+  - El usuario debe tener el rol de "Diseñador".
+  - El usuario debe haber iniciado sesión en la plataforma web.
+- **Proceso:**
+  - El Diseñador selecciona la opción "Crear Política de Negocio".
+  - El sistema muestra el formulario para ingresar nombre y descripción.
+  - El Diseñador ingresa los datos y confirma.
+  - El sistema valida que los campos no estén vacíos.
+  - El sistema guarda la política en la base de datos y genera automáticamente un lienzo en blanco (diagrama) asociado.
+  - El sistema muestra un mensaje de éxito y redirige a la vista del lienzo.
+
+**PF-4: Gestionar Diagrama de Actividad (CU09)**
+- **Condición:**
+  - El Diseñador debe estar en la vista del lienzo de una Política existente.
+- **Proceso:**
+  - El Diseñador arrastra un nuevo nodo (acción o decisión) al lienzo.
+  - El sistema registra el nodo en la interfaz visual.
+  - El Diseñador conecta dos nodos creando una arista.
+  - El Diseñador presiona el botón "Guardar Diagrama".
+  - El sistema procesa y valida la estructura del diagrama (nodos y aristas).
+  - El sistema actualiza el JSON del diagrama en la base de datos (MongoDB).
+  - El sistema muestra una notificación de "Guardado exitoso".
+
+**PF-5: Gestionar Motor de Workflow (CU08)**
+- **Condición:**
+  - Debe existir al menos una Política de Negocio con un diagrama de actividad válido configurado.
+  - El usuario (Cliente o Funcionario) debe haber iniciado sesión.
+- **Proceso:**
+  - El usuario selecciona la opción "Iniciar Trámite" eligiendo una Política específica.
+  - El Motor de Workflow (backend) lee el diagrama asociado y localiza el nodo inicial.
+  - El sistema crea una nueva instancia (`Case`) asociada al trámite.
+  - El sistema asigna automáticamente la primera tarea (`Task`) al departamento o usuario correspondiente según el nodo inicial.
+  - El sistema notifica al usuario que el trámite se ha iniciado correctamente.
+
+**PF-6: Gestionar Llenado de Formularios mediante Voz (CU11)**
+- **Condición:**
+  - El Funcionario debe tener una tarea pendiente asignada.
+  - El navegador debe tener permisos concedidos para usar el micrófono del dispositivo.
+- **Proceso:**
+  - El Funcionario abre la tarea y activa el botón de "Dictado por Voz" en un campo del formulario.
+  - El Funcionario habla por el micrófono.
+  - El sistema captura el audio y lo procesa mediante la API de Speech (o backend IA).
+  - El servicio devuelve el texto transcrito.
+  - El sistema inyecta automáticamente el texto en el campo del formulario.
+  - El Funcionario visualiza el texto dictado en tiempo real.
+
+**PF-7: Gestionar Trazabilidad Completa del Trámite (CU15)**
+- **Condición:**
+  - Debe existir un trámite (`Case`) en curso y el sistema debe estar configurado para escuchar eventos.
+- **Proceso:**
+  - Un Funcionario completa una tarea y hace clic en "Enviar" (avanza el flujo del trámite).
+  - El sistema detecta el cambio de estado de la tarea y del trámite.
+  - El Listener interno del sistema dispara un evento de trazabilidad.
+  - El sistema registra un nuevo `EventLog` inmutable en la base de datos indicando: quién realizó la acción, qué cambió, fecha y hora.
+  - Un usuario consulta el "Historial del Trámite" y el sistema muestra cronológicamente todos los pasos registrados sin posibilidad de que hayan sido alterados. 
 
 #### 3.5.1 Tablero JIRA
 *(Enlace o imagen del tablero JIRA)*
@@ -821,80 +1714,420 @@ CREATE TABLE lienzos (
 ---
 
 ### 3.6 Conclusiones
-- El desarrollo del sistema permitió integrar en un solo entorno la gestión de proyectos, la manipulación de diagramas de clases y la generación automática de componentes de software, logrando un flujo de trabajo más eficiente y organizado. 
-- La arquitectura definida, basada en un frontend desplegado en Vercel y un backend en Render con base de datos PostgreSQL, garantiza una separación clara de responsabilidades y escalabilidad futura. 
-- La utilización de casos de uso detallados y diagramas de secuencia facilitó la comprensión de los procesos principales, permitiendo una comunicación clara entre los actores del sistema y los módulos involucrados. 
-- La persistencia de diagramas y la capacidad de generar sistemas completos a partir de instrucciones de voz o texto muestran la aplicabilidad de la inteligencia artificial en la automatización del ciclo de vida del software. 
-- El diseño de la base de datos mediante Prisma y su traducción a SQL proporcionaron una estructura consistente y normalizada, que facilita la mantenibilidad y asegura la integridad referencial entre entidades. 
+- El desarrollo del **Sistema de Gestión de Trámites y Workflows** ha demostrado que es posible centralizar y automatizar políticas organizacionales complejas, logrando una ejecución secuencial e ininterrumpida de tareas bajo un motor de procesos robusto.
+- La arquitectura orientada a la nube implementada sobre **Amazon Web Services (AWS)** —utilizando un frontend en Angular (S3), un backend en Spring Boot (EC2) y MongoDB— proporciona alta disponibilidad, escalabilidad y un claro desacoplamiento de responsabilidades.
+- El diseño del Motor de Workflows bajo el patrón MVC (Boundary-Control-Entity) y la implementación de WebSockets lograron resolver eficazmente la sincronización en tiempo real del estado de los trámites entre Clientes, Funcionarios y el Backend.
+- La integración de servicios de Inteligencia Artificial (Speech API para llenado de formularios) comprobó que la automatización del dictado por voz reduce drásticamente la fricción operativa para los funcionarios, optimizando sus tiempos de atención.
+- La creación de un sistema de trazabilidad inmutable mediante registros de eventos (*EventLogs*) garantiza el cumplimiento de políticas de auditoría, brindando transparencia total sobre las acciones realizadas en cada expediente.
 
 ### 3.7 Recomendaciones
-- Ampliar las pruebas unitarias e integrales para cubrir los escenarios de error en los casos de uso más complejos, como la generación de backend y de sistemas completos. 
-- Implementar mecanismos de control de versiones en los diagramas persistidos, de manera que los usuarios puedan consultar y restaurar estados anteriores. 
-- Considerar la incorporación de seguridad adicional en el manejo de credenciales y datos sensibles, aplicando cifrado robusto y autenticación multifactor. 
-- Extender la funcionalidad del sistema para permitir la edición colaborativa en tiempo real de diagramas, lo que incrementaría el valor en entornos de trabajo multiusuario. 
-- Evaluar la posibilidad de integrar un sistema de reportes más avanzado, que permita obtener métricas sobre proyectos, diagramas y generación de código, aportando información útil para la toma de decisiones. 
+- **Auditoría Avanzada con IA:** Evaluar la implementación de un análisis de datos sobre el historial de MongoDB para identificar "cuellos de botella" frecuentes en los workflows y sugerir optimizaciones a los Diseñadores.
+- **Firma Digital:** Integrar un módulo de Firma Digital Criptográfica en las tareas críticas para otorgar validez jurídica innegable a las resoluciones emitidas por los funcionarios.
+- **Escalado de Infraestructura:** Migrar la orquestación actual en EC2 a un entorno de contenedores gestionados (como Amazon EKS) para permitir el autoescalado dinámico del backend durante picos masivos de trámites.
+- **Aplicación Móvil:** Extender la experiencia del usuario final construyendo una versión móvil (ej. Flutter) que aproveche mejor el hardware de los teléfonos para el envío avanzado de notificaciones push en tiempo real.
+- **Edición Colaborativa de Diagramas:** Dotar a la interfaz del Lienzo de funcionalidades cooperativas donde múltiples Diseñadores puedan editar una política de negocio simultáneamente viendo los cambios en tiempo real.
 
 ### 3.8 Bibliografía
-- https://www.postman.com/  
-- https://visualstudio.microsoft.com/es/  
-- https://www.mysql.com/products/workbench/  
-- https://www.jetbrains.com/es-es/idea/features/ 
-- https://tailwindcss.com/  
-- https://getbootstrap.com/  
-- https://www.typescriptlang.org/docs/ 
-- https://www.typescriptlang.org/docs/handbook/react.html 
-- https://react-typescript-cheatsheet.netlify.app/ 
-- https://es.react.dev/ 
-- https://docs.python.org/3/ 
-- https://flask.palletsprojects.com/ 
-- https://flask.palletsprojects.com/en/latest/quickstart/ 
-- https://www.sqlalchemy.org/ 
-- https://www.postgresql.org/docs/ 
-- https://clasesiupsm.wordpress.com/wp-content/uploads/2014/10/metodologc3ada-orientada-aobjetos-omt-james-rumbaugh.pdf 
-- https://darjelingsilva.wordpress.com/wp-content/uploads/2018/05/4-metd-omt.pdf 
-- https://fastapi.tiangolo.com 
-- https://docs.spring.io/spring-boot/index.html 
-- https://expressjs.com/es 
-- https://www.prisma.io/docs/orm 
-- https://nextjs.org/docs 
+- **Angular (Frontend):** https://angular.io/docs 
+- **Spring Boot (Backend):** https://docs.spring.io/spring-boot/index.html 
+- **Spring WebSockets (STOMP):** https://docs.spring.io/spring-framework/reference/web/websocket.html
+- **MongoDB (Base de Datos):** https://www.mongodb.com/docs/ 
+- **Amazon Web Services (S3, EC2):** https://aws.amazon.com/es/documentation/ 
+- **OpenAI API (Inteligencia Artificial):** https://platform.openai.com/docs/ 
+- **Web Speech API (Dictado por voz):** https://developer.mozilla.org/es/docs/Web/API/Web_Speech_API 
+- **Firebase Cloud Messaging (Notificaciones):** https://firebase.google.com/docs/cloud-messaging 
+- **PlantUML (Diagramas):** https://plantuml.com/es/ 
+- **Postman (Pruebas de API):** https://www.postman.com/ 
+- **Visual Studio Code:** https://code.visualstudio.com/
+- **IntelliJ IDEA (Desarrollo Spring):** https://www.jetbrains.com/es-es/idea/ 
+- **Metodología OMT (Rumbaugh):** https://clasesiupsm.wordpress.com/wp-content/uploads/2014/10/metodologc3ada-orientada-aobjetos-omt-james-rumbaugh.pdf 
+- **Fundamentos OMT:** https://darjelingsilva.wordpress.com/wp-content/uploads/2018/05/4-metd-omt.pdf
+- **Amazon EC2 — Documentación oficial:** https://docs.aws.amazon.com/es_es/ec2/
+- **Amazon S3 — Documentación oficial:** https://docs.aws.amazon.com/es_es/s3/
+- **AWS SDK for Java v2:** https://docs.aws.amazon.com/es_es/sdk-for-java/latest/developer-guide/home.html
+- **TensorFlow 2.x — Guía oficial:** https://www.tensorflow.org/guide
+- **Scikit-learn — Preprocesamiento:** https://scikit-learn.org/stable/modules/preprocessing.html
+- **OpenAI API — GPT-4o-mini:** https://platform.openai.com/docs/models/gpt-4o-mini
+- **ISO 15489 — Gestión Documental:** https://www.iso.org/standard/62542.html
+- **C4 Model — Simon Brown:** https://c4model.com/
+- **C4-PlantUML:** https://github.com/plantuml-stdlib/C4-PlantUML
+- **Conventional Commits:** https://www.conventionalcommits.org/es/v1.0.0/
+- **Clean Code — Robert C. Martin:** https://www.oreilly.com/library/view/clean-code-a/9780136083238/
+- **Flutter — Documentación oficial:** https://docs.flutter.dev/
+- **ElevenLabs API (TTS):** https://elevenlabs.io/docs 
 
 ### 3.9 ANEXOS
 
-#### Arquitectura FASTApi 
-La arquitectura utilizada en este proyecto realizado en Python FastAPI sigue un patrón por capas que organiza el código en diferentes directorios según su responsabilidad.  
-- En la carpeta `routes` se definen los endpoints HTTP que serán expuestos a los clientes.  
-- Los controladores ubicados en `controllers` son los encargados de coordinar la ejecución de cada caso de uso, recibiendo las solicitudes validadas y gestionando la lógica necesaria.  
-- En `services` se concentra la lógica de negocio y la comunicación con los servicios de inteligencia artificial, incluyendo whisper.cpp para el procesamiento de audio.  
-- Los modelos en `models` cumplen la función de validar y estructurar los datos de entrada y salida, generalmente mediante Pydantic o dtos.  
-- La carpeta `config` contiene la configuración del sistema, cargando variables de entorno y parámetros. En `errors` se centraliza el manejo de excepciones para asegurar respuestas uniformes.  
-- La carpeta `utils` guarda funciones auxiliares de uso general y `tmp` se emplea para almacenamiento temporal de archivos como audios o transcripciones.  
-- El archivo `main.py` es el punto de entrada de la aplicación donde se inicializa FastAPI y se registran rutas y middlewares.  
-- Los archivos `Dockerfile` y `docker-compose.yml` permiten la contenedorización y despliegue del proyecto, mientras que `requirements.txt` lista las dependencias de Python necesarias. 
+#### Arquitectura Spring Boot (Backend)
+La arquitectura utilizada en este proyecto realizado en Java con **Spring Boot** sigue un patrón de Arquitectura Limpia (Clean Architecture) orientada al Dominio, garantizando una alta cohesión y bajo acoplamiento.
+- En la capa de `controllers` (Presentación) se definen los endpoints RESTful HTTP y los manejadores de WebSockets (STOMP) que reciben y despachan las peticiones en tiempo real.
+- La capa de `services` (Aplicación) orquesta el núcleo del sistema: el **Motor de Workflows**. Aquí reside la lógica principal para instanciar Casos (`Case`), asignar Tareas (`Task`), y gestionar transiciones de estado interpretando el JSON del diagrama. También centraliza la integración con APIs externas como OpenAI y Firebase.
+- La capa de `domain` (Modelos) contiene las entidades puras del negocio (Políticas, Historial de Trazabilidad, Usuarios) y los DTOs encargados de estructurar la información de entrada y salida.
+- La capa de `repository` (Infraestructura) emplea **Spring Data MongoDB** para la persistencia ágil de los documentos (incluyendo las complejas estructuras JSON de los diagramas), encapsulando el acceso a datos.
+- En `config` se administran las políticas de seguridad (Spring Security con JWT), filtros CORS, y la configuración del Broker de mensajería (WebSocket).
+- La convención de nombres sigue estrictamente el estándar oficial de Java: `camelCase` para métodos, atributos y variables, y `PascalCase` para las Clases, Interfaces y Enums.
 
-Respecto al uso de `snake_case`, se sigue la convención de Python. Esto implica que los nombres de archivos, módulos, funciones y variables se escriben en minúsculas separadas por guiones bajos, como por ejemplo `generate_text`, `transcribe_audio`, `audio_path` o `user_id`. Los campos de los modelos y las estructuras JSON también se mantienen en `snake_case` para asegurar consistencia entre el backend y los datos que se exponen. En el caso de las variables de entorno, se utiliza mayúscula con snake_case, como `OPENAI_API_KEY` o `WHISPER_MODEL_PATH`. 
+#### Arquitectura Angular (Frontend)
+La aplicación cliente, desarrollada como una Single Page Application (SPA) en **Angular** con TypeScript, está organizada de manera modular para asegurar la reutilización de código y escalabilidad.
+- La estructura se divide en módulos funcionales (`NgModule`), separando áreas clave como `AuthModule` (Autenticación), `WorkflowModule` (Gestión y seguimiento de trámites), y `DiagramModule` (Editor visual interactivo de políticas).
+- La carpeta `components` agrupa los elementos visuales. El componente más complejo es el "Lienzo", el cual procesa eventos avanzados de arrastrar y soltar (Drag & Drop) y renderiza la lógica de los nodos en pantalla.
+- En `services` se encapsulan las llamadas HTTP hacia la API de Spring Boot. Se hace uso intensivo de **RxJS** para el manejo asíncrono y reactivo del flujo de datos, además de mantener viva la suscripción al WebSocket para actualizar el UI sin recargar la página.
+- La integración de voz se aísla en un `SpeechService` personalizado que accede al micrófono vía Web Speech API y canaliza el texto transcrito directamente hacia los Formularios Reactivos (`ReactiveForms`).
+- La carpeta `guards` implementa la seguridad del lado del cliente, protegiendo las rutas según el rol (Diseñador vs. Funcionario) leyendo el estado del token JWT.
+- Se mantiene una fuerte consistencia de tipado gracias a TypeScript, compartiendo las mismas estructuras (Interfaces) que los DTOs definidos en el backend, evitando errores de integración.
 
-El objetivo principal de este backend es servir como puente entre las aplicaciones cliente, ya sean móviles o web, y los servicios de inteligencia artificial. Se encarga de ofrecer endpoints para generación de texto, embeddings, clasificación, resumen y transcripción de audio, permitiendo que la comunicación con modelos de lenguaje y procesamiento de voz se realice de manera controlada y estandarizada. 
+---
 
-#### Arquitectura NodeJs 
-La arquitectura de este backend hecho en Node.js sigue un enfoque basado en Domain Driven Design (DDD), donde el código se organiza en capas y módulos que representan tanto la lógica del dominio como los elementos de infraestructura y presentación. 
-- La carpeta `domain` contiene los elementos centrales de la lógica de negocio, incluyendo entidades, reglas de dominio, objetos de valor y los dto que se encargan de definir la forma de los datos que entran y salen del dominio. En `errors` se definen las excepciones específicas que permiten manejar los flujos de error de forma controlada. 
-- La carpeta `infraestructura` implementa las dependencias externas necesarias para que el dominio funcione. En `config` se definen las configuraciones globales del sistema, en `middlewares` se ubican las funciones de Express o frameworks equivalentes que interceptan peticiones para validaciones, logs o seguridad, y en `socket` se maneja la lógica relacionada con comunicación en tiempo real. 
-- La capa `presentation` contiene los controladores y módulos responsables de recibir las solicitudes de los clientes, validarlas y transformarlas en comandos o queries que el dominio pueda procesar. Aquí se encuentran submódulos como `auth` para autenticación, `usuario` para gestión de usuarios, `proyecto`, `integrante` o incluso integración con `springboot`. También se incluye `router.ts` que agrupa y expone todas las rutas HTTP de la aplicación. 
-- La carpeta `shared` contiene utilidades y elementos transversales que pueden ser reutilizados en varias capas. En `enums` se definen constantes tipadas, en `utils` se implementan funciones genéricas, mientras que archivos como `authUtils.ts`, `JWTUtils.ts`, `FechaUtils.ts` o `pagination.ts` encapsulan lógicas comunes relacionadas con seguridad, fechas o paginación. 
-- La carpeta `types` centraliza definiciones de tipos o interfaces TypeScript, lo que aporta robustez y consistencia al tipado en toda la aplicación. 
-- Este diseño modular basado en DDD permite mantener el dominio independiente de los detalles de infraestructura, facilitando que la lógica de negocio no se mezcle con las tecnologías externas como bases de datos, frameworks o protocolos de comunicación. La separación en capas ayuda a la escalabilidad, testeo y mantenimiento, manteniendo el backend preparado para evolucionar con nuevas funcionalidades o integraciones sin romper la estructura principal. 
+## PARTE I — FUNDAMENTACIÓN TEÓRICA (SEGUNDO PARCIAL)
 
-En cuanto a la convención de nombres, se emplea `camelCase` para métodos, funciones y variables, mientras que `snake_case` se utiliza en algunos atributos de las interfaces y estructuras de datos que se comunican con la base de datos o con servicios externos. Esto permite mantener consistencia interna en el código y, al mismo tiempo, adaptarse a los estándares de interoperabilidad en los datos expuestos. 
+> Los siguientes capítulos amplían la fundamentación teórica con los nuevos temas incorporados en el Ciclo 2 del proyecto, según el alcance del segundo parcial.
 
-#### Arquitectura Frontend 
-La arquitectura de este proyecto desarrollado en Next.js con React se organiza en capas y módulos claramente diferenciados para cubrir tanto la parte visual como la lógica de comunicación con servicios externos. 
-- En la carpeta `app` y `components` se encuentran los componentes de interfaz de usuario que construyen las diferentes vistas, incluyendo elementos reutilizables. 
-- La carpeta `Auth` agrupa toda la lógica relacionada con la autenticación, incluyendo `guard` para protección de rutas, `layout` para estructuras visuales específicas, `pages` para vistas concretas y `shared` para utilidades comunes. 
-- Los módulos `Home`, `Proyect` y `UML` representan secciones o funcionalidades principales de la aplicación, cada uno con sus propios componentes y controladores. 
-- La carpeta `ui` centraliza estilos, componentes gráficos y elementos de diseño reutilizables. 
-- En `hooks` se definen funciones personalizadas de React que encapsulan lógica de estado y efectos reutilizables en la aplicación. 
-- La carpeta `lib` contiene librerías y funciones de apoyo generales, mientras que `middleware` agrupa funciones que interceptan peticiones para validación, autenticación o control de acceso. 
-- La carpeta `services` concentra la lógica de comunicación con APIs y servicios externos. Aquí se encuentran submódulos como `Auth` para autenticación, `Config` para parámetros globales, `Diagrama` y `UML` para la lógica de diagramación, `FastAPI` para integración directa con el backend en Python, y `Proyectos` para gestión de entidades del sistema. 
-- En `shared` se guardan funciones y utilidades transversales, en `tmp` datos temporales, y en `Usuarios` la lógica vinculada a la gestión de usuarios. 
+---
 
-En cuanto a la convención de nombres, se utiliza `camelCase` para variables, funciones y métodos en el código de React y TypeScript, mientras que `snake_case` se emplea en las interfaces de datos, atributos provenientes del backend y en la comunicación con la base de datos. Esto asegura consistencia en el código del frontend, al mismo tiempo que mantiene interoperabilidad con la API en Python FastAPI que también utiliza `snake_case`.
+### 8. Sistema de Gestión Documental
+
+#### 8.1 Definición
+
+Un **Sistema de Gestión Documental (SGD)** es una plataforma tecnológica que permite capturar, almacenar, organizar, recuperar, controlar y distribuir documentos digitales dentro de una organización. Su propósito central es eliminar el papel físico y garantizar que la información se encuentre disponible, segura, trazable y accesible para los usuarios autorizados en el momento en que la necesiten.
+
+A diferencia de un simple gestor de archivos, un SGD incorpora lógica de negocio, control de versiones, flujos de aprobación, auditoría de accesos y políticas de retención, convirtiéndose en un componente estratégico dentro de la arquitectura de procesos de cualquier institución.
+
+#### 8.2 Características Esenciales
+
+| Característica | Descripción |
+|----------------|-------------|
+| **Captura** | Digitalización e ingesta de documentos desde escáneres, formularios web, correos o APIs externas. |
+| **Almacenamiento centralizado** | Repositorio único con estructura lógica (carpetas, expedientes, categorías) y respaldo redundante. |
+| **Control de versiones** | Historial de cambios por documento, con posibilidad de revertir a versiones anteriores. |
+| **Control de acceso** | Permisos granulares por usuario, rol, departamento o etapa del proceso. |
+| **Flujos de aprobación** | Enrutamiento automático de documentos a los responsables según reglas definidas (workflow documental). |
+| **Trazabilidad y auditoría** | Registro inmutable de quién accedió, modificó o aprobó cada documento y en qué momento. |
+| **Búsqueda y recuperación** | Indexación full-text y por metadatos para localizar documentos en segundos. |
+| **Integración** | APIs y conectores hacia sistemas ERP, CRM, correo electrónico y otros servicios empresariales. |
+
+#### 8.3 Aplicación en WorkflowSW1
+
+El sistema desarrollado integra capacidades de gestión documental directamente vinculadas a cada trámite:
+
+- **Almacenamiento en AWS S3:** Los documentos adjuntos a los trámites (formularios completados, archivos de soporte) se almacenan en el bucket `flowgov-documents` de Amazon S3, garantizando alta disponibilidad, durabilidad del 99.999999999% (11 nueves) y acceso seguro mediante credenciales IAM.
+- **Asociación documento-trámite:** Cada documento está vinculado a un `Case` específico a través de la entidad `CaseDocument`, lo que permite recuperar todos los archivos de un expediente de manera inmediata.
+- **Control de acceso por rol:** La entidad `DocumentAudit` registra cada operación (subida, descarga, eliminación) con el identificador del usuario, la fecha y la IP de origen, cumpliendo con principios básicos de auditoría documental.
+- **Persistencia híbrida:** Los metadatos de los documentos se almacenan en MongoDB, mientras que los binarios residen en S3, separando la lógica de búsqueda del almacenamiento físico.
+- **Endpoint de gestión:** `POST /api/documents/upload` permite a los funcionarios adjuntar archivos durante el procesamiento de una tarea, integrando el flujo documental con el motor de workflow.
+
+#### 8.4 Normas y Estándares Relacionados
+
+- **ISO 15489:** Estándar internacional para la gestión de documentos y registros.
+- **MoReq2010:** Modelo de requisitos para la gestión de documentos electrónicos de archivo, ampliamente adoptado en Europa.
+- **CMIS (Content Management Interoperability Services):** Estándar OASIS para la interoperabilidad entre sistemas de gestión de contenidos.
+
+---
+
+### 9. Deep Learning y Procesamiento de Lenguaje Natural (NLP)
+
+#### 9.1 Deep Learning — Conceptos Aplicados
+
+El **Deep Learning** (Aprendizaje Profundo) es una subdisciplina del Machine Learning que utiliza redes neuronales artificiales con múltiples capas ocultas para aprender representaciones jerárquicas de los datos. A diferencia del ML clásico, el Deep Learning puede aprender automáticamente las características relevantes directamente desde los datos crudos, sin necesidad de ingeniería manual de features.
+
+En WorkflowSW1 se aplican dos vertientes del Deep Learning:
+
+1. **Redes neuronales densas (Dense Neural Networks):** Para los modelos predictivos del ML Service (predicción de demoras, priorización de tareas).
+2. **Autoencoders:** Para la detección de anomalías en flujos de trabajo, aprendiendo la representación normal de un proceso y detectando cuando un trámite se desvía significativamente de ese patrón.
+
+#### 9.2 Procesamiento de Lenguaje Natural (NLP)
+
+El **Procesamiento de Lenguaje Natural (NLP)** es la rama de la Inteligencia Artificial que permite a las computadoras comprender, interpretar y generar lenguaje humano (texto o voz). Sus tareas fundamentales incluyen:
+
+| Tarea NLP | Descripción | Aplicación en el proyecto |
+|-----------|-------------|--------------------------|
+| **Reconocimiento de intención** | Identificar qué quiere hacer el usuario en base a su texto. | Interpreta comandos de voz en el editor de diagramas ("agregar nodo de decisión", "conectar nodo 1 con nodo 2"). |
+| **Extracción de entidades** | Identificar y extraer datos concretos del texto (nombres, fechas, números). | Extrae valores de los campos del formulario a partir de la transcripción de voz del funcionario. |
+| **Análisis semántico** | Comprender el significado contextual de las palabras. | Relaciona sinónimos y variaciones lingüísticas con los campos del formulario. |
+| **Generación de texto** | Producir texto coherente en lenguaje natural. | Genera respuestas del asistente y síntesis de reportes. |
+
+#### 9.3 Arquitectura NLP del AI Service
+
+El microservicio de IA implementa un **motor NLP híbrido de dos capas**:
+
+**Capa 1 — Motor de reglas local (siempre activo):**
+- Anclaje por etiqueta de campo (detecta el nombre del campo en la transcripción).
+- Sinónimos semánticos: diccionario de variaciones lingüísticas por campo.
+- Patrones regex para fechas, números, documentos de identidad y montos.
+- Extracción posicional basada en el orden de respuesta del usuario.
+- No requiere API externa; funciona offline y sin latencia de red.
+
+**Capa 2 — OpenAI GPT-4o-mini (cuando hay API key disponible):**
+- Interpreta transcripciones ambiguas o con errores gramaticales.
+- Extrae entidades con comprensión semántica profunda.
+- Se usa como fallback superior cuando el motor de reglas no puede resolver un campo.
+
+```
+Transcripción de voz del funcionario
+          │
+          ▼
+┌─────────────────────┐
+│  Motor de Reglas    │ ──── ¿Resuelto? ──▶ Campo extraído
+│  (regex + sinónimos)│
+└─────────────────────┘
+          │ No resuelto
+          ▼
+┌─────────────────────┐
+│  OpenAI GPT-4o-mini │ ──────────────────▶ Campo extraído
+│  (NLP semántico)    │
+└─────────────────────┘
+```
+
+#### 9.4 TensorFlow — Modelos de Machine Learning
+
+**TensorFlow 2.17** (framework de Google) se utiliza en el ML Service para tres modelos:
+
+| Modelo | Arquitectura | Input | Output |
+|--------|-------------|-------|--------|
+| **Delay Risk Model** | Red densa: 5→16→8→1 (sigmoid) | Horas transcurridas, ratio pendientes, carga del dpto., complejidad, SLA | Probabilidad de demora [0-1] |
+| **Priority Scorer** | Red densa con normalización | Urgencia, tipo de trámite, SLA, historial del cliente | Score de prioridad [0-100] |
+| **Anomaly Detector** | Autoencoder: 8→4→2→4→8 | Vector de métricas del trámite | Error de reconstrucción (umbral de anomalía) |
+
+Los modelos se entrenan automáticamente con **datos sintéticos** al iniciar el servicio, y pueden re-entrenarse con datos reales de MongoDB cuando el volumen lo justifique.
+
+#### 9.5 Text-to-Speech (TTS)
+
+El asistente virtual implementa síntesis de voz mediante:
+- **ElevenLabs API** (primaria): Voces naturales de alta calidad en español.
+- **Web Speech API** (fallback): Síntesis nativa del navegador, sin dependencia externa.
+
+---
+
+### 10. Infraestructura en la Nube — Amazon Web Services (AWS)
+
+#### 10.1 Introducción a AWS
+
+**Amazon Web Services (AWS)** es la plataforma de computación en la nube más utilizada a nivel mundial, ofrecida por Amazon desde 2006. Provee más de 200 servicios bajo demanda de infraestructura, almacenamiento, bases de datos, análisis, IA y redes, eliminando la necesidad de invertir en hardware físico propio.
+
+Los principios clave de AWS son:
+- **Escalabilidad:** Ajustar recursos según la demanda en segundos.
+- **Pago por uso:** Solo se factura por los recursos efectivamente consumidos.
+- **Alta disponibilidad:** Infraestructura distribuida en Zonas de Disponibilidad (AZ) y Regiones globales.
+- **Seguridad:** Modelo de responsabilidad compartida, cifrado en tránsito y en reposo, IAM para control de acceso.
+
+#### 10.2 Amazon EC2 (Elastic Compute Cloud)
+
+**Amazon EC2** es el servicio de computación virtual de AWS. Proporciona servidores virtuales (llamados **instancias**) configurables en capacidad de CPU, RAM, almacenamiento y red.
+
+**Características principales:**
+- **Tipos de instancia:** Familias optimizadas para cómputo (C), memoria (R), propósito general (T/M), almacenamiento (I), GPU (G/P).
+- **Amazon Machine Images (AMI):** Plantillas preconfiguradas con sistema operativo y software base.
+- **Grupos de seguridad (Security Groups):** Firewall virtual que controla el tráfico entrante y saliente por puerto y protocolo.
+- **Elastic IP:** Dirección IP pública estática asignada a la instancia.
+- **Regiones y Zonas de Disponibilidad:** Las instancias se crean en una región geográfica específica (ej. `sa-east-1` = São Paulo).
+
+**Aplicación en WorkflowSW1:**
+
+| Parámetro | Valor |
+|-----------|-------|
+| Tipo de instancia | `t3.medium` (2 vCPU, 4 GB RAM) |
+| Región | `sa-east-1` (São Paulo, Brasil) |
+| Sistema operativo | Amazon Linux 2023 |
+| IP pública | `18.231.192.169` |
+| Servicios desplegados | Spring Boot (8080), Angular/Nginx (4200), FastAPI AI (8000), FastAPI ML (8001), MongoDB (27017) |
+| Orquestación | Docker Compose (todos los servicios en contenedores) |
+
+**Puertos habilitados en el Security Group:**
+
+| Puerto | Protocolo | Servicio |
+|--------|-----------|---------|
+| 22 | TCP | SSH (administración) |
+| 80 | TCP | HTTP |
+| 443 | TCP | HTTPS |
+| 8080 | TCP | Spring Boot API |
+| 4200 | TCP | Frontend Angular |
+| 8000 | TCP | AI Service |
+| 8001 | TCP | ML Service |
+
+#### 10.3 Amazon S3 (Simple Storage Service)
+
+**Amazon S3** es el servicio de almacenamiento de objetos de AWS. Diseñado para guardar cualquier cantidad de datos (archivos, imágenes, vídeos, backups, logs) con durabilidad del **99.999999999%** (11 nueves) y disponibilidad del **99.99%**.
+
+**Conceptos fundamentales:**
+
+| Concepto | Descripción |
+|----------|-------------|
+| **Bucket** | Contenedor raíz de objetos. Nombre único global en toda AWS. |
+| **Objeto** | Archivo almacenado, compuesto por datos + metadatos + clave (key = ruta virtual). |
+| **Clave (Key)** | Identificador único del objeto dentro del bucket (actúa como ruta: `tramites/2025/doc1.pdf`). |
+| **Clases de almacenamiento** | S3 Standard (acceso frecuente), S3-IA (acceso infrecuente), S3 Glacier (archivado). |
+| **Control de acceso** | Bucket Policies, ACLs, IAM Roles. Puede configurarse acceso público o privado por objeto. |
+| **Versionado** | Guarda múltiples versiones de un mismo objeto, permitiendo recuperar versiones anteriores. |
+| **Cifrado** | SSE-S3 (clave gestionada por AWS), SSE-KMS (clave propia), SSE-C (clave del cliente). |
+| **Eventos** | Notificaciones automáticas (a Lambda, SQS, SNS) cuando se sube o modifica un objeto. |
+
+**Aplicación en WorkflowSW1:**
+
+| Parámetro | Valor |
+|-----------|-------|
+| Nombre del bucket | `flowgov-documents` |
+| Región | `us-east-1` (Virginia del Norte) |
+| SDK utilizado | `software.amazon.awssdk:s3:2.26.12` (AWS SDK for Java v2) |
+| Variables de entorno | `AWS_S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
+| Uso | Almacenar documentos adjuntos a los trámites subidos por los funcionarios |
+| Acceso | Privado — acceso solo desde el backend con credenciales IAM |
+
+**Flujo de subida de documentos:**
+```
+Funcionario sube archivo (frontend)
+        │
+        ▼
+POST /api/documents/upload (Spring Boot)
+        │
+        ▼
+DocumentService.uploadToS3(file)
+        │  AWS SDK v2
+        ▼
+S3Client.putObject(bucket="flowgov-documents", key="cases/{caseId}/{filename}")
+        │
+        ▼
+URL de acceso guardada en MongoDB (CaseDocument)
+```
+
+#### 10.4 Seguridad en AWS — IAM
+
+**IAM (Identity and Access Management)** controla quién puede hacer qué en los recursos AWS. En WorkflowSW1 se creó un usuario IAM con permisos únicamente sobre el bucket `flowgov-documents`, siguiendo el principio de **mínimo privilegio**.
+
+---
+
+## PARTE II — PROCESO DE DESARROLLO (CICLO 2)
+
+### Ciclo 2 — Segundo Parcial
+
+#### Descripción General del Ciclo 2
+
+El **Ciclo 2** representa el segundo incremento del proceso de desarrollo bajo la metodología **PUDS (Proceso Unificado de Desarrollo de Software)**. Mientras el Ciclo 1 (Primer Parcial) estableció las bases del sistema (motor de workflow, editor visual, formularios dinámicos, monitor en tiempo real), el Ciclo 2 incorpora capacidades avanzadas de Machine Learning, gestión documental en la nube y una mayor integración de inteligencia artificial.
+
+#### Fases del Ciclo 2
+
+| Fase PUDS | Actividades Realizadas |
+|-----------|----------------------|
+| **Inicio** | Definición del nuevo alcance: ML Service, AWS S3, app móvil completa, analítica avanzada. |
+| **Elaboración** | Diseño de arquitectura C4 Ciclo 2, modelos de datos extendidos, diseño de endpoints nuevos. |
+| **Construcción** | Implementación del ML Service (TensorFlow), integración S3, app móvil Flutter completa, push notifications FCM. |
+| **Transición** | Despliegue en EC2, pruebas de integración, documentación del ciclo, manual de usuario actualizado. |
+
+#### Nuevas Funcionalidades del Ciclo 2
+
+| Funcionalidad | Descripción | Tecnología |
+|---------------|-------------|-----------|
+| **ML Service** | Predicción de demoras, priorización de tareas, detección de anomalías | TensorFlow 2.17, FastAPI |
+| **Gestión Documental AWS S3** | Subida y recuperación de documentos asociados a trámites | AWS SDK v2, bucket S3 |
+| **App Móvil completa** | Login, bandeja de tareas, formularios con voz, seguimiento de trámites | Flutter 3.x, Dart |
+| **Notificaciones Push FCM** | Alertas en tiempo real al móvil sobre cambios en trámites | Firebase Cloud Messaging |
+| **Motor NLP mejorado** | Llenado de formularios por voz con fallback a GPT-4o-mini | FastAPI, OpenAI API |
+| **Dashboard KPIs** | Métricas de rendimiento con predicciones de ML integradas | Angular, Spring Boot, TensorFlow |
+
+#### Arquitectura C4 — Ciclo 2
+
+Los diagramas C4 del Ciclo 2 se encuentran en:
+
+| Nivel | Archivo | Descripción |
+|-------|---------|-------------|
+| Nivel 1 — Contexto | `docs/uml/c4/c4_nivel1_contexto.puml` | Sistema, usuarios y sistemas externos |
+| Nivel 2 — Contenedores | `docs/uml/c4/c4_nivel2_contenedores.puml` | Los 5 contenedores del sistema |
+| Nivel 3 — Componentes | `docs/uml/c4/c4_nivel3_componentes_backend.puml` | Componentes internos del backend |
+
+#### Diagramas UML Ciclo 2
+
+Los siguientes diagramas modelan los flujos exclusivos del Ciclo 2 usando UML 2.5:
+
+| Diagrama | Tipo | Archivo | Descripción |
+|----------|------|---------|-------------|
+| Gestión Documental — AWS S3 | Actividad | `docs/uml/ciclo2_act_documentos_s3.puml` | Flujo completo de subida y almacenamiento de documentos adjuntos a trámites |
+| Predicción ML — Riesgo de Demora | Actividad | `docs/uml/ciclo2_act_prediccion_ml.puml` | Inferencia TensorFlow y clasificación por semáforo de riesgo en dashboard |
+| Notificaciones Push — FCM | Actividad | `docs/uml/ciclo2_act_notificaciones_fcm.puml` | Envío de push notifications desde el backend hacia la app móvil Flutter |
+| Llenado de Formulario por Voz | Secuencia | `docs/uml/ciclo2_sec_nlp_formulario.puml` | Interacción completa: habla del funcionario → NLP → formulario pre-llenado |
+
+#### Comparativa Ciclo 1 vs Ciclo 2
+
+| Aspecto | Ciclo 1 (Primer Parcial) | Ciclo 2 (Segundo Parcial) |
+|---------|--------------------------|---------------------------|
+| Motor de workflow | ✅ Implementado | ✅ Mejorado con predicciones ML |
+| Editor visual UML | ✅ ngx-graph | ✅ Validaciones avanzadas |
+| Formularios dinámicos | ✅ 8 tipos de campo | ✅ + llenado por voz NLP mejorado |
+| Inteligencia Artificial | ✅ NLP básico (motor reglas) | ✅ + GPT-4o-mini + TensorFlow ML |
+| Almacenamiento documentos | ❌ | ✅ AWS S3 integrado |
+| App Móvil | ⚠️ Básica | ✅ Completa con FCM y voz |
+| Machine Learning | ❌ | ✅ 3 modelos TensorFlow |
+| Notificaciones push | ⚠️ Parcial | ✅ Firebase FCM completo |
+| Despliegue | ✅ EC2 básico | ✅ EC2 + S3 + Docker Compose + CI/CD |
+
+---
+
+## ANEXOS — ESTÁNDARES DE CODIFICACIÓN (CLEAN CODE)
+
+### A.1 Principios de Código Limpio Aplicados
+
+El proyecto WorkflowSW1 fue desarrollado bajo los principios de **Clean Code** definidos por Robert C. Martin, adaptados a cada tecnología del stack:
+
+#### A.1.1 Nombres Significativos
+
+- **Java (Spring Boot):** Clases en `PascalCase` (`WorkflowService`, `CaseDetailDto`), métodos y variables en `camelCase` (`findActiveCasesByDepartment`), constantes en `UPPER_SNAKE_CASE` (`JWT_EXPIRATION_MS`).
+- **TypeScript (Angular):** Interfaces con prefijo descriptivo (`PolicyNode`, `TaskSummary`), servicios con sufijo `Service` (`AuthService`, `PolicyService`).
+- **Python (FastAPI):** Funciones y variables en `snake_case` (`fill_form_from_voice`, `nlp_service`), clases en `PascalCase` (`DelayRiskModel`).
+- **Dart (Flutter):** Consistencia con las guías de estilo de Flutter (camelCase para variables, PascalCase para widgets/clases).
+
+#### A.1.2 Separación de Responsabilidades (SRP)
+
+Cada clase tiene una única razón para cambiar:
+
+| Capa | Responsabilidad |
+|------|----------------|
+| `Controller` | Recibir la solicitud HTTP, delegar al servicio, devolver la respuesta. |
+| `Service` | Orquestar la lógica de negocio. |
+| `Repository` | Acceso y persistencia de datos en MongoDB. |
+| `Model/Entity` | Representar la estructura de datos del dominio. |
+| `DTO` | Transferir datos entre capas sin exponer el modelo interno. |
+
+#### A.1.3 DTOs y Separación de API Contract
+
+Se mantienen DTOs separados de las entidades de dominio para no exponer la estructura interna de la base de datos:
+
+```
+AuthResponse, CaseDetailDto, MyTaskDto, PolicySummaryDto, 
+DepartmentDto, AnalyticsDto, MlPredictionDto
+```
+
+#### A.1.4 Inyección de Dependencias
+
+Toda la gestión de dependencias se realiza mediante el contenedor de Spring (`@Service`, `@Repository`, `@Autowired`, `@Bean`), eliminando la necesidad de instanciar manualmente objetos y facilitando las pruebas unitarias con mocks.
+
+#### A.1.5 Validación en la Frontera del Sistema
+
+La validación de entradas se realiza únicamente en la capa de controladores, usando `spring-boot-starter-validation` (`@Valid`, `@NotNull`, `@NotBlank`, `@Size`). Las capas internas confían en que los datos ya fueron validados.
+
+#### A.1.6 Configuración Externalizada (12-Factor App)
+
+Todas las configuraciones sensibles (credenciales AWS, claves JWT, URIs de MongoDB, API keys de OpenAI) se gestionan mediante **variables de entorno** definidas en el archivo `.env`, siguiendo el principio de la metodología 12-Factor para aplicaciones cloud-native. Ninguna credencial está hardcodeada en el código fuente.
+
+#### A.1.7 Convenciones de Commits (Conventional Commits)
+
+El equipo adoptó la especificación **Conventional Commits** para el historial de git:
+
+| Prefijo | Uso |
+|---------|-----|
+| `feat:` | Nueva funcionalidad |
+| `fix:` | Corrección de bug |
+| `docs:` | Cambios en documentación |
+| `chore:` | Tareas de mantenimiento (build, CI/CD) |
+| `refactor:` | Mejoras de código sin cambio de funcionalidad |
+
+#### A.1.8 Estrategia de Ramas (Git Flow simplificado)
+
+| Rama | Propósito |
+|------|-----------|
+| `main` | Código en producción — siempre estable |
+| `dev` | Integración de features — rama de desarrollo |
+| `feature/*` | Desarrollo de funcionalidades individuales |
+
+#### A.1.9 CI/CD con GitHub Actions
+
+El pipeline de integración continua (`.github/workflows/ci.yml`) garantiza que ningún código roto llegue a producción, ejecutando automáticamente en cada push:
+1. **backend-test:** Compilación Maven + pruebas JUnit 5.
+2. **frontend-build:** Compilación Angular en modo producción.
+3. **docker-build:** Construcción de imágenes Docker de todos los servicios.

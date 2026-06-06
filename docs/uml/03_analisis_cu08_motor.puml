@@ -1,0 +1,38 @@
+@startuml Class_CU08
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Cliente / Funcionario" as Actor
+
+class "InterfazTramite" as UI <<boundary>> {
+  + iniciarTramite()
+  + verEstado()
+}
+
+class "MotorWorkflow" as Ctrl <<control>> {
+  + startWorkflow(politicaId)
+  + assignTask(caseId)
+}
+
+class "Case" as Caso <<entity>> {
+  + id: number
+  + politicaId: number
+  + currentNodeId: number
+  + estado: string
+}
+
+class "Task" as Tarea <<entity>> {
+  + id: number
+  + caseId: number
+  + assignedTo: string
+  + estado: string
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Caso
+Ctrl -right-> Tarea
+Caso "1" -- "1..*" Tarea
+@enduml

@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../services/push_notification_service.dart';
+import '../services/websocket_service.dart';
 import 'tasks_screen.dart';
 import 'tracking_screen.dart';
+import 'policy_list_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -32,17 +34,20 @@ class _LoginScreenState extends State<LoginScreen> {
     final apiService = context.read<ApiService>();
     final ok = await auth.login(_emailCtrl.text.trim(), _passCtrl.text);
     if (ok) {
-      // Start push notifications (FCM + polling fallback) after successful login
       try {
         final push = PushNotificationService(apiService);
         await push.init();
       } catch (_) {}
 
       if (!mounted) return;
+      context.read<WebSocketService>().connect();
+
       final role = auth.user?.role ?? '';
-      final destination = role == 'CLIENT'
-          ? const TrackingScreen()
-          : const TasksScreen();
+      final destination = switch (role) {
+        'CLIENT' => const TrackingScreen(),
+        'DESIGNER' => const PolicyListScreen(),
+        _ => const TasksScreen(),
+      };
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => destination),
       );

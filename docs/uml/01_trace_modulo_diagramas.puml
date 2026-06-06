@@ -1,0 +1,18 @@
+@startuml Trace_Diagramas
+!theme plain
+left to right direction
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #000000
+
+component "Módulo de Gestión\nde Diagramas" as Modulo
+
+usecase "CU09 Gestionar Diagrama\nde Actividad" as CU09
+usecase "CU11 Llenado de Formularios\nmediante Voz" as CU11
+usecase "CU12 Extracción de Texto\nmediante OCR" as CU12
+usecase "CU13 Análisis de Cuellos\nde Botella (IA)" as CU13
+
+Modulo ..> CU09 : <<trace>>
+Modulo ..> CU11 : <<trace>>
+Modulo ..> CU12 : <<trace>>
+Modulo ..> CU13 : <<trace>>
+@enduml

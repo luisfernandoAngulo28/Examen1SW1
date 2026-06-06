@@ -10,11 +10,9 @@ title CU04 — Asistente IA para Diseño
 ' ── Actores ──
 actor "Diseñador"  as DESIGNER
 actor "Funcionario" as OFFICER
-actor "Usuario"    as USER
+
 actor "Sistema IA\n(FastAPI)" as AI
 
-DESIGNER --|> USER
-OFFICER  --|> USER
 
 ' ── Casos de uso ──
 usecase "Enviar prompt\npor texto"          as UC_TEXT
@@ -42,11 +40,6 @@ AI ..> UC_INTERPRET : procesa
 AI ..> UC_SUGGEST   : genera
 AI ..> UC_FILL      : autocompleta
 
-note right of AI
-  Servicio Python / FastAPI
-  en puerto :8000.
-  NLP rule-based + opcional
-  OpenAI o ElevenLabs.
-end note
+
 
 @enduml

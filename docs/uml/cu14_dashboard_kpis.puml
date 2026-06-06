@@ -10,10 +10,7 @@ title CU14 — Ver Dashboard y KPIs Generales
 ' ── Actores ──
 actor "Diseñador /\nAdministrador" as ADMIN
 actor "Funcionario"  as OFFICER
-actor "Usuario"      as USER
 
-ADMIN   --|> USER
-OFFICER --|> USER
 
 ' ── Casos de uso ──
 usecase "Ver total de\ntrámites"                  as UC_TOTAL
@@ -39,19 +36,6 @@ UC_TOTAL    ..> UC_DONE     : <<include>>
 UC_ACTIVE   ..> UC_DRILL    : <<extend>>
 UC_BY_DEPT  ..> UC_DRILL    : <<extend>>
 
-note right of UC_BY_DEPT
-  Barras de carga por
-  departamento. Rojo si
-  el departamento tiene
-  3 o más tareas acumuladas
-  (posible cuello de botella).
-end note
 
-note right of UC_POLICIES
-  Acceso directo a:
-  - Editor de política
-  - Lista de trámites
-  - Analytics de política
-end note
 
 @enduml

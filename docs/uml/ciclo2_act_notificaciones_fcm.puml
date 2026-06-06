@@ -1,0 +1,61 @@
+@startuml CU_Notificaciones_FCM_Ciclo2
+title Diagrama de Actividad — Notificaciones Push con Firebase FCM\nCiclo 2 | WorkflowSW1
+
+|Motor de Workflow (Backend)|
+start
+:WorkflowService completa una transición\nde estado en el trámite\n(ej. tarea aprobada, trámite avanzado);
+
+:Determina a quién notificar\nsegún el tipo de evento:
+- TASK_ASSIGNED → funcionario asignado
+- CASE_UPDATED → cliente dueño del trámite
+- CASE_COMPLETED → cliente;
+
+:Consulta UserRepository:\nobtiene fcmToken del usuario destino;
+
+if (¿Usuario tiene fcmToken registrado?) then (No)
+  :Registra en log:\n"Usuario sin token FCM — notificación omitida";
+  stop
+else (Sí)
+endif
+
+:Construye mensaje FCM:
+- title: tipo de evento
+- body: descripción personalizada
+- data: {caseId, taskId, status};
+
+|Firebase Cloud Messaging (FCM)|
+:Recibe el mensaje con el fcmToken\ndel dispositivo destino;
+:Enruta la notificación al\ndispositivo Android/iOS correcto;
+
+if (¿Dispositivo disponible / conectado?) then (Sí)
+  |App Móvil Flutter|
+  :FlutterLocalNotifications\nmuestra notificación en la barra;
+  :Usuario ve alerta con título y cuerpo;
+
+  if (¿Usuario toca la notificación?) then (Sí)
+    :App navega automáticamente a\nla pantalla del trámite o tarea;
+    |Cliente / Funcionario|
+    :Visualiza el estado actualizado;
+  else (Ignora)
+    :Notificación queda en bandeja\ndel dispositivo;
+  endif
+
+else (No — dispositivo offline)
+  |Firebase Cloud Messaging (FCM)|
+  :FCM almacena la notificación\nen cola (hasta 28 días);
+  :Cuando el dispositivo vuelve a\nconectarse, entrega la notificación;
+
+  |App Móvil Flutter|
+  :Recibe notificación diferida;
+  :Muestra notificación en barra;
+endif
+
+|Backend (Spring Boot)|
+:Emite evento WebSocket STOMP\nal frontend web activo\n(sincronización en tiempo real);
+
+|Frontend Angular|
+:Monitor actualiza semáforo\ndel trámite en tiempo real;
+
+stop
+
+@enduml

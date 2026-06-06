@@ -1,0 +1,38 @@
+@startuml Class_CU09
+!theme plain
+allowmixing
+left to right direction
+skinparam classAttributeIconSize 0
+
+actor "Diseñador" as Actor
+
+class "InterfazLienzo" as UI <<boundary>> {
+  + agregarNodo()
+  + conectarNodos()
+  + guardarLienzo()
+}
+
+class "DiagramaController" as Ctrl <<control>> {
+  + addNode(datos)
+  + addEdge(origen, destino)
+  + saveDiagram()
+}
+
+class "PolicyNode" as Nodo <<entity>> {
+  + id: number
+  + tipo: string
+  + configuracion: json
+}
+
+class "PolicyEdge" as Arista <<entity>> {
+  + id: number
+  + origenId: number
+  + destinoId: number
+  + condicion: json
+}
+
+Actor -right-> UI
+UI -right-> Ctrl
+Ctrl -right-> Nodo
+Ctrl -right-> Arista
+@enduml

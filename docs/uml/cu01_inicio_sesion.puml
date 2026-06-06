@@ -30,11 +30,6 @@ DESIGNER --> UC_REG
 ' ── include ──
 UC_LOGIN  ..> UC_REG : <<extend>>
 
-note right of UC_LOGIN
-  Genera token JWT con
-  expiración de 24 h.
-  Almacenado en
-  SecureStorage (mobile).
-end note
+
 
 @enduml

@@ -1,0 +1,50 @@
+@startuml C4_Contenedores_WorkflowSW1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagrama C4 — Nivel 2: Contenedores\nWorkflowSW1 — Sistema de Gestión de Trámites (Ciclo 2)
+
+Person(cliente, "Cliente / Ciudadano", "Inicia y sigue sus trámites.")
+Person(funcionario, "Funcionario", "Procesa tareas asignadas.")
+Person(administrador, "Administrador", "Diseña políticas y gestiona el sistema.")
+
+System_Boundary(workflowSW1, "WorkflowSW1") {
+
+    Container(frontend, "Frontend Angular", "Angular 18 + TypeScript\nNginx (producción)", "SPA que provee el editor visual de políticas, dashboard de KPIs, monitor en tiempo real, bandeja de funcionario y gestión de trámites. Desplegado en EC2 puerto 4200.")
+
+    Container(backend, "Workflow Engine", "Spring Boot 3.5\nJava 22 + Maven", "API REST y WebSocket STOMP. Implementa el motor de workflow, gestión de trámites, formularios dinámicos, autenticación JWT, integración con IA y analítica. Desplegado en EC2 puerto 8080.")
+
+    Container(ai_service, "AI Service", "FastAPI\nPython 3.11", "Microservicio NLP. Llenado de formularios por voz, interpretación de intenciones de diseño, reportes por lenguaje natural, TTS. Desplegado en EC2 puerto 8000.")
+
+    Container(ml_service, "ML Service", "FastAPI\nPython 3.11 + TensorFlow 2.17", "Microservicio de Machine Learning. Modelos: predicción de demoras (Delay Risk), priorización de tareas (Priority Scorer), detección de anomalías (Anomaly Detector). Desplegado en EC2 puerto 8001.")
+
+    Container(mobile_app, "App Móvil", "Flutter 3.x\nDart", "Aplicación móvil para clientes y funcionarios. Permite iniciar trámites, consultar estado, completar formularios con voz y recibir notificaciones push FCM.")
+
+    ContainerDb(mongodb, "MongoDB", "MongoDB 7\n(Atlas / local)", "Almacena políticas de negocio (JSON), trámites, tareas, usuarios, departamentos, formularios, logs de eventos y documentos (GridFS).")
+}
+
+System_Ext(aws_s3, "AWS S3", "Almacenamiento de documentos adjuntos (bucket: flowgov-documents, región us-east-1).")
+System_Ext(openai, "OpenAI API", "GPT-4o-mini para NLP.")
+System_Ext(firebase, "Firebase FCM", "Notificaciones push móviles.")
+System_Ext(elevenlabs, "ElevenLabs", "Text-to-Speech.")
+
+Rel(cliente, mobile_app, "Usa", "HTTPS")
+Rel(cliente, frontend, "Usa (portal web)", "HTTPS / Browser")
+Rel(funcionario, frontend, "Usa (bandeja y formularios)", "HTTPS / Browser")
+Rel(administrador, frontend, "Diseña políticas", "HTTPS / Browser")
+
+Rel(frontend, backend, "Llamadas REST y WebSocket", "JSON / STOMP sobre WS")
+Rel(mobile_app, backend, "Llamadas REST", "JSON / HTTPS")
+
+Rel(backend, ai_service, "Solicita NLP y TTS", "HTTP / REST")
+Rel(backend, ml_service, "Solicita predicciones ML", "HTTP / REST")
+Rel(backend, mongodb, "Lee y escribe datos", "MongoDB Driver")
+Rel(backend, aws_s3, "Sube y descarga documentos", "AWS SDK v2")
+
+Rel(ai_service, openai, "Solicita procesamiento NLP", "HTTPS / REST API")
+Rel(ai_service, elevenlabs, "Solicita síntesis de voz", "HTTPS / REST API")
+
+Rel(backend, firebase, "Envía notificaciones push", "HTTPS / FCM API")
+
+@enduml

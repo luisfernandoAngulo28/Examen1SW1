@@ -1,0 +1,25 @@
+@startuml Sec_CU04
+!theme plain
+actor "Diseñador" as Actor
+boundary "I.Politica" as UI
+control "C.Politica" as Ctrl
+entity "E.Politica" as Ent
+entity "E.Diagrama" as Diag
+
+Actor -> UI : 1. RegistrarPolitica()
+activate UI
+UI -> Ctrl : 2. registrarPolitica(datos)
+activate Ctrl
+Ctrl -> Ent : 3. save(politica)
+activate Ent
+Ent --> Ctrl : politica_creada
+deactivate Ent
+Ctrl -> Diag : 4. crearLienzo(politicaId)
+activate Diag
+Diag --> Ctrl : lienzo_creado
+deactivate Diag
+Ctrl --> UI : exito
+deactivate Ctrl
+UI --> Actor : 5. mostrar respuesta
+deactivate UI
+@enduml

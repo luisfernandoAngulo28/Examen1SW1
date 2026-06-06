@@ -1,0 +1,25 @@
+@startuml Sec_CU08
+!theme plain
+actor "Cliente" as Actor
+boundary "I.Tramite" as UI
+control "C.Motor" as Ctrl
+entity "E.Case" as Caso
+entity "E.Task" as Tarea
+
+Actor -> UI : 1. IniciarTramite(politicaId)
+activate UI
+UI -> Ctrl : 2. startWorkflow(politicaId)
+activate Ctrl
+Ctrl -> Caso : 3. createCase(politicaId)
+activate Caso
+Caso --> Ctrl : caseId
+deactivate Caso
+Ctrl -> Tarea : 4. assignInitialTask(caseId)
+activate Tarea
+Tarea --> Ctrl : tareaAsignada
+deactivate Tarea
+Ctrl --> UI : notificar
+deactivate Ctrl
+UI --> Actor : 5. mostrar estado
+deactivate UI
+@enduml

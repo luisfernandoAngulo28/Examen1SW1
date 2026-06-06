@@ -10,11 +10,7 @@ title CU08 — Monitor en Tiempo Real
 ' ── Actores ──
 actor "Diseñador"   as DESIGNER
 actor "Funcionario" as OFFICER
-actor "Usuario"     as USER
-actor "Sistema\nWebSocket" as WS
 
-DESIGNER --|> USER
-OFFICER  --|> USER
 
 ' ── Casos de uso ──
 usecase "Ver trámites\nactivos"                       as UC_LIVE
@@ -35,16 +31,8 @@ UC_LIVE   ..> UC_DETAIL : <<extend>>
 UC_FEED   ..> UC_EVENT  : <<include>>
 UC_INBOX  ..> UC_EVENT  : <<include>>
 
-WS ..> UC_EVENT : notifica
 
-note right of WS
-  Spring Boot publica eventos
-  STOMP en /topic/events.
-  Angular y Flutter se
-  suscriben al iniciar.
-  Eventos: CASE_STARTED,
-  TASK_COMPLETED,
-  CASE_COMPLETED.
-end note
+
+
 
 @enduml

@@ -1,0 +1,32 @@
+@startuml EMCU_Ciclo3
+!theme plain
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #f6f5f4
+skinparam usecaseBorderColor #2C3E50
+skinparam actorBackgroundColor #3498DB
+skinparam actorBorderColor #2980B9
+
+left to right direction
+
+actor "Diseñador de\nProcesos" as A1
+actor "Funcionario" as A2
+actor "Cliente" as A3
+
+
+    usecase "CU11 Formularios por Voz" as CU11
+    usecase "CU12 Extracción Texto (OCR)" as CU12
+    usecase "CU13 Analizar Cuellos de Botella (IA)" as CU13
+    usecase "CU14 Decisiones Condicionales" as CU14
+    usecase "CU15 Trazabilidad Completa" as CU15
+
+
+A2 --> CU11
+A3 --> CU11
+A2 --> CU12
+A3 --> CU12
+A1 --> CU13
+A2 --> CU14
+A1 --> CU15
+A2 --> CU15
+A3 --> CU15
+@enduml

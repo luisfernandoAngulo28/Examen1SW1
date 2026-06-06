@@ -1,0 +1,18 @@
+@startuml Sec_CU15
+!theme plain
+actor "Sistema" as Actor
+boundary "I.Listener" as UI
+control "C.Trazabilidad" as Ctrl
+entity "E.EventLog" as Ent
+
+Actor -> UI : 1. triggerEvento(datos)
+activate UI
+UI -> Ctrl : 2. registrarEvento()
+activate Ctrl
+Ctrl -> Ent : 3. save(eventLog)
+activate Ent
+Ent --> Ctrl : ok
+deactivate Ent
+Ctrl --> UI : evento_registrado
+deactivate Ctrl
+@enduml

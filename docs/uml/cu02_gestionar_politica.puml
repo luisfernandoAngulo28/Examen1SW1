@@ -32,11 +32,6 @@ ADMIN    --> UC_DELETE
 UC_ACTIVATE   ..> UC_LIST : <<include>>
 UC_DEACTIVATE ..> UC_LIST : <<include>>
 
-note right of UC_DEACTIVATE
-  Una política con trámites
-  activos NO puede editarse.
-  Solo se puede desactivar
-  para nuevos trámites.
-end note
+
 
 @enduml
