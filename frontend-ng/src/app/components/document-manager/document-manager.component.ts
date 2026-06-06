@@ -6,6 +6,9 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { API_BASE } from '../../api';
+import { Client as StompClient } from '@stomp/stompjs';
+
+const WS_BASE = API_BASE.replace('/api', '');
 
 interface CaseDocument {
   id: string;
@@ -27,6 +30,10 @@ interface AuditEntry {
 }
 
 interface PermissionEntry { userId: string; level: string; }
+interface CollabUser  { userId: string; userName: string; color: string; joinedAt: string; }
+interface CollabNote  { userId: string; userName: string; color: string; content: string; timestamp: string; }
+
+const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c2','#eb2f96'];
 
 @Component({
   selector: 'app-document-manager',
@@ -251,6 +258,126 @@ interface PermissionEntry { userId: string; level: string; }
         </div>
       </div>
     }
+
+    <!-- ══ Collaborative editing modal ══════════════════════════════════════ -->
+    @if (collabDoc) {
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1200;display:flex;flex-direction:column">
+
+        <!-- Top bar -->
+        <div style="background:#1a1a2e;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:1px solid #333">
+          <span style="font-size:20px">{{ fileIcon(collabDoc.contentType) }}</span>
+          <span style="color:#fff;font-weight:700;font-size:14px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ collabDoc.fileName }}</span>
+          <div style="background:#722ed1;color:#fff;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:.5px">SESIÓN COLABORATIVA EN VIVO</div>
+
+          <!-- User avatars -->
+          <div style="display:flex;margin-left:8px">
+            @for (u of collabUsers; track u.userId) {
+              <div [style.background]="u.color" [title]="u.userName"
+                   style="width:32px;height:32px;border-radius:50%;border:2px solid #1a1a2e;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;margin-left:-6px;position:relative;cursor:default">
+                {{ u.userName.charAt(0).toUpperCase() }}
+                <div style="position:absolute;bottom:1px;right:1px;width:8px;height:8px;background:#52c41a;border-radius:50%;border:1px solid #1a1a2e"></div>
+              </div>
+            }
+          </div>
+          <span style="color:#aaa;font-size:12px">{{ collabUsers.length }} en sesión</span>
+
+          <div style="flex:1"></div>
+          <button (click)="closeCollaborative()"
+                  style="background:#ff4d4f;color:#fff;border:none;border-radius:6px;padding:6px 18px;cursor:pointer;font-size:13px;font-weight:600">
+            × Salir
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div style="flex:1;display:flex;overflow:hidden">
+
+          <!-- Document viewer (65%) -->
+          <div style="flex:0 0 65%;background:#2d2d2d;display:flex;flex-direction:column;border-right:2px solid #444">
+            <div style="padding:6px 14px;background:#222;display:flex;align-items:center;gap:8px;font-size:11px;color:#888;border-bottom:1px solid #333">
+              <span>Visor</span>
+              @if (collabDocUrl) {
+                <a [href]="collabDocUrl" target="_blank" style="color:#91caff;text-decoration:none">↗ Abrir en nueva pestaña</a>
+              }
+            </div>
+            @if (collabDoc.contentType === 'application/pdf') {
+              <iframe [src]="safeCollabUrl" style="flex:1;border:none;background:#525659"></iframe>
+            } @else if (collabDoc.contentType?.startsWith('image/')) {
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px">
+                <img [src]="collabDocUrl" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px" />
+              </div>
+            } @else if (isOfficeDoc(collabDoc.contentType)) {
+              <iframe [src]="safeCollabOfficeUrl" style="flex:1;border:none"></iframe>
+            } @else {
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#888;gap:16px">
+                <div style="font-size:64px">{{ fileIcon(collabDoc.contentType) }}</div>
+                <div style="font-size:14px;color:#aaa">{{ collabDoc.fileName }}</div>
+                <a [href]="collabDocUrl" [attr.download]="collabDoc.fileName"
+                   style="background:#722ed1;color:#fff;border-radius:8px;padding:10px 24px;text-decoration:none;font-size:13px">
+                  ⬇ Descargar para editar localmente
+                </a>
+              </div>
+            }
+          </div>
+
+          <!-- Collaboration panel (35%) -->
+          <div style="flex:0 0 35%;background:#fff;display:flex;flex-direction:column">
+
+            <!-- Participants -->
+            <div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;background:#fafafa;max-height:160px;overflow-y:auto">
+              <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:.5px;margin-bottom:8px">PARTICIPANTES EN LÍNEA</div>
+              @for (u of collabUsers; track u.userId) {
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                  <div [style.background]="u.color"
+                       style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">
+                    {{ u.userName.charAt(0).toUpperCase() }}
+                  </div>
+                  <span style="font-size:13px;font-weight:600;flex:1">{{ u.userName }}</span>
+                  <div style="width:8px;height:8px;background:#52c41a;border-radius:50%" title="En línea"></div>
+                </div>
+              }
+              @if (collabUsers.length === 0) {
+                <div style="font-size:12px;color:#bbb">Conectando...</div>
+              }
+            </div>
+
+            <!-- Notes stream -->
+            <div #notesArea style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#fafafa">
+              <div style="font-size:11px;color:#bbb;text-align:center;margin-bottom:4px">— Notas y comentarios en tiempo real —</div>
+              @for (n of collabNotes; track $index) {
+                <div [style.align-self]="n.userId === myCollabUserId ? 'flex-end' : 'flex-start'" style="max-width:88%">
+                  @if (n.userId !== myCollabUserId) {
+                    <div style="font-size:10px;color:#999;margin-bottom:2px;margin-left:4px">{{ n.userName }}</div>
+                  }
+                  <div [style.background]="n.userId === myCollabUserId ? n.color : '#e8e8e8'"
+                       [style.color]="n.userId === myCollabUserId ? '#fff' : '#333'"
+                       style="padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">
+                    {{ n.content }}
+                  </div>
+                  <div style="font-size:10px;color:#bbb;margin-top:2px" [style.text-align]="n.userId === myCollabUserId ? 'right' : 'left'">
+                    {{ n.timestamp | date:'HH:mm:ss' }}
+                  </div>
+                </div>
+              }
+              @if (collabNotes.length === 0) {
+                <div style="text-align:center;color:#ccc;font-size:12px;margin-top:24px">
+                  Sin notas aún.<br>Sé el primero en escribir.
+                </div>
+              }
+            </div>
+
+            <!-- Note input -->
+            <div style="border-top:1px solid #e8e8e8;padding:10px 12px;background:#fff;display:flex;gap:8px">
+              <input [(ngModel)]="collabNoteText" class="form-input"
+                     placeholder="Escribe una nota para todos..."
+                     style="flex:1;font-size:13px"
+                     (keyup.enter)="sendCollabNote()" />
+              <button (click)="sendCollabNote()" [disabled]="!collabNoteText.trim()"
+                      class="btn btn-primary" style="padding:0 14px;font-size:16px">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class DocumentManagerComponent implements OnInit {
@@ -274,6 +401,18 @@ export class DocumentManagerComponent implements OnInit {
   permissionsEntries: PermissionEntry[] = [];
   newPermUserId = '';
   newPermLevel = 'VIEW';
+
+  // Collaborative session state
+  collabDoc: CaseDocument | null = null;
+  collabUsers: CollabUser[] = [];
+  collabNotes: CollabNote[] = [];
+  collabNoteText = '';
+  collabDocUrl = '';
+  safeCollabUrl: SafeResourceUrl = '';
+  safeCollabOfficeUrl: SafeResourceUrl = '';
+  myCollabUserId = '';
+  myCollabColor = '';
+  private collabClient: StompClient | null = null;
 
   private http = inject(HttpClient);
   private toast = inject(ToastService);
@@ -398,16 +537,104 @@ export class DocumentManagerComponent implements OnInit {
   }
 
   openCollaborative(doc: CaseDocument) {
-    // Collaborative editing via Google Docs Viewer (for Office docs)
+    this.collabDoc = doc;
+    this.collabUsers = [];
+    this.collabNotes = [];
+    this.collabNoteText = '';
+
+    // Resolve current user info
+    const authUser = (this.auth as any).user;
+    const userId   = typeof authUser === 'function' ? authUser()?.id  : authUser?.id;
+    const userName = typeof authUser === 'function' ? authUser()?.name : authUser?.name;
+    this.myCollabUserId = userId ?? 'guest';
+    const colorIdx = this.myCollabUserId.charCodeAt(this.myCollabUserId.length - 1) % COLLAB_COLORS.length;
+    this.myCollabColor = COLLAB_COLORS[colorIdx];
+
+    // Fetch download URL for the viewer
     this.http.get<{ url: string }>(`${API_BASE}/documents/${doc.id}/download-url`)
       .subscribe({
         next: r => {
-          const docsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(r.url)}&embedded=false`;
-          window.open(docsUrl, '_blank');
-          this.toast.show('Abriendo con editor colaborativo externo', 'success');
+          this.collabDocUrl = r.url;
+          this.safeCollabUrl = this.sanitizer.bypassSecurityTrustResourceUrl(r.url);
+          if (this.isOfficeDoc(doc.contentType)) {
+            const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(r.url)}`;
+            this.safeCollabOfficeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(officeUrl);
+          }
         },
         error: () => {}
       });
+
+    // Connect WebSocket and join session
+    this.collabClient = new StompClient({
+      brokerURL: `${WS_BASE}/ws/websocket`,
+      reconnectDelay: 3000,
+      onConnect: () => {
+        // Subscribe to session updates (who's connected)
+        this.collabClient!.subscribe(`/topic/document/${doc.id}/session`, msg => {
+          const update = JSON.parse(msg.body);
+          this.collabUsers = update.users ?? [];
+          this.scrollNotes();
+        });
+        // Subscribe to shared notes
+        this.collabClient!.subscribe(`/topic/document/${doc.id}/notes`, msg => {
+          const note: CollabNote = JSON.parse(msg.body);
+          this.collabNotes.push(note);
+          setTimeout(() => this.scrollNotes(), 50);
+        });
+        // Announce presence
+        this.collabClient!.publish({
+          destination: `/app/document/${doc.id}/join`,
+          body: JSON.stringify({
+            userId: this.myCollabUserId,
+            userName: userName ?? 'Usuario',
+            color: this.myCollabColor
+          })
+        });
+      }
+    });
+    this.collabClient.activate();
+    this.toast.show('Sesión colaborativa iniciada', 'success');
+  }
+
+  closeCollaborative() {
+    if (this.collabClient && this.collabDoc) {
+      this.collabClient.publish({
+        destination: `/app/document/${this.collabDoc.id}/leave`,
+        body: JSON.stringify({ userId: this.myCollabUserId })
+      });
+      this.collabClient.deactivate();
+      this.collabClient = null;
+    }
+    this.collabDoc = null;
+    this.collabUsers = [];
+    this.collabNotes = [];
+  }
+
+  sendCollabNote() {
+    if (!this.collabNoteText.trim() || !this.collabClient || !this.collabDoc) return;
+    const authUser = (this.auth as any).user;
+    const userName = typeof authUser === 'function' ? authUser()?.name : authUser?.name;
+    this.collabClient.publish({
+      destination: `/app/document/${this.collabDoc.id}/note`,
+      body: JSON.stringify({
+        userId: this.myCollabUserId,
+        userName: userName ?? 'Usuario',
+        color: this.myCollabColor,
+        content: this.collabNoteText.trim()
+      })
+    });
+    this.collabNoteText = '';
+  }
+
+  isOfficeDoc(ct: string): boolean {
+    return ct?.includes('word') || ct?.includes('spreadsheet') ||
+           ct?.includes('presentation') || ct?.includes('excel') ||
+           ct?.includes('powerpoint') || ct?.includes('officedocument');
+  }
+
+  private scrollNotes() {
+    const el = document.querySelector('[style*="flex-direction:column;gap:8px"]');
+    if (el) el.scrollTop = el.scrollHeight;
   }
 
   showAudit(doc: CaseDocument) {
@@ -429,9 +656,8 @@ export class DocumentManagerComponent implements OnInit {
   }
 
   isCollaborativeEditable(ct: string): boolean {
-    return ct?.includes('word') || ct?.includes('spreadsheet') ||
-           ct?.includes('presentation') || ct === 'text/plain' ||
-           ct === 'application/rtf';
+    return this.isOfficeDoc(ct) || ct === 'text/plain' || ct === 'application/rtf' ||
+           ct?.startsWith('image/') || ct === 'application/pdf';
   }
 
   fileIcon(ct: string): string {
