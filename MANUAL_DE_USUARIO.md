@@ -12,13 +12,16 @@
 8. [Diseñador de Formularios Dinámicos](#8-diseñador-de-formularios-dinámicos)
 9. [Asistente de Inteligencia Artificial](#9-asistente-de-inteligencia-artificial)
 10. [Gestión de Trámites (Casos)](#10-gestión-de-trámites-casos)
-11. [Bandeja del Funcionario](#11-bandeja-del-funcionario)
-12. [Monitor en Tiempo Real](#12-monitor-en-tiempo-real)
-13. [Analítica y Detección de Cuellos de Botella](#13-analítica-y-detección-de-cuellos-de-botella)
-14. [Semáforo Visual de Estados](#14-semáforo-visual-de-estados)
-15. [Flujo de Prueba Completo](#15-flujo-de-prueba-completo)
-16. [Credenciales de Demo](#16-credenciales-de-demo)
-17. [Preguntas Frecuentes](#17-preguntas-frecuentes)
+11. [Documentos del Trámite](#11-documentos-del-trámite)
+12. [Bandeja del Funcionario](#12-bandeja-del-funcionario)
+13. [Monitor en Tiempo Real](#13-monitor-en-tiempo-real)
+14. [Reportes por Lenguaje Natural](#14-reportes-por-lenguaje-natural)
+15. [Analítica y Detección de Cuellos de Botella](#15-analítica-y-detección-de-cuellos-de-botella)
+16. [Semáforo Visual de Estados](#16-semáforo-visual-de-estados)
+17. [Flujo de Prueba Completo (Demo)](#17-flujo-de-prueba-completo-demo)
+18. [Credenciales de Demo](#18-credenciales-de-demo)
+19. [Datos de Prueba — Seeder Automático](#19-datos-de-prueba--seeder-automático)
+20. [Preguntas Frecuentes](#20-preguntas-frecuentes)
 
 ---
 
@@ -52,9 +55,10 @@
 ### URL del sistema en producción
 
 ```
-Frontend:  http://18.231.192.169:4200
-API REST:  http://18.231.192.169:8080/api
-IA Service: http://18.231.192.169:8000
+Frontend:   http://54.233.18.87:4200
+API REST:   http://54.233.18.87:4200/api   (proxeado por nginx)
+IA Service: http://54.233.18.87:8000
+ML Service: http://54.233.18.87:8001
 ```
 
 ---
@@ -63,7 +67,7 @@ IA Service: http://18.231.192.169:8000
 
 ### 2.1 Iniciar sesión
 
-1. Abrir el navegador en `http://18.231.192.169:4200`
+1. Abrir el navegador en `http://54.233.18.87:4200`
 2. Se muestra la pantalla de login con el título **"Flujo de trabajo SW1"**
 3. Ingresar **correo electrónico** y **contraseña**
 4. Hacer clic en **"Iniciar sesión"**
@@ -71,21 +75,24 @@ IA Service: http://18.231.192.169:8000
 
 > La funcionalidad de voz (🎤) requiere **Google Chrome** y permisos de micrófono activados.
 
-### 2.2 Registrar un nuevo usuario (solo DESIGNER)
+### 2.2 Registrar un nuevo usuario (ADMIN o primer uso)
 
 1. En la pantalla de login, clic en **"¿No tienes cuenta? Registrarse"**
-2. Completar: nombre, correo, contraseña y rol
+2. Completar: nombre, correo, contraseña y **rol** (ADMIN / DESIGNER / OFFICER / CLIENT)
 3. Clic en **"Registrarse"**
+
+> El primer usuario del sistema debe registrarse con rol **ADMIN** para poder gestionar los demás.
 
 ---
 
 ## 3. Roles de Usuario
 
-El sistema tiene tres roles con permisos diferenciados:
+El sistema tiene cuatro roles con permisos diferenciados:
 
 | Rol | Descripción | Permisos principales |
 |---|---|---|
-| **DESIGNER** | Diseñador de procesos / Administrador | Crear y editar políticas, diseñar diagramas, configurar formularios, gestionar usuarios y departamentos, ver analíticas, monitorear |
+| **ADMIN** | Administrador del sistema | Acceso total: gestionar usuarios, departamentos, políticas, trámites, analítica, reportes, predicciones ML |
+| **DESIGNER** | Diseñador de procesos | Crear y editar políticas, diseñar diagramas, configurar formularios, ver analíticas y reportes |
 | **OFFICER** | Funcionario / Operador | Ejecutar tareas asignadas, llenar formularios, ver su bandeja de trabajo, recibir notificaciones push |
 | **CLIENT** | Cliente externo | Iniciar trámites, ver el estado de sus trámites, consultar historial |
 
@@ -114,7 +121,19 @@ Muestra todas las políticas con:
   - **Editar** → Abre el editor visual del diagrama
   - **Trámites** → Lista los casos de esa política
 
-### 4.3 Botón "+ Nueva Política"
+### 4.3 Predicciones IA con TensorFlow
+
+La sección **"Predicciones IA"** del Dashboard muestra en tiempo real tres modelos de machine learning:
+
+| Panel | Qué muestra |
+|---|---|
+| **Riesgo de Demora** | Score 0–1 por trámite activo: LOW / MEDIUM / HIGH con recomendación |
+| **Prioridad de Tareas** | Top 10 tareas pendientes ordenadas por urgencia: CRITICAL / HIGH / NORMAL / LOW |
+| **Anomalías Detectadas** | Trámites cuya duración supera el doble del promedio histórico |
+
+El badge **"TensorFlow activo"** indica que el ml-service está respondiendo. Si no hay trámites activos los paneles muestran "Sin datos".
+
+### 4.4 Botón "+ Nueva Política"
 
 Crea una nueva política de negocio. Ver sección 6.
 
@@ -350,7 +369,43 @@ Al hacer clic en un trámite de la lista, se muestra:
 
 ---
 
-## 11. Bandeja del Funcionario
+## 11. Documentos del Trámite
+
+Cada trámite tiene un gestor de documentos integrado que permite subir, descargar y auditar archivos adjuntos.
+
+### 11.1 Subir un documento
+
+1. Abrir el detalle de un trámite
+2. En la sección **"Documentos del Trámite"**, clic en **"Subir archivo"**
+3. Seleccionar el archivo (imágenes, PDF, Word, Excel, etc.)
+4. El archivo se sube con indicador de progreso en porcentaje
+5. También se puede arrastrar el archivo al área punteada
+
+### 11.2 Descargar y visualizar
+
+| Acción | Descripción |
+|---|---|
+| **⬇ Descargar** | Descarga el archivo directamente al equipo |
+| **👁 Ver** | Abre imágenes y PDFs en el navegador (nueva pestaña) |
+| **✏ Colaborar** | Abre documentos Office en Google Docs Viewer para revisión |
+| **📋 Historial** | Muestra el log de todos los accesos al archivo (quién, cuándo, qué acción) |
+
+### 11.3 Permisos de documentos por nodo
+
+Cada nodo del diagrama tiene configurado un nivel de acceso a documentos:
+
+| Permiso | Qué puede hacer el funcionario en ese nodo |
+|---|---|
+| **NONE** | Sin acceso a documentos |
+| **VIEW** | Solo lectura y descarga |
+| **VIEW_EDIT** | Lectura, descarga y subida de nuevos archivos |
+| **FULL** | Todo lo anterior más eliminar documentos |
+
+> El administrador configura el permiso de cada nodo al diseñar el diagrama.
+
+---
+
+## 12. Bandeja del Funcionario
 
 **Ruta:** Barra lateral → **"Mis Tareas"** (visible para rol OFFICER)
 
@@ -401,29 +456,63 @@ El monitor muestra el estado del sistema en tiempo real usando **WebSocket STOMP
 - No es necesario recargar la página
 - Los cambios aparecen instantáneamente vía WebSocket
 - Cuando un funcionario completa una tarea, el semáforo cambia de color automáticamente
-- Conecta a `ws://18.231.192.169:4200/ws` (proxeado por nginx al backend)
+- Conecta a `ws://54.233.18.87:4200/ws` (proxeado por nginx al backend)
 
 ---
 
-## 13. Analítica y Detección de Cuellos de Botella
+## 13. Reportes por Lenguaje Natural
+
+**Ruta:** Barra lateral → **"Reportes IA"**
+
+Permite generar reportes del sistema describiendo la consulta en español, sin necesidad de conocer SQL ni la estructura interna de datos.
+
+### 13.1 Generar un reporte
+
+1. En el campo de texto, escribir la consulta en lenguaje natural:
+   - `"Trámites completados este mes"`
+   - `"Tareas pendientes por departamento"`
+   - `"Cuellos de botella en todos los flujos"`
+   - `"Trámites entre el 1 de enero y el 31 de mayo"`
+2. Presionar **Enter** o clic en **"Generar reporte"**
+3. El sistema NLP interpreta la consulta y devuelve una tabla con resultados
+
+### 13.2 Consulta por voz
+
+1. Clic en el botón **🎤** junto al campo de texto
+2. Hablar la consulta en español
+3. El sistema transcribe y ejecuta automáticamente el reporte
+
+### 13.3 Exportar a CSV
+
+1. Tras generar el reporte, clic en **"⬇ Exportar CSV"**
+2. Se descarga el archivo con BOM UTF-8 (compatible con Excel en español)
+3. El nombre del archivo incluye el tipo de reporte y la fecha
+
+### 13.4 Chips de consultas de ejemplo
+
+Debajo del campo de texto aparecen chips con consultas frecuentes. Al hacer clic se ejecuta directamente.
+
+---
+
+## 14. Analítica y Detección de Cuellos de Botella
 
 **Ruta:** Barra lateral → **"Analítica"**
 
-### 13.1 KPIs globales
+### 14.1 KPIs globales
 
 - Tasa de completitud de trámites
 - Duración promedio por nodo/actividad
 - Distribución de tareas pendientes por departamento
 - Cantidad de trámites activos vs completados
 
-### 13.2 Análisis por política
+### 14.2 Análisis por política
 
 Seleccionar una política para ver:
 - Estadísticas por nodo del diagrama
 - Tiempo promedio de cada actividad
 - Acumulación de tareas pendientes por departamento
 
-### 13.3 Detección automática de cuellos de botella
+### 14.3 Detección automática de cuellos de botella
 
 El sistema identifica automáticamente qué nodos son cuellos de botella aplicando **tres criterios combinados**:
 
@@ -437,7 +526,7 @@ Los nodos identificados se destacan visualmente y se acompañan de una **recomen
 
 ---
 
-## 14. Semáforo Visual de Estados
+## 16. Semáforo Visual de Estados
 
 El sistema usa un semáforo visual consistente en todas las vistas:
 
@@ -451,7 +540,7 @@ El semáforo aparece en: Dashboard, lista de trámites, detalle del trámite, ba
 
 ---
 
-## 15. Flujo de Prueba Completo
+## 17. Flujo de Prueba Completo (Demo)
 
 Guía paso a paso para probar todas las funciones del sistema.
 
@@ -535,21 +624,76 @@ Guía paso a paso para probar todas las funciones del sistema.
 
 ---
 
-## 16. Credenciales de Demo
+## 18. Credenciales de Demo
+
+Credenciales creadas por el seeder automático (ver sección 19):
 
 | Rol | Email | Contraseña | Acceso |
 |---|---|---|---|
-| Administrador / Diseñador | admin@demo.com | Admin1234! | Dashboard completo, editor, analítica |
-| Funcionario RRHH | rrhh@demo.com | Admin1234! | Bandeja de tareas, formularios |
-| Funcionario Legal | legal@demo.com | Admin1234! | Bandeja de tareas, formularios |
-| Funcionario Finanzas | finanzas@demo.com | Admin1234! | Bandeja de tareas, formularios |
-| Cliente | cliente@demo.com | Admin1234! | Iniciar trámites, ver estado |
+| **ADMIN** | admin@demo.com | admin123 | Dashboard completo, predicciones ML, analítica, reportes, gestión total |
+| **DESIGNER** | designer1@demo.com | designer123 | Editor de políticas y diagramas, formularios, analítica |
+| **OFFICER** | officer1@demo.com | officer123 | Bandeja de tareas, formularios, documentos |
+| **OFFICER** | officer2@demo.com | officer123 | Bandeja de tareas, formularios, documentos |
+| **CLIENT** | client1@demo.com | client123 | Iniciar trámites, ver estado, documentos de sus casos |
 
-**URL del sistema:** http://18.231.192.169:4200
+**URL del sistema:** `http://54.233.18.87:4200`
 
 ---
 
-## 17. Preguntas Frecuentes
+## 19. Datos de Prueba — Seeder Automático
+
+El proyecto incluye un script Python que pobla la base de datos con datos de demostración completos en un solo comando.
+
+### Qué crea el seeder
+
+- **3 departamentos**: Recepción, Revisión Técnica, Aprobaciones
+- **5 usuarios**: admin, designer1, officer1, officer2, client1 (con roles distintos)
+- **2 políticas** con flujo completo de nodos y formularios dinámicos:
+  - *Solicitud de Permiso Municipal* — flujo lineal de 3 etapas
+  - *Licencia de Funcionamiento* — flujo con nodo DECISION (bifurcación)
+- **4 trámites** en distintos estados:
+  - 2 en progreso (para que el dashboard ML muestre predicciones)
+  - 1 completado
+  - 1 cancelado
+
+### Ejecutar en EC2 (producción)
+
+```bash
+# Desde la máquina local (requiere Python 3 y acceso a internet)
+python3 scripts/seed_demo.py
+
+# Si quieres borrar todos los trámites antes y empezar limpio:
+python3 scripts/seed_demo.py --reset
+
+# Apuntar a una URL diferente (ej: local):
+python3 scripts/seed_demo.py http://localhost:4200
+```
+
+### Ejecutar directamente en EC2 via SSH
+
+```bash
+ssh ubuntu@54.233.18.87
+cd ~/Examen1SW1
+python3 scripts/seed_demo.py http://localhost:4200/api   # apunta directo al backend
+```
+
+> **Nota:** La primera vez debe existir `admin@demo.com` / `admin123` (créalo manualmente en la pantalla de registro si es la primera vez que inicias el sistema).
+
+### Resultado esperado
+
+```
+✅ SEED COMPLETADO
+   Usuarios:     5 (admin, designer1, officer1, officer2, client1)
+   Departamentos: 3 (Recepción, Revisión Técnica, Aprobaciones)
+   Políticas:    2 (Permiso Municipal, Licencia de Funcionamiento)
+   Trámites:     2 en progreso | 1 completado | 1 cancelado
+```
+
+Tras ejecutar el seeder, el **Dashboard ML** mostrará predicciones reales de riesgo de demora y prioridad de tareas.
+
+---
+
+## 20. Preguntas Frecuentes
 
 ### ¿Por qué no funciona el micrófono?
 Asegúrate de usar **Google Chrome**. El sitio debe cargarse por HTTPS o localhost (requisito de la Web Speech API). Verificar que el navegador tiene permisos de micrófono activados.
@@ -577,7 +721,8 @@ Actualmente los botones registran su ejecución con timestamp en el formulario. 
 
 ---
 
-**Sistema:** WorkflowSW1 — Gestión de Políticas de Negocio
-**Materia:** Ingeniería de Software I — Primer Parcial 2026
-**Tecnologías:** Spring Boot · Angular 18 · MongoDB · FastAPI · Flutter · AWS EC2
-**Autor:** Fernando Angulo
+**Sistema:** WorkflowSW1 — Gestión de Políticas de Negocio  
+**Materia:** Ingeniería de Software I — Segundo Parcial 2026  
+**Tecnologías:** Spring Boot 3 · Angular 18 · MongoDB 7 · FastAPI · TensorFlow · Flutter · AWS EC2  
+**URL Producción:** http://54.233.18.87:4200  
+**Autor:** Luis Fernando Angulo
