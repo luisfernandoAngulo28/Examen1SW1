@@ -79,8 +79,8 @@ const EXAMPLE_QUERIES = [
           @for (ex of examples; track ex) {
             <button (click)="useExample(ex)"
               style="background:#f5f5f5;border:1px solid #e8e8e8;border-radius:12px;padding:3px 10px;font-size:12px;cursor:pointer;color:#555;transition:all .15s"
-              (mouseenter)="$event.target['style'].background='#e6f4ff'"
-              (mouseleave)="$event.target['style'].background='#f5f5f5'">
+              (mouseenter)="$any($event.target).style.background='#e6f4ff'"
+              (mouseleave)="$any($event.target).style.background='#f5f5f5'">
               {{ ex }}
             </button>
           }

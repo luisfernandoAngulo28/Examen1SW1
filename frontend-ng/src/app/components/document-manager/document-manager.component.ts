@@ -93,8 +93,8 @@ interface AuditEntry {
           <div style="padding:8px 0">
             @for (doc of docs; track doc.id) {
               <div style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .15s"
-                   (mouseenter)="$event.currentTarget['style'].background='#fafafa'"
-                   (mouseleave)="$event.currentTarget['style'].background=''">
+                   (mouseenter)="$any($event.currentTarget).style.background='#fafafa'"
+                   (mouseleave)="$any($event.currentTarget).style.background=''">
                 <span style="font-size:22px">{{ fileIcon(doc.contentType) }}</span>
                 <div style="flex:1;min-width:0">
                   <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ doc.fileName }}</div>
