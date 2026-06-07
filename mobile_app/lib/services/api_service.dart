@@ -228,6 +228,22 @@ class ApiService {
     _assertOk(res);
   }
 
+  // ── Suggest policy by voice transcript ───────────────────────────────────
+
+  /// Sends a voice transcript and returns the best matching policy.
+  /// Response: { policyId, policyName, confidence, explanation }
+  Future<Map<String, dynamic>> suggestPolicy(String transcript) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/ai-assistant/suggest-policy'),
+      headers: await _authHeaders(),
+      body: jsonEncode({'transcript': transcript}),
+    );
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body) as Map<String, dynamic>;
+    }
+    return {};
+  }
+
   // ── AI prompt ─────────────────────────────────────────────────────────────
 
   Future<String> sendPrompt(String prompt) async {

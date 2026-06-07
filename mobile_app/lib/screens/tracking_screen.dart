@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/cases_provider.dart';
 import 'case_tracking_detail_screen.dart';
 import 'login_screen.dart';
+import 'nuevo_tramite_screen.dart';
 
 /// Home screen for CLIENT users — shows the list of their trámites.
 class TrackingScreen extends StatefulWidget {
@@ -67,6 +68,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ],
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const NuevoTramiteScreen()),
+        ),
+        icon: const Icon(Icons.mic_rounded),
+        label: const Text('Nuevo trámite'),
       ),
       body: RefreshIndicator(
         onRefresh: provider.loadMyCases,
