@@ -22,6 +22,9 @@ interface Dept { id: string; name: string; }
 interface PolicyNode { id: string; title: string; nodeType: string; departmentId: string; positionX: number; positionY: number; department?: { name: string }; }
 interface PolicyEdge { id: string; fromNodeId: string; toNodeId: string; flowType: string; conditionLabel?: string; }
 interface AiResponse { action: string; suggestion: string; nodes?: { title: string; department: string }[]; connections?: { from: string; to: string; flowType: string }[]; }
+interface EditorUser { userId: string; userName: string; color: string; joinedAt: string; }
+
+const EDITOR_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#eb2f96','#13c2c2','#faad14'];
 
 function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -49,6 +52,22 @@ function nodeColor(type: string) {
         <h1 style="margin-top:4px">Editor: {{ policyName }}</h1>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
+        <!-- Avatares de presencia colaborativa -->
+        @if (editorUsers.length > 0) {
+          <div style="display:flex;align-items:center;gap:4px">
+            @for (u of editorUsers; track u.userId) {
+              <div [title]="u.userName + ' está editando'"
+                   style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;border:2px solid #fff;box-shadow:0 0 0 2px #52c41a;cursor:default;position:relative"
+                   [style.background]="u.color">
+                {{ u.userName.charAt(0).toUpperCase() }}
+                <span style="position:absolute;bottom:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#52c41a;border:1px solid #fff"></span>
+              </div>
+            }
+            <span style="font-size:11px;color:var(--text-secondary);margin-left:2px">
+              {{ editorUsers.length + 1 }} editando
+            </span>
+          </div>
+        }
         <span class="badge" [class]="wsConnected ? 'badge-green' : 'badge-red'" style="font-size:11px;padding:3px 8px">
           {{ wsConnected ? '● En vivo' : '○ Sin WS' }}
         </span>
@@ -450,6 +469,9 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   viewMode: 'graph' | 'lanes' = 'lanes';
   laneViewData: any = null;
   wsConnected = false;
+  editorUsers: EditorUser[] = [];
+  private myEditorUserId = uuid();
+  private myEditorColor = EDITOR_COLORS[Math.floor(Math.random() * EDITOR_COLORS.length)];
   speakingIdx: number | null = null;
   private stompClient?: Client;
   private currentAudio: HTMLAudioElement | null = null;
@@ -926,12 +948,13 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
       reconnectDelay: 5000,
       onConnect: () => {
         this.zone.run(() => this.wsConnected = true);
+
+        // Suscribirse a eventos de política (cambios en el diagrama)
         this.stompClient!.subscribe('/topic/events', (msg) => {
           const payload = JSON.parse(msg.body);
           if (payload.type === 'policy:updated' && payload.data?.policyId === this.policyId) {
             this.zone.run(() => {
               this.toast.show('Diagrama actualizado por un colaborador', 'info');
-              // Reload graph from server
               this.http.get<any>(`${API_BASE}/policies/${this.policyId}`).subscribe(p => {
                 this.graphNodes = (p.nodes || []).map((n: any, i: number) => this._mapNode(n, i));
                 this.graphLinks = (p.edges || []).map((e: any) => ({
@@ -945,13 +968,48 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
             });
           }
         });
+
+        // Suscribirse a presencia de otros editores del diagrama
+        const sessionId = `policy-${this.policyId}`;
+        this.stompClient!.subscribe(`/topic/document/${sessionId}/session`, (msg) => {
+          const update = JSON.parse(msg.body);
+          this.zone.run(() => {
+            this.editorUsers = (update.users || []).filter((u: EditorUser) => u.userId !== this.myEditorUserId);
+          });
+        });
+
+        // Anunciar presencia propia
+        const userName = this._getMyName();
+        this.stompClient!.publish({
+          destination: `/app/document/${sessionId}/join`,
+          body: JSON.stringify({ userId: this.myEditorUserId, userName, color: this.myEditorColor }),
+        });
       },
       onDisconnect: () => this.zone.run(() => this.wsConnected = false),
     });
     this.stompClient.activate();
   }
 
+  private _getMyName(): string {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.name || payload.sub || 'Editor';
+      }
+    } catch { }
+    return 'Editor';
+  }
+
   ngOnDestroy() {
+    // Abandonar sesión de presencia al salir
+    if (this.stompClient?.connected && this.policyId) {
+      const sessionId = `policy-${this.policyId}`;
+      this.stompClient.publish({
+        destination: `/app/document/${sessionId}/leave`,
+        body: JSON.stringify({ userId: this.myEditorUserId }),
+      });
+    }
     this.stompClient?.deactivate();
     this.currentAudio?.pause();
     window.speechSynthesis?.cancel();
