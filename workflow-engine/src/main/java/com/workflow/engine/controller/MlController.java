@@ -102,14 +102,42 @@ public class MlController {
                     ? p.getNodes().stream().filter(n -> n.getFormTemplate() != null).count() / Math.max(p.getNodes().size(), 1.0)
                     : 0.3;
 
+            // Real dept load: find the current active task's department
+            double deptLoadRatio = 0.5;
+            if (p != null) {
+                Map<String, String> nodeIdToDeptId = p.getNodes().stream()
+                        .filter(n -> n.getDepartmentId() != null)
+                        .collect(Collectors.toMap(PolicyNode::getId, PolicyNode::getDepartmentId, (a, b) -> a));
+                Optional<Task> activeTask = c.getTasks().stream()
+                        .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS || t.getStatus() == TaskStatus.PENDING)
+                        .findFirst();
+                if (activeTask.isPresent()) {
+                    String deptId = nodeIdToDeptId.get(activeTask.get().getNodeId());
+                    if (deptId != null) {
+                        deptLoadRatio = (double) deptPendingCount.getOrDefault(deptId, 0L) / maxDeptPending;
+                    }
+                }
+            }
+
             Map<String, Object> feat = new LinkedHashMap<>();
             feat.put("case_id", c.getId());
             feat.put("hours_elapsed", hoursElapsed);
             feat.put("pending_task_ratio", totalTasks > 0 ? (double) pendingTasks / totalTasks : 0);
-            feat.put("dept_load_ratio", 0.5); // placeholder
+            feat.put("dept_load_ratio", deptLoadRatio);
             feat.put("task_complexity", complexity);
-            feat.put("sla_ratio", hoursElapsed / 48.0); // assume 48h SLA
+            feat.put("sla_ratio", hoursElapsed / 48.0);
             riskFeatures.add(feat);
+        }
+
+        // ── Call risk model first so priority features get real case_risk ──────
+        List<Map<String, Object>> riskResults = callMl("/predict/delay-risk", riskFeatures);
+        if (riskResults == null) riskResults = heuristicRisk(riskFeatures);
+
+        Map<String, Double> caseRiskMap = new HashMap<>();
+        for (Map<String, Object> r : riskResults) {
+            if (r.get("case_id") != null) {
+                caseRiskMap.put(r.get("case_id").toString(), toDouble(r.get("risk_score")));
+            }
         }
 
         // ── Build priority features for pending tasks ──────────────────────────
@@ -118,7 +146,7 @@ public class MlController {
             Policy p = policyCache.get(c.getPolicyId());
             if (p == null) continue;
             Map<String, PolicyNode> nodeMap = p.getNodes().stream()
-                    .collect(Collectors.toMap(PolicyNode::getId, n -> n));
+                    .collect(Collectors.toMap(PolicyNode::getId, n -> n, (a, b) -> a));
 
             for (Task t : c.getTasks()) {
                 if (t.getStatus() != TaskStatus.PENDING && t.getStatus() != TaskStatus.IN_PROGRESS) continue;
@@ -128,7 +156,7 @@ public class MlController {
 
                 double hoursWaiting = t.getStartedAt() != null
                         ? Duration.between(t.getStartedAt(), Instant.now()).toMinutes() / 60.0
-                        : Duration.between(c.getStartedAt(), Instant.now()).toMinutes() / 60.0;
+                        : (c.getStartedAt() != null ? Duration.between(c.getStartedAt(), Instant.now()).toMinutes() / 60.0 : 0);
 
                 String deptId = node.getDepartmentId();
                 long deptLoad = deptId != null ? deptPendingCount.getOrDefault(deptId, 0L) : 0;
@@ -140,7 +168,7 @@ public class MlController {
                 feat.put("department", deptId != null ? deptNames.getOrDefault(deptId, "Sin dept") : "Sin dept");
                 feat.put("hours_waiting", hoursWaiting);
                 feat.put("sla_breach", hoursWaiting > 48 ? 1.0 : 0.0);
-                feat.put("case_risk", 0.5); // will be updated after risk prediction
+                feat.put("case_risk", caseRiskMap.getOrDefault(c.getId(), 0.5));
                 feat.put("dept_overload", deptOverload);
                 feat.put("client_case", c.getClientId() != null ? 1.0 : 0.0);
                 feat.put("is_blocking", 0.0);
@@ -174,13 +202,11 @@ public class MlController {
             anomalyFeatures.add(feat);
         }
 
-        // ── Call ml-service ────────────────────────────────────────────────────
-        List<Map<String, Object>> riskResults    = callMl("/predict/delay-risk", riskFeatures);
+        // ── Call priority and anomaly models ───────────────────────────────────
         List<Map<String, Object>> priorityResults = callMl("/predict/priority", priorityFeatures);
         List<Map<String, Object>> anomalyResults  = callMl("/predict/anomalies", anomalyFeatures);
 
-        // ── Fallback if ml-service unavailable ─────────────────────────────────
-        if (riskResults == null)    riskResults    = heuristicRisk(riskFeatures);
+        // ── Fallback if ml-service unavailable (risk already resolved above) ──
         if (priorityResults == null) priorityResults = heuristicPriority(priorityFeatures);
         if (anomalyResults == null)  anomalyResults  = heuristicAnomaly(anomalyFeatures);
 

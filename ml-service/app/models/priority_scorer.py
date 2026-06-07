@@ -66,10 +66,24 @@ def _build_and_train():
     return model, scaler
 
 
+_MODEL_PATH  = "/app/saved_models/priority_scorer.keras"
+_SCALER_PATH = "/app/saved_models/priority_scorer_scaler.pkl"
+
 def get_model():
     global _model, _scaler
     if _model is None:
-        _model, _scaler = _build_and_train()
+        import os, pickle
+        if os.path.exists(_MODEL_PATH) and os.path.exists(_SCALER_PATH):
+            import tensorflow as tf
+            _model = tf.keras.models.load_model(_MODEL_PATH)
+            with open(_SCALER_PATH, "rb") as f:
+                _scaler = pickle.load(f)
+        else:
+            _model, _scaler = _build_and_train()
+            os.makedirs(os.path.dirname(_MODEL_PATH), exist_ok=True)
+            _model.save(_MODEL_PATH)
+            with open(_SCALER_PATH, "wb") as f:
+                pickle.dump(_scaler, f)
     return _model, _scaler
 
 

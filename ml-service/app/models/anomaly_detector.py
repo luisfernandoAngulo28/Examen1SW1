@@ -56,10 +56,25 @@ def _build_and_train():
     return autoencoder, scaler, threshold
 
 
+_MODEL_PATH = "/app/saved_models/anomaly_detector.keras"
+_META_PATH  = "/app/saved_models/anomaly_detector_meta.pkl"
+
 def get_model():
     global _model, _scaler, _threshold
     if _model is None:
-        _model, _scaler, _threshold = _build_and_train()
+        import os, pickle
+        if os.path.exists(_MODEL_PATH) and os.path.exists(_META_PATH):
+            import tensorflow as tf
+            _model = tf.keras.models.load_model(_MODEL_PATH)
+            with open(_META_PATH, "rb") as f:
+                meta = pickle.load(f)
+            _scaler, _threshold = meta["scaler"], meta["threshold"]
+        else:
+            _model, _scaler, _threshold = _build_and_train()
+            os.makedirs(os.path.dirname(_MODEL_PATH), exist_ok=True)
+            _model.save(_MODEL_PATH)
+            with open(_META_PATH, "wb") as f:
+                pickle.dump({"scaler": _scaler, "threshold": _threshold}, f)
     return _model, _scaler, _threshold
 
 
