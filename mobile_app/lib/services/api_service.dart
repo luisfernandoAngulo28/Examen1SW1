@@ -10,7 +10,7 @@ class ApiService {
   // Para dispositivo fisico en WiFi: 'http://192.168.0.2:8080/api'
   // Para emulador Android: 'http://10.0.2.2:8080/api'
   // For cloud deployment: 'https://your-backend.onrender.com/api'
-  static const String defaultBase = 'http://18.231.192.169:4200/api';
+  static const String defaultBase = 'http://54.233.18.87:4200/api';
 
   final String baseUrl;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
