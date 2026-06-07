@@ -144,43 +144,36 @@ export class NewPolicyComponent {
           this.router.navigate(['/policies', p.id, 'editor']);
           return;
         }
-        // Crear nodos de la plantilla
-        this.http.get<any[]>(`${API_BASE}/departments`).subscribe(depts => {
-          const defaultDeptId = depts[0]?.id || '';
-          const nodeIds: string[] = [];
-          let pending = tpl.nodes.length;
-          const createdIds: string[] = new Array(tpl.nodes.length);
-
-          tpl.nodes.forEach((n, i) => {
-            const deptId = depts.find(d => d.name === n.departmentName)?.id || defaultDeptId;
-            this.http.post<any>(`${API_BASE}/policies/${p.id}/nodes`, {
-              title: n.title, nodeType: n.nodeType,
-              departmentId: ['INITIAL','FINAL','FORK','JOIN','DECISION'].includes(n.nodeType) ? null : deptId,
-              positionX: 100 + i * 160, positionY: 100 + (i % 3) * 120,
-            }).subscribe(node => {
-              createdIds[i] = node.id;
-              pending--;
-              if (pending === 0) {
-                // Crear aristas
-                let edgePending = tpl.edges.length || 1;
-                if (tpl.edges.length === 0) { this._done(p.id); return; }
-                tpl.edges.forEach(e => {
-                  this.http.post(`${API_BASE}/policies/${p.id}/edges`, {
-                    fromNodeId: createdIds[e.fromIdx], toNodeId: createdIds[e.toIdx],
-                    flowType: e.flowType, conditionLabel: e.conditionLabel || null,
-                  }).subscribe({ next: () => { edgePending--; if (edgePending === 0) this._done(p.id); }, error: () => { edgePending--; if (edgePending === 0) this._done(p.id); } });
-                });
-              }
-            });
-          });
+        // Generar IDs locales para nodos y construir el grafo completo
+        const nodeIds = tpl.nodes.map((_, i) => `tpl-node-${i}-${Date.now()}`);
+        const nodes = tpl.nodes.map((n, i) => ({
+          id: nodeIds[i],
+          title: n.title,
+          nodeType: n.nodeType,
+          departmentId: null,
+          positionX: 120 + (i % 4) * 180,
+          positionY: 80 + Math.floor(i / 4) * 140,
+        }));
+        const edges = tpl.edges.map((e, i) => ({
+          id: `tpl-edge-${i}-${Date.now()}`,
+          fromNodeId: nodeIds[e.fromIdx],
+          toNodeId: nodeIds[e.toIdx],
+          flowType: e.flowType,
+          conditionLabel: e.conditionLabel || null,
+        }));
+        this.http.put(`${API_BASE}/policies/${p.id}/graph`, { nodes, edges }).subscribe({
+          next: () => {
+            this.toast.show('Política creada con plantilla', 'success');
+            this.router.navigate(['/policies', p.id, 'editor']);
+          },
+          error: () => {
+            // Si falla el graph, igual navegar al editor vacío
+            this.toast.show('Política creada (sin plantilla)', 'success');
+            this.router.navigate(['/policies', p.id, 'editor']);
+          }
         });
       },
       error: () => { this.error = 'Error al crear política'; this.loading = false; }
     });
-  }
-
-  private _done(id: string) {
-    this.toast.show('Política creada con plantilla', 'success');
-    this.router.navigate(['/policies', id, 'editor']);
   }
 }
