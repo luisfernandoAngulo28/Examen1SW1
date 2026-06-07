@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -49,6 +49,26 @@ interface UserOption { id: string; name: string; email: string; }
           @if (caseData.status !== 'COMPLETED' && caseData.status !== 'CANCELLED') {
             <button (click)="cancel()" class="btn btn-danger">✗ Cancelar trámite</button>
           }
+        </div>
+      </div>
+
+      <!-- ══ Progress bar del trámite ══════════════════════════════════════════ -->
+      <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:600;color:var(--text-primary)">Progreso del trámite</span>
+          <span style="font-size:13px;font-weight:700;color:{{ progressPct === 100 ? '#52c41a' : '#1677ff' }}">
+            {{ doneTasks }}/{{ totalTasks }} tareas · {{ progressPct }}%
+          </span>
+        </div>
+        <div style="height:10px;background:var(--border);border-radius:10px;overflow:hidden">
+          <div [style.width]="progressPct + '%'"
+               [style.background]="progressPct === 100 ? '#52c41a' : 'linear-gradient(90deg,#1677ff,#722ed1)'"
+               style="height:100%;border-radius:10px;transition:width .5s ease"></div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--text-secondary)">
+          <span>🟢 {{ doneTasks }} completadas</span>
+          <span>🟡 {{ inProgressTasks }} en progreso</span>
+          <span>🔴 {{ pendingTasks }} pendientes</span>
         </div>
       </div>
 
@@ -146,6 +166,58 @@ interface UserOption { id: string; name: string; email: string; }
       </div>
     }
 
+    <!-- ══ Chat flotante del caso ═══════════════════════════════════════════ -->
+    <div style="position:fixed;bottom:24px;right:24px;z-index:1000">
+      @if (!chatOpen) {
+        <button (click)="chatOpen=true" title="Chat del caso"
+                style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#722ed1,#1677ff);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(114,46,209,.4);display:flex;align-items:center;justify-content:center;position:relative">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          @if (chatMessages.length > 0) {
+            <span style="position:absolute;top:-4px;right:-4px;background:#ff4d4f;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">
+              {{ chatMessages.length > 9 ? '9+' : chatMessages.length }}
+            </span>
+          }
+        </button>
+      } @else {
+        <div style="width:320px;height:420px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden">
+          <div style="background:linear-gradient(135deg,#722ed1,#1677ff);padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="color:#fff;font-weight:700;font-size:14px">Chat del trámite</div>
+              <div style="color:rgba(255,255,255,.7);font-size:11px">{{ chatMessages.length }} mensajes</div>
+            </div>
+            <button (click)="chatOpen=false" style="background:none;border:none;color:#fff;cursor:pointer;font-size:18px;line-height:1">×</button>
+          </div>
+          <div #chatScroll style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f8f9fa">
+            @if (chatMessages.length === 0) {
+              <div style="text-align:center;color:#999;font-size:12px;margin-top:40px">
+                💬 Sé el primero en escribir
+              </div>
+            }
+            @for (m of chatMessages; track $index) {
+              <div [style.align-self]="m.userId === myChatUserId ? 'flex-end' : 'flex-start'"
+                   style="max-width:85%">
+                <div style="font-size:10px;color:#999;margin-bottom:2px;padding:0 4px">{{ m.userName }}</div>
+                <div [style.background]="m.userId === myChatUserId ? '#722ed1' : '#fff'"
+                     [style.color]="m.userId === myChatUserId ? '#fff' : '#333'"
+                     style="padding:8px 12px;border-radius:12px;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+                  {{ m.content }}
+                </div>
+              </div>
+            }
+          </div>
+          <div style="padding:10px;border-top:1px solid #eee;display:flex;gap:8px;background:#fff">
+            <input #chatInput [(ngModel)]="chatText" (keyup.enter)="sendChat()"
+                   placeholder="Escribe un mensaje..."
+                   style="flex:1;border:1px solid #ddd;border-radius:20px;padding:7px 14px;font-size:13px;outline:none" />
+            <button (click)="sendChat()" [disabled]="!chatText.trim()"
+                    style="background:#722ed1;color:#fff;border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
     <!-- ══ Motor Inteligente de Enrutamiento — Risk Warning Modal ═══════════ -->
     @if (riskWarning) {
       <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1500;display:flex;align-items:center;justify-content:center">
@@ -189,6 +261,11 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
   wsConnected = false;
   riskWarning: any = null;
   pendingCompletion: { taskId: string; chosenEdgeLabel?: string } | null = null;
+  chatOpen = false;
+  chatText = '';
+  chatMessages: { userId: string; userName: string; color: string; content: string }[] = [];
+  myChatUserId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+  @ViewChild('chatScroll') chatScrollEl?: ElementRef;
 
   readonly statusColor: Record<string, string> = { PENDING: '#999', IN_PROGRESS: '#fa8c16', DONE: '#52c41a', BLOCKED: '#ff4d4f' };
   private id = '';
@@ -200,6 +277,12 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
   get visibleTasks() {
     return (this.caseData?.tasks || []).filter(t => !['INITIAL', 'FORK', 'JOIN', 'FINAL'].includes(t.node.nodeType || 'ACTION'));
   }
+
+  get doneTasks() { return (this.caseData?.tasks || []).filter(t => t.status === 'DONE').length; }
+  get inProgressTasks() { return (this.caseData?.tasks || []).filter(t => t.status === 'IN_PROGRESS').length; }
+  get pendingTasks() { return (this.caseData?.tasks || []).filter(t => t.status === 'PENDING').length; }
+  get totalTasks() { return Math.max(this.caseData?.tasks.length || 1, 1); }
+  get progressPct() { return Math.round((this.doneTasks / this.totalTasks) * 100); }
 
   ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id')!;
@@ -223,10 +306,37 @@ export class CaseDetailComponent implements OnInit, OnDestroy {
             this.load();
           }
         });
+        // Chat del caso en tiempo real
+        this.stompClient!.subscribe(`/topic/document/case-${this.id}/notes`, (msg) => {
+          const note = JSON.parse(msg.body);
+          this.chatMessages.push({ userId: note.userId, userName: note.userName, color: note.color, content: note.content });
+          setTimeout(() => {
+            const el = this.chatScrollEl?.nativeElement;
+            if (el) el.scrollTop = el.scrollHeight;
+          }, 50);
+        });
       },
       onDisconnect: () => this.wsConnected = false,
     });
     this.stompClient.activate();
+  }
+
+  sendChat() {
+    if (!this.chatText.trim() || !this.stompClient?.connected) return;
+    const myName = this._getMyChatName();
+    this.stompClient.publish({
+      destination: `/app/document/case-${this.id}/note`,
+      body: JSON.stringify({ userId: this.myChatUserId, userName: myName, color: '#722ed1', content: this.chatText.trim() }),
+    });
+    this.chatText = '';
+  }
+
+  private _getMyChatName(): string {
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+      if (token) { const p = JSON.parse(atob(token.split('.')[1])); return p.name || p.sub || 'Usuario'; }
+    } catch { }
+    return 'Usuario';
   }
 
   load() {

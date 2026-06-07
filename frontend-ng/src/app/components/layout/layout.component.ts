@@ -1,7 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { Client } from '@stomp/stompjs';
+import { API_BASE } from '../../api';
+
+const WS_BASE = API_BASE.replace('/api', '').replace('http://', 'ws://').replace('https://', 'wss://');
 
 @Component({
   selector: 'app-layout',
@@ -85,6 +89,39 @@ import { AuthService } from '../../services/auth.service';
         </nav>
 
         <div class="sidebar-footer">
+          <!-- Notificaciones -->
+          <div style="position:relative;margin-bottom:10px">
+            <button (click)="toggleNotif()" style="width:100%;padding:8px 12px;background:rgba(255,255,255,.04);color:#8896ab;border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:8px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Notificaciones
+              </div>
+              @if (unreadCount > 0) {
+                <span style="background:#ff4d4f;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+              }
+            </button>
+            @if (notifOpen) {
+              <div style="position:absolute;bottom:44px;left:0;right:0;background:#1e2433;border:1px solid rgba(255,255,255,.1);border-radius:12px;max-height:260px;overflow-y:auto;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.4)">
+                <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;align-items:center">
+                  <span style="color:#fff;font-size:13px;font-weight:600">Actividad reciente</span>
+                  <button (click)="clearNotifs()" style="background:none;border:none;color:#8896ab;cursor:pointer;font-size:11px">Limpiar</button>
+                </div>
+                @if (notifications.length === 0) {
+                  <div style="padding:20px;text-align:center;color:#8896ab;font-size:12px">Sin notificaciones</div>
+                }
+                @for (n of notifications; track $index) {
+                  <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;align-items:flex-start">
+                    <span style="font-size:16px">{{ n.icon }}</span>
+                    <div>
+                      <div style="color:#e2e8f0;font-size:12px">{{ n.text }}</div>
+                      <div style="color:#8896ab;font-size:10px;margin-top:2px">{{ n.time }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
           <div class="user-info">
             <div class="avatar">{{ user?.name?.charAt(0)?.toUpperCase() }}</div>
             <div>
@@ -105,8 +142,50 @@ import { AuthService } from '../../services/auth.service';
     </div>
   `
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
+  notifications: { icon: string; text: string; time: string }[] = [];
+  unreadCount = 0;
+  notifOpen = false;
+  private ws?: Client;
+
   get user() { return this.auth.user(); }
   logout() { this.auth.logout(); }
+
+  ngOnInit() {
+    this.ws = new Client({
+      brokerURL: `${WS_BASE}/ws/websocket`,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        this.ws!.subscribe('/topic/events', (msg) => {
+          const p = JSON.parse(msg.body);
+          const iconMap: Record<string, string> = { 'task:completed': '✅', 'task:assigned': '👤', 'case:completed': '🎉', 'case:cancelled': '❌', 'task:created': '🆕' };
+          const textMap: Record<string, string> = {
+            'task:completed': 'Tarea completada',
+            'task:assigned': 'Tarea asignada',
+            'case:completed': 'Trámite completado',
+            'case:cancelled': 'Trámite cancelado',
+            'task:created': 'Nueva tarea creada',
+          };
+          if (iconMap[p.type]) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+            this.notifications.unshift({ icon: iconMap[p.type], text: textMap[p.type] || p.type, time });
+            if (this.notifications.length > 20) this.notifications.pop();
+            if (!this.notifOpen) this.unreadCount++;
+          }
+        });
+      },
+    });
+    this.ws.activate();
+  }
+
+  ngOnDestroy() { this.ws?.deactivate(); }
+
+  toggleNotif() {
+    this.notifOpen = !this.notifOpen;
+    if (this.notifOpen) this.unreadCount = 0;
+  }
+
+  clearNotifs() { this.notifications = []; this.unreadCount = 0; }
 }
