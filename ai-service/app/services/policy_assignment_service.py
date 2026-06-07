@@ -90,9 +90,15 @@ class PolicyAssignmentService:
                 '{"policyId": "<id>", "policyName": "<nombre>", '
                 '"confidence": <0.0-1.0>, "explanation": "<razón breve en español>"}'
             )
-            client = openai.OpenAI(api_key=api_key)
+            groq_key = os.getenv("GROQ_API_KEY", "").strip()
+            if groq_key:
+                client = openai.OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+                model = "llama-3.1-8b-instant"
+            else:
+                client = openai.OpenAI(api_key=api_key)
+                model = "gpt-4o-mini"
             resp = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
                 temperature=0,
