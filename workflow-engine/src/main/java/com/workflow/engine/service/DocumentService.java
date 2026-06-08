@@ -133,7 +133,7 @@ public class DocumentService {
         doc.getAuditLogs().add(audit);
         documentRepository.save(doc);
 
-        if (!s3Available) {
+        if (!s3Available || doc.getS3Key() == null || doc.getS3Key().isBlank()) {
             return "/api/documents/" + docId + "/content";
         }
 

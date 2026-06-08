@@ -57,7 +57,7 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
       <!-- ── Panel ML / TensorFlow (Mejora 5) ── -->
       @if (ml) {
         <div style="margin-bottom:28px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
             <h2 style="font-size:16px;font-weight:700;margin:0">Predicciones IA</h2>
             <span [style.background]="ml.mlAvailable ? '#f6ffed' : '#fffbe6'"
                   [style.color]="ml.mlAvailable ? '#52c41a' : '#d48806'"
@@ -65,6 +65,11 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                   style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px">
               {{ ml.mlAvailable ? '🤖 TensorFlow activo' : '📐 Heurísticas locales' }}
             </span>
+            @if (mlError) {
+              <span style="font-size:11px;color:#cf1322;background:#fff2f0;border:1px solid #ffccc7;padding:2px 8px;border-radius:10px">
+                ⚠ Servicio ML no disponible — mostrando datos vacíos
+              </span>
+            }
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
@@ -211,6 +216,7 @@ export class DashboardComponent implements OnInit {
   policies: Policy[] = [];
   stats: Stats | null = null;
   ml: MlDashboard | null = null;
+  mlError = false;
   caseNameMap: Record<string, string> = {};
   private http = inject(HttpClient);
   readonly auth = inject(AuthService);
@@ -222,7 +228,13 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.http.get<Policy[]>(`${API_BASE}/policies`).subscribe(d => this.policies = d);
     this.http.get<Stats>(`${API_BASE}/analytics/dashboard`).subscribe({ next: d => this.stats = d, error: () => {} });
-    this.http.get<MlDashboard>(`${API_BASE}/ml/dashboard`).subscribe({ next: d => this.ml = d, error: () => {} });
+    this.http.get<MlDashboard>(`${API_BASE}/ml/dashboard`).subscribe({
+      next: d => { this.ml = d; this.mlError = false; },
+      error: () => {
+        this.mlError = true;
+        this.ml = { delayRisk: [], priority: [], anomalies: [], activeCases: 0, mlAvailable: false };
+      }
+    });
     this.http.get<CaseRef[]>(`${API_BASE}/cases`).subscribe({
       next: cases => cases.forEach((c, i) => {
         this.caseNameMap[c.id] = (c.policy?.name ?? 'Trámite') + ` #${i + 1}`;

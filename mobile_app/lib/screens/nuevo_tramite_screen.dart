@@ -69,8 +69,16 @@ class _NuevoTramiteScreenState extends State<NuevoTramiteScreen>
       _errorMsg = '';
     });
 
+    // Intenta es_BO, si no está disponible usa es genérico
+    final locales = await _speech.locales();
+    final localeId = locales.any((l) => l.localeId == 'es_BO')
+        ? 'es_BO'
+        : locales.any((l) => l.localeId.startsWith('es'))
+            ? locales.firstWhere((l) => l.localeId.startsWith('es')).localeId
+            : 'en_US';
+
     await _speech.listen(
-      localeId: 'es_BO',
+      localeId: localeId,
       listenFor: const Duration(seconds: 10),
       pauseFor: const Duration(seconds: 3),
       onResult: (result) {
