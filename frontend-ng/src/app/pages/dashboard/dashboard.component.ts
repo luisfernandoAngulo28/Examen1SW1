@@ -10,7 +10,7 @@ interface Stats { totalCases: number; activeCases: number; completedCases: numbe
 interface CaseRef { id: string; status: string; policy: { id: string; name: string } | null; }
 
 interface RiskItem   { case_id: string; risk_score: number; risk_level: string; recommendation: string; }
-interface PrioItem   { task_id: string; task_title: string; department: string; priority_score: number; priority_label: string; }
+interface PrioItem   { task_id: string; task_title: string; department: string; priority_score: number; priority_label: string; sla_breach: number; }
 interface AnomalyItem { case_id: string; policy_name: string; is_anomaly: boolean; score: number; description: string; }
 interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: AnomalyItem[]; activeCases: number; mlAvailable: boolean; }
 
@@ -107,14 +107,22 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
               } @else {
                 <div style="max-height:200px;overflow-y:auto">
                   @for (p of ml.priority; track p.task_id) {
-                    <div style="padding:8px 14px;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px">
+                    <div [style.background]="p.sla_breach ? '#fff0f0' : 'transparent'"
+                         style="padding:8px 14px;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:8px">
                       <span [style.background]="p.priority_label==='CRITICAL'?'#fff1f0':p.priority_label==='HIGH'?'#fff7e6':p.priority_label==='NORMAL'?'#f0f5ff':'#f5f5f5'"
                             [style.color]="p.priority_label==='CRITICAL'?'#cf1322':p.priority_label==='HIGH'?'#d46b08':p.priority_label==='NORMAL'?'#1677ff':'#888'"
                             style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0">
                         {{ p.priority_label === 'CRITICAL' ? '🔴' : p.priority_label === 'HIGH' ? '🟠' : p.priority_label === 'NORMAL' ? '🔵' : '⚪' }}
                       </span>
                       <div style="flex:1;min-width:0">
-                        <div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.task_title }}</div>
+                        <div style="display:flex;align-items:center;gap:4px">
+                          <span style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.task_title }}</span>
+                          @if (p.sla_breach) {
+                            <span style="font-size:9px;font-weight:800;background:#ff4d4f;color:#fff;padding:1px 5px;border-radius:6px;flex-shrink:0;letter-spacing:.3px">
+                              ⏰ SLA EXCEDIDO
+                            </span>
+                          }
+                        </div>
                         <div style="font-size:10px;color:#999">{{ p.department }} · {{ p.priority_score | number:'1.0-0' }}pts</div>
                       </div>
                     </div>

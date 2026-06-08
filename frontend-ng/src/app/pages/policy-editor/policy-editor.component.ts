@@ -409,6 +409,52 @@ function nodeColor(type: string) {
                 {{ savingForm ? 'Guardando...' : 'Guardar formulario' }}
               </button>
 
+              <!-- Document permissions section -->
+              <hr style="margin:16px 0;border-color:var(--border)">
+              <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#722ed1" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span style="color:#722ed1">Acceso a documentos en este nodo</span>
+              </h4>
+              <select [(ngModel)]="nodeDocPermission" class="form-input" style="margin-bottom:4px" (ngModelChange)="onDocPermChange($event)">
+                <option value="NONE">Sin acceso — los funcionarios no ven documentos</option>
+                <option value="VIEW">Solo ver — pueden visualizar, no subir</option>
+                <option value="VIEW_EDIT">Ver y modificar — pueden subir archivos</option>
+                <option value="FULL">Acceso completo — pueden subir y eliminar</option>
+              </select>
+              <p style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">Este permiso se guarda al presionar <strong>Guardar</strong> en el encabezado.</p>
+
+              <!-- SLA section -->
+              <hr style="margin:16px 0;border-color:var(--border)">
+              <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d48806" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span style="color:#d48806">Tiempo límite por nodo (SLA)</span>
+              </h4>
+              <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+                <input type="number" [(ngModel)]="nodeSlaHours" min="1" max="720"
+                  placeholder="Sin límite" class="form-input" style="width:110px;font-size:13px"
+                  (ngModelChange)="onSlaChange($event)" />
+                <span style="font-size:12px;color:var(--text-secondary)">horas</span>
+              </div>
+              <p style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">
+                Si la tarea supera este tiempo, el dashboard la marca en rojo para reasignación a otro funcionario.
+                Se guarda al presionar <strong>Guardar</strong>.
+              </p>
+
+              <!-- Voice form fill toggle -->
+              <hr style="margin:16px 0;border-color:var(--border)">
+              <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1677ff" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                <span style="color:#1677ff">Formulario por voz</span>
+              </h4>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px">
+                <input type="checkbox" [(ngModel)]="nodeVoiceEnabled" (ngModelChange)="onVoiceEnabledChange($event)" style="width:16px;height:16px" />
+                <span style="font-size:13px">Habilitar llenado por voz en este nodo</span>
+              </label>
+              <p style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">
+                El funcionario podrá dictar su descripción y la IA llenará el formulario automáticamente.
+                Se guarda al presionar <strong>Guardar</strong>.
+              </p>
+
               <!-- Requirements section -->
               <hr style="margin:16px 0;border-color:var(--border)">
               <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px">
@@ -454,6 +500,9 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
   selectedNodeTitle = '';
   formFields: { name: string; label: string; type: string; required: boolean; columns?: string; buttonLabel?: string }[] = [];
   nodeRequirements: { name: string; description: string; required: boolean }[] = [];
+  nodeDocPermission = 'VIEW_EDIT';
+  nodeSlaHours: number | null = null;
+  nodeVoiceEnabled = false;
   savingForm = false;
   rightTab: 'ai' | 'form' = 'ai';
   aiPrompt = '';
@@ -516,7 +565,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
     return {
       id: n.id || uuid(),
       label: n.title || n.nodeType,
-      data: { nodeType: n.nodeType, deptName, departmentId: n.departmentId, positionX: px, positionY: py },
+      data: { nodeType: n.nodeType, deptName, departmentId: n.departmentId, positionX: px, positionY: py, documentPermission: n.documentPermission || 'VIEW_EDIT', slaHours: n.slaHours ?? null, voiceEnabled: n.voiceEnabled ?? false },
       dimension: { width: 140, height: 50 },
       position: { x: px, y: py },
     };
@@ -581,6 +630,15 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
         this.nodeRequirements = (node_?.requirements ?? []).map((r: any) => ({
           name: r.name ?? '', description: r.description ?? '', required: r.required ?? true
         }));
+        this.nodeDocPermission = node_?.documentPermission ?? 'VIEW_EDIT';
+        this.nodeSlaHours = node_?.slaHours ?? null;
+        this.nodeVoiceEnabled = node_?.voiceEnabled ?? false;
+        // Keep graphNodes in sync so save() picks up the persisted values
+        this.graphNodes = this.graphNodes.map(gn =>
+          gn.id === this.selectedNodeId
+            ? { ...gn, data: { ...gn.data, documentPermission: this.nodeDocPermission, slaHours: this.nodeSlaHours, voiceEnabled: this.nodeVoiceEnabled } }
+            : gn
+        );
       },
       error: () => { this.nodeRequirements = []; }
     });
@@ -593,6 +651,30 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
 
   addRequirement() { this.nodeRequirements.push({ name: '', description: '', required: true }); }
   removeRequirement(i: number) { this.nodeRequirements.splice(i, 1); }
+
+  onDocPermChange(perm: string) {
+    this.graphNodes = this.graphNodes.map(n =>
+      n.id === this.selectedNodeId
+        ? { ...n, data: { ...n.data, documentPermission: perm } }
+        : n
+    );
+  }
+
+  onSlaChange(hours: number | null) {
+    this.graphNodes = this.graphNodes.map(n =>
+      n.id === this.selectedNodeId
+        ? { ...n, data: { ...n.data, slaHours: hours } }
+        : n
+    );
+  }
+
+  onVoiceEnabledChange(enabled: boolean) {
+    this.graphNodes = this.graphNodes.map(n =>
+      n.id === this.selectedNodeId
+        ? { ...n, data: { ...n.data, voiceEnabled: enabled } }
+        : n
+    );
+  }
 
   saveRequirements() {
     if (!this.selectedNodeId) return;
@@ -678,6 +760,9 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
       departmentId: n.data?.['departmentId'],
       positionX: n.position?.x ?? n.data?.['positionX'] ?? i * 200,
       positionY: n.position?.y ?? n.data?.['positionY'] ?? 100,
+      documentPermission: n.data?.['documentPermission'] || 'VIEW_EDIT',
+      slaHours: n.data?.['slaHours'] ?? null,
+      voiceEnabled: n.data?.['voiceEnabled'] ?? false,
     }));
     const edges = this.graphLinks.map(l => ({
       fromNodeId: l.source,

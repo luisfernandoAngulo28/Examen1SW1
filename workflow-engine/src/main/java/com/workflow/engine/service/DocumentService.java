@@ -31,7 +31,7 @@ public class DocumentService {
     @Value("${aws.s3.bucket:}")
     private String bucket;
 
-    @Value("${aws.s3.region:us-east-1}")
+    @Value("${aws.region:${aws.s3.region:sa-east-1}}")
     private String region;
 
     @Value("${aws.access-key-id:}")

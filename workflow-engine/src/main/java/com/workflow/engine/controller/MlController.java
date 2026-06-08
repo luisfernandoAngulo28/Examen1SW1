@@ -102,12 +102,15 @@ public class MlController {
                     ? p.getNodes().stream().filter(n -> n.getFormTemplate() != null).count() / Math.max(p.getNodes().size(), 1.0)
                     : 0.3;
 
-            // Real dept load: find the current active task's department
+            // Real dept load + active node SLA from policy config
             double deptLoadRatio = 0.5;
+            double nodeSlaLimit = 48.0;
             if (p != null) {
                 Map<String, String> nodeIdToDeptId = p.getNodes().stream()
                         .filter(n -> n.getDepartmentId() != null)
                         .collect(Collectors.toMap(PolicyNode::getId, PolicyNode::getDepartmentId, (a, b) -> a));
+                Map<String, PolicyNode> nodeById = p.getNodes().stream()
+                        .collect(Collectors.toMap(PolicyNode::getId, n -> n, (a, b) -> a));
                 Optional<Task> activeTask = c.getTasks().stream()
                         .filter(t -> t.getStatus() == TaskStatus.IN_PROGRESS || t.getStatus() == TaskStatus.PENDING)
                         .findFirst();
@@ -115,6 +118,10 @@ public class MlController {
                     String deptId = nodeIdToDeptId.get(activeTask.get().getNodeId());
                     if (deptId != null) {
                         deptLoadRatio = (double) deptPendingCount.getOrDefault(deptId, 0L) / maxDeptPending;
+                    }
+                    PolicyNode activeNode = nodeById.get(activeTask.get().getNodeId());
+                    if (activeNode != null && activeNode.getSlaHours() != null) {
+                        nodeSlaLimit = activeNode.getSlaHours().doubleValue();
                     }
                 }
             }
@@ -125,7 +132,7 @@ public class MlController {
             feat.put("pending_task_ratio", totalTasks > 0 ? (double) pendingTasks / totalTasks : 0);
             feat.put("dept_load_ratio", deptLoadRatio);
             feat.put("task_complexity", complexity);
-            feat.put("sla_ratio", hoursElapsed / 48.0);
+            feat.put("sla_ratio", hoursElapsed / nodeSlaLimit);
             riskFeatures.add(feat);
         }
 
@@ -166,8 +173,9 @@ public class MlController {
                 feat.put("task_id", t.getId());
                 feat.put("task_title", node.getTitle() != null ? node.getTitle() : "Tarea");
                 feat.put("department", deptId != null ? deptNames.getOrDefault(deptId, "Sin dept") : "Sin dept");
+                double slaLimit = node.getSlaHours() != null ? node.getSlaHours().doubleValue() : 48.0;
                 feat.put("hours_waiting", hoursWaiting);
-                feat.put("sla_breach", hoursWaiting > 48 ? 1.0 : 0.0);
+                feat.put("sla_breach", hoursWaiting > slaLimit ? 1.0 : 0.0);
                 feat.put("case_risk", caseRiskMap.getOrDefault(c.getId(), 0.5));
                 feat.put("dept_overload", deptOverload);
                 feat.put("client_case", c.getClientId() != null ? 1.0 : 0.0);
@@ -210,9 +218,22 @@ public class MlController {
         if (priorityResults == null) priorityResults = heuristicPriority(priorityFeatures);
         if (anomalyResults == null)  anomalyResults  = heuristicAnomaly(anomalyFeatures);
 
+        // ── Merge sla_breach from features into priority results ───────────────
+        Map<String, Double> slaBreach = new HashMap<>();
+        for (Map<String, Object> f : priorityFeatures) {
+            if (f.get("task_id") != null) {
+                slaBreach.put(f.get("task_id").toString(), toDouble(f.get("sla_breach")));
+            }
+        }
+        List<Map<String, Object>> priorityWithSla = priorityResults.stream().map(r -> {
+            Map<String, Object> m = new LinkedHashMap<>(r);
+            m.put("sla_breach", slaBreach.getOrDefault(r.get("task_id") != null ? r.get("task_id").toString() : "", 0.0));
+            return m;
+        }).toList();
+
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("delayRisk",    riskResults);
-        response.put("priority",     priorityResults.stream().limit(10).toList());
+        response.put("priority",     priorityWithSla.stream().limit(10).toList());
         response.put("anomalies",    anomalyResults.stream().filter(r -> Boolean.TRUE.equals(r.get("is_anomaly"))).toList());
         response.put("activeCases",  activeCases.size());
         response.put("mlAvailable",  mlServiceUrl != null && !mlServiceUrl.isBlank());

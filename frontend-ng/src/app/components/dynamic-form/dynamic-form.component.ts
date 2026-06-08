@@ -21,7 +21,8 @@ export interface FormField {
   standalone: true,
   imports: [CommonModule, FormsModule, DecimalPipe],
   template: `
-    <!-- Barra de dictado holístico NLP -->
+    <!-- Barra de dictado holístico NLP — solo visible si el nodo tiene voiceEnabled -->
+    @if (voiceEnabled) {
     <div style="background:linear-gradient(135deg,#e6f4ff,#f0f9ff);border:1px solid #91caff;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;font-weight:600;color:#1677ff;display:inline-flex;align-items:center;gap:4px">
@@ -48,6 +49,7 @@ export interface FormField {
         </div>
       }
     </div>
+    } <!-- /voiceEnabled NLP bar -->
 
     <div class="dynamic-form-grid">
       @for (field of fields; track field.name) {
@@ -64,17 +66,19 @@ export interface FormField {
           </label>
           @if (field.type === 'textarea') {
             <div style="position:relative">
-              <textarea class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" style="padding-right:36px"></textarea>
-              <button type="button" (click)="voiceInput(field.name)"
-                [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
-                style="position:absolute;right:6px;top:6px;background:none;border:none;cursor:pointer;display:inline-flex;align-items:center"
-                title="Dictar por voz">
-                @if (listeningField === field.name) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4d4f" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-                } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                }
-              </button>
+              <textarea class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" [style.padding-right]="voiceEnabled ? '36px' : null"></textarea>
+              @if (voiceEnabled) {
+                <button type="button" (click)="voiceInput(field.name)"
+                  [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
+                  style="position:absolute;right:6px;top:6px;background:none;border:none;cursor:pointer;display:inline-flex;align-items:center"
+                  title="Dictar por voz">
+                  @if (listeningField === field.name) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff4d4f" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  }
+                </button>
+              }
             </div>
           } @else if (field.type === 'select') {
             <div style="display:flex;gap:4px;align-items:center">
@@ -84,28 +88,32 @@ export interface FormField {
                   <option [value]="opt">{{ opt }}</option>
                 }
               </select>
-              <button type="button" (click)="voiceSelect(field.name, field.options || [])"
-                [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
-                class="btn btn-ghost btn-sm" title="Elegir opción por voz" style="display:inline-flex;align-items:center;flex-shrink:0">
-                @if (listeningField === field.name) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-                } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                }
-              </button>
+              @if (voiceEnabled) {
+                <button type="button" (click)="voiceSelect(field.name, field.options || [])"
+                  [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
+                  class="btn btn-ghost btn-sm" title="Elegir opción por voz" style="display:inline-flex;align-items:center;flex-shrink:0">
+                  @if (listeningField === field.name) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  }
+                </button>
+              }
             </div>
           } @else if (field.type === 'text') {
             <div style="display:flex;gap:4px">
               <input type="text" class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" style="flex:1" />
-              <button type="button" (click)="voiceInput(field.name)"
-                [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
-                class="btn btn-ghost btn-sm" title="Dictar campo" style="display:inline-flex;align-items:center">
-                @if (listeningField === field.name) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-                } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                }
-              </button>
+              @if (voiceEnabled) {
+                <button type="button" (click)="voiceInput(field.name)"
+                  [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
+                  class="btn btn-ghost btn-sm" title="Dictar campo" style="display:inline-flex;align-items:center">
+                  @if (listeningField === field.name) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  }
+                </button>
+              }
             </div>
           } @else if (field.type === 'grid') {
             <div style="border:1px solid #d9d9d9;border-radius:6px;overflow:hidden">
@@ -153,28 +161,32 @@ export interface FormField {
           } @else if (field.type === 'number') {
             <div style="display:flex;gap:4px">
               <input type="number" class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" style="flex:1" />
-              <button type="button" (click)="voiceNumber(field.name)"
-                [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
-                class="btn btn-ghost btn-sm" title="Dictar número" style="display:inline-flex;align-items:center;flex-shrink:0">
-                @if (listeningField === field.name) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-                } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                }
-              </button>
+              @if (voiceEnabled) {
+                <button type="button" (click)="voiceNumber(field.name)"
+                  [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
+                  class="btn btn-ghost btn-sm" title="Dictar número" style="display:inline-flex;align-items:center;flex-shrink:0">
+                  @if (listeningField === field.name) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  }
+                </button>
+              }
             </div>
           } @else if (field.type === 'date') {
             <div style="display:flex;gap:4px">
               <input type="date" class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" style="flex:1" />
-              <button type="button" (click)="voiceDate(field.name)"
-                [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
-                class="btn btn-ghost btn-sm" title="Dictar fecha" style="display:inline-flex;align-items:center;flex-shrink:0">
-                @if (listeningField === field.name) {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
-                } @else {
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                }
-              </button>
+              @if (voiceEnabled) {
+                <button type="button" (click)="voiceDate(field.name)"
+                  [style.color]="listeningField === field.name ? '#ff4d4f' : 'var(--text-secondary)'"
+                  class="btn btn-ghost btn-sm" title="Dictar fecha" style="display:inline-flex;align-items:center;flex-shrink:0">
+                  @if (listeningField === field.name) {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="10"/></svg>
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  }
+                </button>
+              }
             </div>
           } @else {
             <input [type]="field.type" class="form-input" [(ngModel)]="values[field.name]" [required]="!!field.required" />
@@ -191,6 +203,8 @@ export interface FormField {
 export class DynamicFormComponent {
   @Input() set schema(s: any) { this.fields = this._parseSchema(s); }
   @Input() set initial(v: any) { if (v) this.values = { ...v }; }
+  /** Si false, oculta todos los controles de voz/NLP del formulario */
+  @Input() voiceEnabled = true;
   @Output() submitted = new EventEmitter<Record<string, any>>();
 
   fields: FormField[] = [];

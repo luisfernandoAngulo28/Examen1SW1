@@ -15,7 +15,7 @@ const WS_BASE = API_BASE.replace('/api', '').replace('http://', 'ws://').replace
 interface Department { id: string; name: string; }
 interface Task {
   id: string; status: string; startedAt: string; finishedAt: string | null;
-  node: { id: string; title: string; nodeType?: string; department: Department };
+  node: { id: string; title: string; nodeType?: string; department: Department; voiceEnabled?: boolean; slaHours?: number | null };
   assignedUser: { id: string; name: string; email: string } | null;
   formSubmission: any;
 }
@@ -132,6 +132,7 @@ interface UserOption { id: string; name: string; email: string; }
                     <app-dynamic-form
                       [schema]="formTemplates[task.node.id]"
                       [initial]="formSubmissions[task.id]"
+                      [voiceEnabled]="task.node.voiceEnabled !== false"
                       (submitted)="submitForm(task.id, $event)" />
                   }
                 </div>
