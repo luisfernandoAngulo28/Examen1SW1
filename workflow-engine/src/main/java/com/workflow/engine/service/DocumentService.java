@@ -82,14 +82,19 @@ public class DocumentService {
         String s3Key  = "cases/" + caseId + "/" + docId + "/" + file.getOriginalFilename();
 
         if (s3Available) {
-            s3.putObject(
-                    PutObjectRequest.builder()
-                            .bucket(bucket)
-                            .key(s3Key)
-                            .contentType(file.getContentType())
-                            .build(),
-                    RequestBody.fromBytes(file.getBytes())
-            );
+            try {
+                s3.putObject(
+                        PutObjectRequest.builder()
+                                .bucket(bucket)
+                                .key(s3Key)
+                                .contentType(file.getContentType())
+                                .build(),
+                        RequestBody.fromBytes(file.getBytes())
+                );
+            } catch (Exception e) {
+                // S3 upload failed — save metadata only (degraded mode)
+                s3Key = null;
+            }
         }
 
         CaseDocument doc = new CaseDocument();
@@ -152,7 +157,7 @@ public class DocumentService {
         CaseDocument doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new RuntimeException("Documento no encontrado"));
 
-        if (s3Available) {
+        if (s3Available && doc.getS3Key() != null && !doc.getS3Key().isBlank()) {
             try {
                 s3.deleteObject(DeleteObjectRequest.builder()
                         .bucket(bucket).key(doc.getS3Key()).build());

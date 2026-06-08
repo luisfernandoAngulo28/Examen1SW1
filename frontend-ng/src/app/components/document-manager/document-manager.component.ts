@@ -477,7 +477,14 @@ export class DocumentManagerComponent implements OnInit {
           this.toast.show(`"${file.name}" subido exitosamente`, 'success');
         }
       },
-      error: () => { this.uploading = false; this.toast.show('Error al subir el archivo', 'error'); }
+      error: (err: any) => {
+        this.uploading = false;
+        const msg = err?.status === 413 ? 'Archivo demasiado grande (máx 50 MB)'
+                  : err?.status === 401 ? 'Sesión expirada — vuelve a iniciar sesión'
+                  : err?.status === 403 ? 'Sin permiso para subir archivos'
+                  : `Error al subir el archivo (${err?.status ?? 'sin conexión'})`;
+        this.toast.show(msg, 'error');
+      }
     });
   }
 
