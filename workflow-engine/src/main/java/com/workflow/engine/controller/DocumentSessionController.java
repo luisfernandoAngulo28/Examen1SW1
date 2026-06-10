@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Gestión de sesiones colaborativas de documentos (REQ 1 — Ciclo 2).
@@ -32,6 +33,9 @@ public class DocumentSessionController {
 
     // docId → userId → UserInfo (en memoria, suficiente para demo)
     private final Map<String, Map<String, UserInfo>> sessions = new ConcurrentHashMap<>();
+
+    // docId → contenido del editor colaborativo (última versión conocida)
+    private final Map<String, String> docContents = new ConcurrentHashMap<>();
 
     // ── DTOs ──────────────────────────────────────────────────────────────────
 
@@ -99,6 +103,27 @@ public class DocumentSessionController {
         messaging.convertAndSend("/topic/document/" + docId + "/notes", note);
     }
 
+    /**
+     * Editor colaborativo en tiempo real.
+     * Cualquier participante envía el contenido completo del texto;
+     * el servidor lo persiste en memoria y lo reenvía a todos los demás.
+     * Payload: { userId, userName, color, content }
+     */
+    @MessageMapping("/document/{docId}/edit")
+    public void edit(@DestinationVariable String docId,
+                     @Payload Map<String, String> payload) {
+        String content = payload.getOrDefault("content", "");
+        docContents.put(docId, content);
+
+        Map<String, Object> update = new LinkedHashMap<>();
+        update.put("userId",   payload.getOrDefault("userId", ""));
+        update.put("userName", payload.getOrDefault("userName", "Anónimo"));
+        update.put("color",    payload.getOrDefault("color", "#722ed1"));
+        update.put("content",  content);
+        update.put("timestamp", Instant.now().toString());
+        messaging.convertAndSend("/topic/document/" + docId + "/edit", update);
+    }
+
     // ── REST: snapshot de la sesión activa ────────────────────────────────────
 
     @ResponseBody
@@ -107,6 +132,12 @@ public class DocumentSessionController {
         List<UserInfo> users = new ArrayList<>(
                 sessions.getOrDefault(docId, Map.of()).values());
         return ResponseEntity.ok(users);
+    }
+
+    @ResponseBody
+    @GetMapping("/api/documents/{docId}/content")
+    public ResponseEntity<Map<String, String>> getContent(@PathVariable String docId) {
+        return ResponseEntity.ok(Map.of("content", docContents.getOrDefault(docId, "")));
     }
 
     // ── Helper ────────────────────────────────────────────────────────────────

@@ -323,57 +323,98 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
           <div style="flex:0 0 35%;background:#fff;display:flex;flex-direction:column">
 
             <!-- Participants -->
-            <div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;background:#fafafa;max-height:160px;overflow-y:auto">
-              <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:.5px;margin-bottom:8px">PARTICIPANTES EN LÍNEA</div>
-              @for (u of collabUsers; track u.userId) {
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                  <div [style.background]="u.color"
-                       style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0">
-                    {{ u.userName.charAt(0).toUpperCase() }}
+            <div style="padding:10px 14px;border-bottom:1px solid #f0f0f0;background:#fafafa">
+              <div style="font-size:10px;font-weight:700;color:#999;letter-spacing:.5px;margin-bottom:6px">PARTICIPANTES EN LÍNEA</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                @for (u of collabUsers; track u.userId) {
+                  <div style="display:flex;align-items:center;gap:5px;background:#f0f0f0;border-radius:20px;padding:3px 10px 3px 4px">
+                    <div [style.background]="u.color"
+                         style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">
+                      {{ u.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span style="font-size:12px;font-weight:600">{{ u.userName }}</span>
+                    <div style="width:7px;height:7px;background:#52c41a;border-radius:50%"></div>
                   </div>
-                  <span style="font-size:13px;font-weight:600;flex:1">{{ u.userName }}</span>
-                  <div style="width:8px;height:8px;background:#52c41a;border-radius:50%" title="En línea"></div>
-                </div>
-              }
-              @if (collabUsers.length === 0) {
-                <div style="font-size:12px;color:#bbb">Conectando...</div>
-              }
+                }
+                @if (collabUsers.length === 0) {
+                  <span style="font-size:12px;color:#bbb">Conectando...</span>
+                }
+              </div>
             </div>
 
-            <!-- Notes stream -->
-            <div #notesArea style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#fafafa">
-              <div style="font-size:11px;color:#bbb;text-align:center;margin-bottom:4px">— Notas y comentarios en tiempo real —</div>
-              @for (n of collabNotes; track $index) {
-                <div [style.align-self]="n.userId === myCollabUserId ? 'flex-end' : 'flex-start'" style="max-width:88%">
-                  @if (n.userId !== myCollabUserId) {
-                    <div style="font-size:10px;color:#999;margin-bottom:2px;margin-left:4px">{{ n.userName }}</div>
+            <!-- Tabs: Editor / Comentarios -->
+            <div style="display:flex;border-bottom:2px solid #f0f0f0;flex-shrink:0">
+              <button (click)="collabTab='editor'"
+                [style.border-bottom]="collabTab==='editor' ? '2px solid #722ed1' : '2px solid transparent'"
+                [style.color]="collabTab==='editor' ? '#722ed1' : '#999'"
+                style="flex:1;padding:8px;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;margin-bottom:-2px">
+                ✏ Editor en vivo
+              </button>
+              <button (click)="collabTab='notes'"
+                [style.border-bottom]="collabTab==='notes' ? '2px solid #1677ff' : '2px solid transparent'"
+                [style.color]="collabTab==='notes' ? '#1677ff' : '#999'"
+                style="flex:1;padding:8px;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;margin-bottom:-2px">
+                💬 Comentarios
+              </button>
+            </div>
+
+            <!-- Tab: Editor colaborativo en tiempo real -->
+            @if (collabTab === 'editor') {
+              <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+                <div style="padding:6px 12px;background:#f6f0ff;border-bottom:1px solid #e9d8fd;font-size:11px;color:#722ed1;display:flex;align-items:center;gap:6px">
+                  <span style="width:8px;height:8px;background:#52c41a;border-radius:50%;display:inline-block"></span>
+                  Edición sincronizada — todos ven los cambios al instante
+                  @if (collabEditingUser && collabEditingUser !== myCollabUserId) {
+                    <span style="margin-left:auto;font-size:10px;color:#888">✍ {{ collabEditingUser }} editando...</span>
                   }
-                  <div [style.background]="n.userId === myCollabUserId ? n.color : '#e8e8e8'"
-                       [style.color]="n.userId === myCollabUserId ? '#fff' : '#333'"
-                       style="padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">
-                    {{ n.content }}
-                  </div>
-                  <div style="font-size:10px;color:#bbb;margin-top:2px" [style.text-align]="n.userId === myCollabUserId ? 'right' : 'left'">
-                    {{ n.timestamp | date:'HH:mm:ss' }}
-                  </div>
                 </div>
-              }
-              @if (collabNotes.length === 0) {
-                <div style="text-align:center;color:#ccc;font-size:12px;margin-top:24px">
-                  Sin notas aún.<br>Sé el primero en escribir.
+                <textarea
+                  [value]="collabEditorContent"
+                  (input)="onCollabEditorInput($event)"
+                  placeholder="Escribe aquí... todos los participantes ven los cambios en tiempo real."
+                  style="flex:1;resize:none;border:none;outline:none;padding:14px;font-size:13px;font-family:monospace;line-height:1.6;background:#fff;color:#222">
+                </textarea>
+                <div style="padding:6px 12px;background:#fafafa;border-top:1px solid #f0f0f0;font-size:10px;color:#bbb;display:flex;justify-content:space-between">
+                  <span>{{ collabEditorContent.length }} caracteres</span>
+                  <span>Sincronizado vía WebSocket</span>
                 </div>
-              }
-            </div>
+              </div>
+            }
 
-            <!-- Note input -->
-            <div style="border-top:1px solid #e8e8e8;padding:10px 12px;background:#fff;display:flex;gap:8px">
-              <input [(ngModel)]="collabNoteText" class="form-input"
-                     placeholder="Escribe una nota para todos..."
-                     style="flex:1;font-size:13px"
-                     (keyup.enter)="sendCollabNote()" />
-              <button (click)="sendCollabNote()" [disabled]="!collabNoteText.trim()"
-                      class="btn btn-primary" style="padding:0 14px;font-size:16px">➤</button>
-            </div>
+            <!-- Tab: Comentarios/notas -->
+            @if (collabTab === 'notes') {
+              <div #notesArea style="flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:#fafafa">
+                <div style="font-size:11px;color:#bbb;text-align:center;margin-bottom:4px">— Comentarios en tiempo real —</div>
+                @for (n of collabNotes; track $index) {
+                  <div [style.align-self]="n.userId === myCollabUserId ? 'flex-end' : 'flex-start'" style="max-width:88%">
+                    @if (n.userId !== myCollabUserId) {
+                      <div style="font-size:10px;color:#999;margin-bottom:2px;margin-left:4px">{{ n.userName }}</div>
+                    }
+                    <div [style.background]="n.userId === myCollabUserId ? n.color : '#e8e8e8'"
+                         [style.color]="n.userId === myCollabUserId ? '#fff' : '#333'"
+                         style="padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">
+                      {{ n.content }}
+                    </div>
+                    <div style="font-size:10px;color:#bbb;margin-top:2px" [style.text-align]="n.userId === myCollabUserId ? 'right' : 'left'">
+                      {{ n.timestamp | date:'HH:mm:ss' }}
+                    </div>
+                  </div>
+                }
+                @if (collabNotes.length === 0) {
+                  <div style="text-align:center;color:#ccc;font-size:12px;margin-top:24px">
+                    Sin comentarios aún.<br>Sé el primero en escribir.
+                  </div>
+                }
+              </div>
+              <div style="border-top:1px solid #e8e8e8;padding:10px 12px;background:#fff;display:flex;gap:8px">
+                <input [(ngModel)]="collabNoteText" class="form-input"
+                       placeholder="Escribe un comentario..."
+                       style="flex:1;font-size:13px"
+                       (keyup.enter)="sendCollabNote()" />
+                <button (click)="sendCollabNote()" [disabled]="!collabNoteText.trim()"
+                        class="btn btn-primary" style="padding:0 14px;font-size:16px">➤</button>
+              </div>
+            }
           </div>
         </div>
       </div>
@@ -412,6 +453,10 @@ export class DocumentManagerComponent implements OnInit {
   safeCollabOfficeUrl: SafeResourceUrl = '';
   myCollabUserId = '';
   myCollabColor = '';
+  collabTab: 'editor' | 'notes' = 'editor';
+  collabEditorContent = '';
+  collabEditingUser = '';
+  private collabEditDebounce: any = null;
   private collabClient: StompClient | null = null;
 
   private http = inject(HttpClient);
@@ -548,6 +593,12 @@ export class DocumentManagerComponent implements OnInit {
     this.collabUsers = [];
     this.collabNotes = [];
     this.collabNoteText = '';
+    this.collabTab = 'editor';
+    this.collabEditorContent = '';
+    this.collabEditingUser = '';
+    // Load existing editor content
+    this.http.get<{ content: string }>(`${API_BASE}/documents/${doc.id}/content`)
+      .subscribe({ next: r => { if (r.content) this.collabEditorContent = r.content; }, error: () => {} });
 
     // Resolve current user info
     const authUser = (this.auth as any).user;
@@ -587,6 +638,15 @@ export class DocumentManagerComponent implements OnInit {
           const note: CollabNote = JSON.parse(msg.body);
           this.collabNotes.push(note);
           setTimeout(() => this.scrollNotes(), 50);
+        });
+        // Subscribe to real-time editor sync
+        this.collabClient!.subscribe(`/topic/document/${doc.id}/edit`, msg => {
+          const update = JSON.parse(msg.body);
+          if (update.userId !== this.myCollabUserId) {
+            this.collabEditorContent = update.content;
+            this.collabEditingUser = update.userName;
+            setTimeout(() => this.collabEditingUser = '', 2000);
+          }
         });
         // Announce presence
         this.collabClient!.publish({
@@ -631,6 +691,26 @@ export class DocumentManagerComponent implements OnInit {
       })
     });
     this.collabNoteText = '';
+  }
+
+  onCollabEditorInput(event: Event) {
+    this.collabEditorContent = (event.target as HTMLTextAreaElement).value;
+    if (!this.collabClient || !this.collabDoc) return;
+    // Debounce 300ms para no saturar el WebSocket con cada tecla
+    clearTimeout(this.collabEditDebounce);
+    this.collabEditDebounce = setTimeout(() => {
+      const authUser = (this.auth as any).user;
+      const userName = typeof authUser === 'function' ? authUser()?.name : authUser?.name;
+      this.collabClient!.publish({
+        destination: `/app/document/${this.collabDoc!.id}/edit`,
+        body: JSON.stringify({
+          userId: this.myCollabUserId,
+          userName: userName ?? 'Usuario',
+          color: this.myCollabColor,
+          content: this.collabEditorContent
+        })
+      });
+    }, 300);
   }
 
   isOfficeDoc(ct: string): boolean {
