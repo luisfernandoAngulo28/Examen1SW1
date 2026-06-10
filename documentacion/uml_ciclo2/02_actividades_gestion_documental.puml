@@ -1,0 +1,153 @@
+@startuml Actividades_Gestion_Documental
+!theme plain
+skinparam ActivityBorderColor #722ed1
+skinparam ActivityBackgroundColor #f9f0ff
+skinparam ActivityDiamondBorderColor #d46b08
+skinparam ActivityDiamondBackgroundColor #fff7e6
+skinparam ArrowColor #555
+skinparam swimlaneBorderColor #d9d9d9
+
+title Diagrama de Actividades — Mejora 1: Gestión Documental con AWS S3\nFlujo completo: subida, descarga, colaboración y auditoría
+
+|#e6f7ff| Cliente / Funcionario |
+|#f6ffed| Sistema (Spring Boot) |
+|#fff7e6| AWS S3 |
+|#f9f0ff| MongoDB |
+
+start
+
+|Cliente / Funcionario|
+:Abre detalle del trámite;
+:Navega a sección **Documentos del Trámite**;
+
+|Sistema (Spring Boot)|
+:Carga lista de documentos
+GET /api/documents/case/{caseId};
+
+|MongoDB|
+:Busca documentos donde
+caseId = X y deleted = false;
+:Retorna lista CaseDocument[];
+
+|Sistema (Spring Boot)|
+:Devuelve metadatos al frontend;
+
+|Cliente / Funcionario|
+fork
+  :Selecciona **Subir archivo**;
+  |Sistema (Spring Boot)|
+  :Recibe multipart/form-data
+  POST /api/documents/upload;
+  if (¿S3 disponible?) then (sí)
+    |AWS S3|
+    :Almacena archivo en
+    bucket flowgov-documents
+    key: cases/{id}/{uuid}/{nombre};
+    if (¿Upload exitoso?) then (sí)
+      |Sistema (Spring Boot)|
+      :Guarda CaseDocument con s3Key;
+    else (error S3)
+      |Sistema (Spring Boot)|
+      :Guarda CaseDocument sin s3Key
+      **(modo degradado)**;
+    endif
+  else (no)
+    |Sistema (Spring Boot)|
+    :Guarda solo metadatos en MongoDB;
+  endif
+  |MongoDB|
+  :Persiste CaseDocument
+  con auditLog UPLOADED;
+  |Cliente / Funcionario|
+  :Ve archivo en la lista ✅;
+
+fork again
+  :Clic en **Descargar**;
+  |Sistema (Spring Boot)|
+  :GET /api/documents/{id}/download-url;
+  :Registra acción DOWNLOADED
+  en auditLog;
+  if (¿s3Key disponible?) then (sí)
+    |AWS S3|
+    :Genera URL pre-firmada
+    válida por 15 minutos;
+    |Sistema (Spring Boot)|
+    :Retorna presigned URL;
+    |Cliente / Funcionario|
+    :Navegador abre archivo
+    directamente desde S3;
+  else (no)
+    |Sistema (Spring Boot)|
+    :Retorna /api/documents/{id}/content
+    (fallback local);
+    |Cliente / Funcionario|
+    :Descarga desde el servidor;
+  endif
+
+fork again
+  :Clic en **✏ Colaborar**;
+  |Sistema (Spring Boot)|
+  :Abre sesión colaborativa
+  WebSocket STOMP;
+  :Usuario envía JOIN a
+  /app/document/{id}/join;
+  :Broadcast lista participantes
+  /topic/document/{id}/session;
+  |Cliente / Funcionario|
+  :Ve avatares de participantes
+  en tiempo real;
+  fork
+    :Escribe en **Editor en vivo**;
+    |Sistema (Spring Boot)|
+    :Recibe cambios en
+    /app/document/{id}/edit;
+    :Persiste contenido en memoria;
+    :Broadcast a todos
+    /topic/document/{id}/edit;
+    |Cliente / Funcionario|
+    :Todos ven el texto actualizado
+    en tiempo real ✅;
+  fork again
+    :Escribe un **Comentario**;
+    |Sistema (Spring Boot)|
+    :Recibe nota en
+    /app/document/{id}/note;
+    :Broadcast a todos
+    /topic/document/{id}/notes;
+    |Cliente / Funcionario|
+    :Todos ven la nota al instante ✅;
+  end fork
+
+fork again
+  :Clic en **🗑 Eliminar**;
+  |Sistema (Spring Boot)|
+  :DELETE /api/documents/{id};
+  if (¿s3Key disponible?) then (sí)
+    |AWS S3|
+    :Elimina objeto del bucket;
+  endif
+  |MongoDB|
+  :Marca documento como
+  deleted = true (soft delete);
+  :Registra acción DELETED
+  en auditLog;
+  |Cliente / Funcionario|
+  :Documento desaparece
+  de la lista ✅;
+
+fork again
+  :Clic en **📋 Historial**;
+  |Sistema (Spring Boot)|
+  :GET /api/documents/{id}/audit;
+  :Registra acción VIEWED;
+  |MongoDB|
+  :Retorna lista de auditLogs;
+  |Cliente / Funcionario|
+  :Ve quién subió, descargó,
+  vio y eliminó + timestamps ✅;
+
+end fork
+
+stop
+
+@enduml

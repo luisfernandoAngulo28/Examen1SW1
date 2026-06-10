@@ -1,0 +1,110 @@
+@startuml Componentes_Arquitectura_Ciclo2
+!theme plain
+skinparam componentStyle rectangle
+skinparam componentBorderColor #555
+skinparam packageBorderColor #999
+skinparam ArrowColor #555
+skinparam DatabaseBorderColor #d46b08
+skinparam CloudBorderColor #1677ff
+
+title Diagrama de Componentes — FlowGov Ciclo 2\nArquitectura de Microservicios desplegada en AWS EC2
+
+' ── Cliente móvil ────────────────────────────────────────────────────────
+node "Dispositivo Móvil\n(Android/iOS)" as MOBILE {
+  [Flutter App\nspeech_to_text\nhttp package] as FLUTTER
+}
+
+' ── Cliente web ──────────────────────────────────────────────────────────
+node "Navegador Web" as BROWSER {
+  [Angular 21 SPA\nWeb Speech API\nSTOMP/WebSocket] as ANGULAR
+}
+
+' ── Servidor EC2 (54.233.18.87) ──────────────────────────────────────────
+node "AWS EC2 — sa-east-1 (São Paulo)\nDocker Compose" as EC2 {
+
+  package "Puerto 4200 — Nginx Reverse Proxy" {
+    [nginx\nclient_max_body_size 55m\nproxy → :8080] as NGINX
+  }
+
+  package "Puerto 8080 — Backend" {
+    [Spring Boot 3\nJava 22\nWorkflow Engine] as BACKEND
+
+    package "Controladores REST" {
+      [PolicyController\nCaseController\nAuthController] as CTRL1
+      [DocumentController\nDocumentSessionController] as CTRL2
+      [MlController\nAiAssistantController\nReportsController] as CTRL3
+      [AgentController\nFormsController] as CTRL4
+    }
+
+    package "Servicios" {
+      [DocumentService\nS3 SDK v2\nPresigned URLs] as DOCSVC
+      [NotificationService\nFirebase FCM] as NOTIF
+      [JwtAuthFilter\nBCrypt] as SEC
+    }
+
+    package "WebSocket STOMP" {
+      [DocumentSessionController\n/topic/document/{id}/session\n/topic/document/{id}/edit\n/topic/document/{id}/notes] as WS
+    }
+  }
+
+  package "Puerto 8000 — AI Service" {
+    [Python FastAPI\nai-service] as AISERVICE
+
+    package "Endpoints IA" {
+      [POST /interpret-voice\n→ mapea audio a campos] as EP1
+      [POST /suggest-policy\n→ identifica política] as EP2
+      [POST /generate-report\n→ reporte NLP] as EP3
+    }
+
+    [Groq SDK\nllama-3.1-8b-instant\nNLP + LLM] as GROQ_SDK
+  }
+
+  package "Puerto 8001 — ML Service" {
+    [Python FastAPI\nml-service] as MLSERVICE
+
+    package "Modelos TensorFlow/Keras" {
+      [delay_risk_model.keras\nRed densa 4 capas\n→ riesgo de demora 0-1] as M1
+      [priority_scorer.keras\nRed densa 3 capas\n→ prioridad 0-100] as M2
+      [anomaly_detector.keras\nAutoencoder 5→2→5\n→ score anomalía] as M3
+    }
+  }
+
+  package "Puerto 27017 — Base de Datos" {
+    database "MongoDB 7\nDocker Volume" as MONGO {
+      [cases\ntasks\npolicies] as COL1
+      [users\ndepartments] as COL2
+      [case_documents\nauditLogs] as COL3
+      [form_templates\nform_submissions] as COL4
+    }
+  }
+}
+
+' ── AWS Cloud ─────────────────────────────────────────────────────────────
+cloud "AWS Cloud" as AWS {
+  storage "S3 Bucket\nflowgov-documents\nsa-east-1 (São Paulo)" as S3BUCKET
+}
+
+' ── API Externa ──────────────────────────────────────────────────────────
+cloud "API Externa" as EXTERNAL {
+  [Groq API\ngsk_xxxx...\nllama-3.1-8b-instant] as GROQ_API
+}
+
+' ── Relaciones ────────────────────────────────────────────────────────────
+FLUTTER --> NGINX      : HTTPS\n/api/*
+ANGULAR --> NGINX      : HTTP\n/api/* + /ws/*
+NGINX --> BACKEND      : proxy_pass\n:8080
+
+BACKEND --> AISERVICE  : HTTP interno\n:8000
+BACKEND --> MLSERVICE  : HTTP interno\n:8001
+BACKEND --> MONGO      : Spring Data\nMongoRepository
+
+DOCSVC --> S3BUCKET    : AWS SDK v2\nputObject / presignGetObject
+AISERVICE --> GROQ_API : REST API\n/chat/completions
+GROQ_SDK --> GROQ_API  : token Bearer
+
+CTRL2 --> DOCSVC
+CTRL3 --> MLSERVICE
+CTRL3 --> AISERVICE
+WS --> BACKEND
+
+@enduml

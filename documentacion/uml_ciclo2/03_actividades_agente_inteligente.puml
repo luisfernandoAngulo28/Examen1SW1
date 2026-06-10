@@ -1,0 +1,124 @@
+@startuml Actividades_Agente_Inteligente
+!theme plain
+skinparam ActivityBorderColor #1677ff
+skinparam ActivityBackgroundColor #e6f7ff
+skinparam ActivityDiamondBorderColor #d46b08
+skinparam ActivityDiamondBackgroundColor #fff7e6
+skinparam ArrowColor #555
+skinparam swimlaneBorderColor #d9d9d9
+
+title Diagrama de Actividades — Mejora 3: Agente Inteligente\nFlujo: Cliente describe → IA identifica política → Inicia trámite
+
+|#e6f7ff| Cliente |
+|#f6ffed| Frontend Angular / Flutter |
+|#fff0f6| Agente IA (Groq LLM) |
+|#f6ffed| Backend Spring Boot |
+|#f9f0ff| MongoDB |
+
+start
+
+|Cliente|
+:Accede a "Iniciar Trámite"
+(/agent o app móvil);
+
+|Frontend Angular / Flutter|
+:Muestra pantalla del agente
+con botón de micrófono 🎤;
+
+|Cliente|
+fork
+  :Habla por voz;
+  |Frontend Angular / Flutter|
+  :Web Speech API captura audio
+  → convierte a texto (transcript);
+fork again
+  :Escribe por texto (prompt);
+end fork
+
+:Texto de la descripción listo;
+
+|Frontend Angular / Flutter|
+:Envía texto al backend
+POST /api/agent/suggest-policy
+{ "description": "..." };
+
+|Backend Spring Boot|
+:Llama al ai-service
+POST http://ai-service:8000/suggest-policy;
+
+|Agente IA (Groq LLM)|
+:Analiza la descripción con NLP
+(llama-3.1-8b-instant);
+:Compara contra políticas activas
+en el contexto del prompt;
+:Genera lista ordenada por confianza
+[{ policyId, policyName, confidence }];
+
+|Backend Spring Boot|
+:Retorna sugerencias al frontend;
+
+|Frontend Angular / Flutter|
+:Muestra la política sugerida
+con nivel de confianza (%);
+
+if (¿Confianza > 70%?) then (sí)
+  :Resalta la política recomendada
+  con badge de confianza alta;
+else (no)
+  :Muestra lista de opciones
+  para elección manual;
+endif
+
+|Cliente|
+:Confirma o cambia la política;
+
+|Frontend Angular / Flutter|
+:Muestra lista de **requisitos
+obligatorios** del nodo inicial
+(configurados por el DESIGNER);
+
+|Cliente|
+:Sube documentos requeridos
+(PDF, imágenes, etc.);
+
+|Frontend Angular / Flutter|
+fork
+  :Valida que todos los documentos
+  obligatorios estén adjuntos;
+  if (¿Todos completos?) then (sí)
+    :Habilita botón "✅ Confirmar
+    e iniciar trámite";
+  else (faltan docs)
+    :Muestra lista de documentos
+    pendientes en rojo;
+    stop
+  endif
+end fork
+
+|Cliente|
+:Confirma el inicio del trámite;
+
+|Backend Spring Boot|
+:POST /api/cases
+{ policyId, clientId, documents };
+
+|MongoDB|
+:Crea nuevo Case con status OPEN;
+:Genera tareas según nodos
+de la política;
+:Persiste documentos adjuntos;
+
+|Backend Spring Boot|
+:Retorna ID del trámite creado;
+
+|Frontend Angular / Flutter|
+:Muestra confirmación
+🎉 "Trámite iniciado ID: xxxxx";
+
+|Cliente|
+:Ve el trámite en "Mis Trámites"
+con estado EN PROCESO ✅;
+
+stop
+
+@enduml

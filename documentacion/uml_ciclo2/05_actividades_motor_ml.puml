@@ -1,0 +1,133 @@
+@startuml Actividades_Motor_ML
+!theme plain
+skinparam ActivityBorderColor #531dab
+skinparam ActivityBackgroundColor #f9f0ff
+skinparam ActivityDiamondBorderColor #d46b08
+skinparam ActivityDiamondBackgroundColor #fff7e6
+skinparam ArrowColor #555
+skinparam swimlaneBorderColor #d9d9d9
+
+title Diagrama de Actividades — Mejora 5: Motor Inteligente de Análisis\nFlujo: Dashboard → TensorFlow → Predicciones → SLA
+
+|#e6f7ff| Frontend (ADMIN) |
+|#f6ffed| Backend Spring Boot |
+|#f9f0ff| ML Service (TensorFlow) |
+|#fff7e6| MongoDB |
+
+start
+
+|Frontend (ADMIN)|
+:Abre Dashboard;
+
+|Backend Spring Boot|
+:GET /api/ml/dashboard;
+
+|MongoDB|
+:Consulta todos los casos
+con status IN_PROGRESS o OPEN;
+:Retorna lista de casos activos
+con tareas y política asociada;
+
+|Backend Spring Boot|
+:Construye features para
+cada modelo:;
+
+fork
+  :━━━ MODELO 1: delay_risk ━━━
+  Features por caso:
+  - hours_elapsed
+  - pending_task_ratio
+  - dept_load_ratio
+  - task_complexity
+  - sla_ratio (hours / slaHours del nodo);
+
+fork again
+  :━━━ MODELO 2: priority_scorer ━━━
+  Features por tarea pendiente:
+  - hours_waiting
+  - sla_breach (1 si > slaHours)
+  - case_risk (del modelo 1)
+  - dept_overload
+  - client_case;
+
+fork again
+  :━━━ MODELO 3: anomaly_detector ━━━
+  Features por caso:
+  - duration_ratio (vs. promedio histórico)
+  - task_skip_ratio
+  - reassign_count
+  - event_density;
+
+end fork
+
+|Backend Spring Boot|
+:Llama al ml-service TensorFlow
+POST http://ml-service:8001/predict/*;
+
+if (¿ml-service responde?) then (sí)
+  |ML Service (TensorFlow)|
+  :Carga modelos .keras desde disco;
+
+  fork
+    :Modelo delay_risk.predict()
+    → risk_score 0.0 a 1.0
+    → risk_level: LOW/MEDIUM/HIGH;
+  fork again
+    :Modelo priority_scorer.predict()
+    → priority_score 0 a 100
+    → label: LOW/NORMAL/HIGH/CRITICAL;
+  fork again
+    :Modelo anomaly_detector.predict()
+    → reconstruction_error
+    → is_anomaly: true/false;
+  end fork
+
+  |ML Service (TensorFlow)|
+  :Retorna predicciones JSON;
+  |Backend Spring Boot|
+  :Badge: **"🤖 TensorFlow activo"**;
+
+else (sin respuesta / timeout 15s)
+  |Backend Spring Boot|
+  :Aplica heurísticas locales Java:
+  risk = hours/96*0.4 + pending*0.35 + sla*0.25
+  priority = hours/48*40 + overload*30
+  anomaly = duration_ratio > 2.0;
+  :Badge: **"📐 Heurísticas locales"**;
+endif
+
+|Backend Spring Boot|
+:Combina sla_breach de las features
+con los resultados de priority;
+:Limita priority a top 10 tareas;
+:Filtra anomalies donde is_anomaly=true;
+
+|Frontend (ADMIN)|
+:Renderiza 3 paneles del dashboard:;
+
+fork
+  :📊 **Riesgo de Demora**
+  - Lista casos con badge ALTO/MEDIO/BAJO
+  - Score % de riesgo
+  - Recomendación de acción;
+fork again
+  :🎯 **Prioridad de Tareas**
+  - Lista tareas ordenadas por score
+  - Si sla_breach=1: badge rojo
+    **"⏰ SLA EXCEDIDO"**
+  - Fondo rojo para tareas críticas;
+fork again
+  :🔍 **Anomalías Detectadas**
+  - Solo casos is_anomaly=true
+  - Score de reconstrucción
+  - Descripción textual;
+end fork
+
+|Frontend (ADMIN)|
+:Si ml-service está caído:
+muestra banner ⚠️
+"Servicio ML no disponible";
+
+stop
+
+@enduml
