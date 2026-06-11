@@ -1,8 +1,45 @@
-# Sistema de Gestión de Políticas de Negocio — WorkflowSW1
+# UNIVERSIDAD AUTÓNOMA GABRIEL RENÉ MORENO
 
-> **Materia:** Ingeniería de Software 1 — Primer Parcial S1-2025  
-> **Autor:** Luis Fernando Angulo  
-> **Repositorio:** [github.com/luisfernandoAngulo28/Examen1SW1](https://github.com/luisfernandoAngulo28/Examen1SW1)
+## Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones
+
+---
+
+## CARÁTULA
+
+&nbsp;
+
+**SISTEMA DE GESTIÓN DE POLÍTICAS DE NEGOCIO — WORKFLOW**
+
+*(FlowGov — Segundo Parcial / Ciclo 2)*
+
+&nbsp;
+
+| Campo | Datos |
+|-------|-------|
+| **Nombre** | Angulo Heredia Luis Fernando |
+| **Registro** | 215001958 |
+| **Docente** | Msc. Martínez Canedo Rolando Antonio |
+| **Grupo** | SC |
+| **Materia** | Ingeniería de Software I |
+| **Gestión** | 1 — 2026 |
+| **Fecha de entrega** | 11 de junio de 2026 — 8:00 AM |
+
+---
+
+### Accesos al Proyecto (Códigos QR)
+
+> Imprimir esta hoja y presentar junto con la documentación.
+
+| Recurso | URL | QR |
+|---------|-----|----|
+| **Código fuente GitHub** | `https://github.com/luisfernandoAngulo28/Examen1SW1` | *(generar QR con la URL)* |
+| **Aplicación web online** | `http://54.233.18.87:4200` | *(generar QR con la URL)* |
+| **App móvil (APK — Drive)** | *(pegar enlace de Drive del APK)* | *(generar QR con el enlace)* |
+| **Tutoriales / Demo video** | *(pegar enlace YouTube/Drive del tutorial)* | *(generar QR con el enlace)* |
+
+> **Para generar los QR:** usar [qr-code-generator.com](https://www.qr-code-generator.com/) o [qrcode-monkey.com](https://www.qrcode-monkey.com/) — pegar la URL y descargar el PNG.
+
+> **El sistema está funcionando 100% en línea** en AWS EC2 `54.233.18.87` — **no requiere localhost**.
 
 ---
 
@@ -46,6 +83,14 @@
   - [Arquitectura C4 — Ciclo 2](#arquitectura-c4--ciclo-2)
   - [Diagramas UML Ciclo 2](#diagramas-uml-ciclo-2)
   - [Comparativa Ciclo 1 vs Ciclo 2](#comparativa-ciclo-1-vs-ciclo-2)
+  - [Análisis de Casos de Uso — Ciclo 2](#análisis-de-casos-de-uso--ciclo-2)
+  - [Diagramas de Secuencia — Ciclo 2](#diagramas-de-secuencia--ciclo-2)
+  - [Diagrama de Comunicación — Edición Colaborativa](#diagrama-de-comunicación--edición-colaborativa-websocket-mejora-1)
+  - [Diagrama de Despliegue — Ciclo 2](#diagrama-de-despliegue--ciclo-2)
+- [Parte III — Mecanismos de Soporte al Usuario](#parte-iii--mecanismos-de-soporte-al-usuario)
+  - [Manual de Usuario](#manual-de-usuario)
+  - [Asistente Inteligente (Óptimo)](#asistente-inteligente-óptimo)
+  - [Tutoriales](#tutoriales)
 - [Anexos — Estándares de Codificación (Clean Code)](#anexos--estándares-de-codificación-clean-code)
 
 ---
@@ -1965,7 +2010,7 @@ Los principios clave de AWS son:
 | Parámetro | Valor |
 |-----------|-------|
 | Nombre del bucket | `flowgov-documents` |
-| Región | `us-east-1` (Virginia del Norte) |
+| Región | `sa-east-1` (São Paulo, Brasil) |
 | SDK utilizado | `software.amazon.awssdk:s3:2.26.12` (AWS SDK for Java v2) |
 | Variables de entorno | `AWS_S3_BUCKET`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
 | Uso | Almacenar documentos adjuntos a los trámites subidos por los funcionarios |
@@ -2019,7 +2064,7 @@ El **Ciclo 2** representa el segundo incremento del proceso de desarrollo bajo l
 | **Gestión Documental AWS S3** | Subida y recuperación de documentos asociados a trámites | AWS SDK v2, bucket S3 |
 | **App Móvil completa** | Login, bandeja de tareas, formularios con voz, seguimiento de trámites | Flutter 3.x, Dart |
 | **Notificaciones Push FCM** | Alertas en tiempo real al móvil sobre cambios en trámites | Firebase Cloud Messaging |
-| **Motor NLP mejorado** | Llenado de formularios por voz con fallback a GPT-4o-mini | FastAPI, OpenAI API |
+| **Motor NLP mejorado** | Llenado de formularios por voz procesado por Groq (llama-3.1-8b-instant) | FastAPI, Groq API |
 | **Dashboard KPIs** | Métricas de rendimiento con predicciones de ML integradas | Angular, Spring Boot, TensorFlow |
 
 #### Arquitectura C4 — Ciclo 2
@@ -2038,10 +2083,11 @@ Los siguientes diagramas modelan los flujos exclusivos del Ciclo 2 usando UML 2.
 
 | Diagrama | Tipo | Archivo | Descripción |
 |----------|------|---------|-------------|
-| Gestión Documental — AWS S3 | Actividad | `docs/uml/ciclo2_act_documentos_s3.puml` | Flujo completo de subida y almacenamiento de documentos adjuntos a trámites |
-| Predicción ML — Riesgo de Demora | Actividad | `docs/uml/ciclo2_act_prediccion_ml.puml` | Inferencia TensorFlow y clasificación por semáforo de riesgo en dashboard |
-| Notificaciones Push — FCM | Actividad | `docs/uml/ciclo2_act_notificaciones_fcm.puml` | Envío de push notifications desde el backend hacia la app móvil Flutter |
-| Llenado de Formulario por Voz | Secuencia | `docs/uml/ciclo2_sec_nlp_formulario.puml` | Interacción completa: habla del funcionario → NLP → formulario pre-llenado |
+| Casos de Uso Ciclo 2 | Casos de Uso | `documentacion/uml_ciclo2/01_casos_uso_ciclo2.puml` | 25 casos de uso — 4 roles humanos + 3 actores sistema (Groq, TensorFlow, S3) |
+| Gestión Documental — AWS S3 | Actividad (swimlane) | `documentacion/uml_ciclo2/02_actividades_gestion_documental.puml` | Flujo completo: subida S3, descarga presigned URL, colaboración WebSocket, soft delete, auditoría |
+| Agente Inteligente — Groq NLP | Actividad (swimlane) | `documentacion/uml_ciclo2/03_actividades_agente_inteligente.puml` | Cliente describe → Groq identifica política → lista requisitos → inicia trámite |
+| Arquitectura de Componentes | Componentes | `documentacion/uml_ciclo2/04_componentes_arquitectura.puml` | Arquitectura completa: nginx, Spring Boot, ai-service, ml-service, MongoDB, S3, Groq |
+| Motor Inteligente ML | Actividad (swimlane) | `documentacion/uml_ciclo2/05_actividades_motor_ml.puml` | TensorFlow 3 modelos en paralelo → predicciones → fallback heurísticas → dashboard SLA |
 
 #### Comparativa Ciclo 1 vs Ciclo 2
 
@@ -2050,12 +2096,534 @@ Los siguientes diagramas modelan los flujos exclusivos del Ciclo 2 usando UML 2.
 | Motor de workflow | ✅ Implementado | ✅ Mejorado con predicciones ML |
 | Editor visual UML | ✅ ngx-graph | ✅ Validaciones avanzadas |
 | Formularios dinámicos | ✅ 8 tipos de campo | ✅ + llenado por voz NLP mejorado |
-| Inteligencia Artificial | ✅ NLP básico (motor reglas) | ✅ + GPT-4o-mini + TensorFlow ML |
+| Inteligencia Artificial | ✅ NLP básico (motor reglas) | ✅ + Groq llama-3.1-8b-instant + TensorFlow ML |
 | Almacenamiento documentos | ❌ | ✅ AWS S3 integrado |
 | App Móvil | ⚠️ Básica | ✅ Completa con FCM y voz |
 | Machine Learning | ❌ | ✅ 3 modelos TensorFlow |
 | Notificaciones push | ⚠️ Parcial | ✅ Firebase FCM completo |
 | Despliegue | ✅ EC2 básico | ✅ EC2 + S3 + Docker Compose + CI/CD |
+
+---
+
+### Análisis de Casos de Uso — Ciclo 2
+
+Los siguientes casos de uso extienden el modelo CU01–CU17 del Ciclo 1, cubriendo las 5 mejoras implementadas en el segundo incremento PUDS. El diagrama completo se encuentra en `documentacion/uml_ciclo2/01_casos_uso_ciclo2.puml`.
+
+#### Catálogo de Casos de Uso Ciclo 2
+
+| ID | Nombre | Actor Principal | Mejora | Descripción |
+|----|--------|----------------|--------|-------------|
+| CU18 | Subir documento a trámite | CLIENT / OFFICER | Mejora 1 — Gestión Documental | El actor adjunta un archivo (PDF, imagen, etc.) al trámite. El sistema sube el archivo a AWS S3 y guarda los metadatos en MongoDB. Si S3 no está disponible, guarda en modo degradado (sin s3Key). |
+| CU19 | Descargar documento (presigned URL) | CLIENT / OFFICER | Mejora 1 — Gestión Documental | El actor solicita descargar un documento. El sistema genera una URL pre-firmada de S3 válida 15 minutos y redirige al actor. Si no hay s3Key, sirve el contenido desde el backend (fallback). |
+| CU20 | Colaborar en documento en tiempo real | OFFICER | Mejora 1 — Gestión Documental | El actor abre una sesión colaborativa WebSocket STOMP. Múltiples usuarios pueden editar el texto del documento y dejar comentarios; todos los cambios se sincronizan en tiempo real. |
+| CU21 | Eliminar documento (soft delete) | OFFICER | Mejora 1 — Gestión Documental | El actor elimina un documento. El sistema marca `deleted=true` en MongoDB, borra el objeto de S3 y registra la acción en el auditLog. |
+| CU22 | Llenar formulario por voz | OFFICER | Mejora 2 — Formulario con Voz | El funcionario activa el micrófono en el formulario. Web Speech API transcribe el audio y el sistema usa Groq (llama-3.1-8b-instant) para mapear el texto a los campos del formulario automáticamente. |
+| CU23 | Identificar política con agente IA | CLIENT | Mejora 3 — Agente Inteligente | El cliente describe su necesidad por texto o voz. El agente Groq analiza la descripción, compara con las políticas activas y sugiere la más apropiada con nivel de confianza (%). |
+| CU24 | Generar reporte NLP de trámites | OFFICER / ADMIN | Mejora 4 — Reportes NLP | El usuario solicita un reporte analítico. El backend consulta los trámites activos, envía el contexto a Groq y éste genera un resumen en lenguaje natural con tendencias, estado SLA y recomendaciones. |
+| CU25 | Visualizar predicciones ML en dashboard | ADMIN | Mejora 5 — Motor Inteligente ML | El administrador accede al dashboard ML. El backend recopila features de los casos activos, llama al ml-service TensorFlow y renderiza 3 paneles: riesgo de demora, prioridad de tareas y anomalías detectadas. |
+
+#### Especificación Detallada — CU18: Subir Documento
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | CLIENT, OFFICER |
+| **Precondición** | El actor está autenticado y tiene acceso al trámite. |
+| **Flujo principal** | 1. Actor selecciona "Subir archivo" en la sección Documentos. 2. Selecciona un archivo del sistema. 3. El sistema sube el archivo a S3 (key: `cases/{caseId}/{uuid}/{nombre}`). 4. Guarda `CaseDocument` en MongoDB con s3Key, nombre, tamaño, tipo MIME. 5. Registra `UPLOADED` en auditLog. 6. Muestra el archivo en la lista. |
+| **Flujo alternativo** | Si S3 lanza excepción, guarda sin s3Key (modo degradado). Los metadatos persisten en MongoDB pero la descarga directa desde S3 no estará disponible. |
+| **Postcondición** | El documento queda registrado y visible para todos los participantes del trámite. |
+| **Diagrama** | `documentacion/uml_ciclo2/02_actividades_gestion_documental.puml` |
+
+#### Especificación Detallada — CU19: Descargar Documento (Presigned URL)
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | CLIENT, OFFICER |
+| **Precondición** | El actor está autenticado y tiene permiso VIEW o superior sobre el documento. El documento existe en MongoDB. |
+| **Flujo principal** | 1. Actor hace clic en "Descargar" en la lista de documentos. 2. Frontend llama `GET /api/documents/{id}/download-url`. 3. Backend verifica el permiso del usuario. 4. DocumentService llama a `S3Presigner.presignGetObject()` con expiración de 15 minutos. 5. Retorna `{url, s3Available: true}` al frontend. 6. Frontend abre la URL en nueva pestaña (descarga directa desde S3). 7. El evento queda registrado como `DOWNLOADED` en auditLog. |
+| **Flujo alternativo** | Si el documento no tiene `s3Key` (modo degradado), el backend sirve el contenido como stream desde MongoDB y retorna `{s3Available: false}`. La descarga funciona igualmente. |
+| **Postcondición** | El archivo fue descargado por el actor. El evento DOWNLOADED queda registrado en el auditLog con userId, userName y timestamp. |
+| **Diagrama** | `documentacion/uml_ciclo2/02_actividades_gestion_documental.puml` |
+
+---
+
+#### Especificación Detallada — CU20: Colaborar en Documento en Tiempo Real
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | OFFICER |
+| **Precondición** | El actor está autenticado. El documento existe y su tipo permite colaboración (PDF, imagen, texto plano, Office). El servidor WebSocket STOMP está activo en `/ws`. |
+| **Flujo principal** | 1. Actor hace clic en "Colaborar" en la fila del documento. 2. Frontend instancia `StompClient` y conecta a `/ws/websocket`. 3. Se suscribe a los topics `/topic/document/{id}/session`, `/topic/document/{id}/notes` y `/topic/document/{id}/edit`. 4. Publica JOIN en `/app/document/{id}/join` con `{userId, userName, color}`. 5. Backend registra la presencia y difunde el listado actualizado de participantes. 6. El actor escribe en el editor colaborativo; cada cambio (debounced 300 ms) publica EDIT con el contenido. 7. El servidor difunde el nuevo contenido a todos los participantes suscritos. 8. El actor puede agregar comentarios que se sincronizan vía `/topic/document/{id}/notes`. 9. Al salir, publica LEAVE; el backend actualiza la sesión y notifica al resto. |
+| **Flujo alternativo** | Si la conexión WebSocket se interrumpe, el cliente reintenta automáticamente cada 3 segundos (`reconnectDelay`). Los cambios no enviados durante la desconexión se pierden. |
+| **Postcondición** | El contenido editado queda disponible para todos los participantes activos. Los comentarios quedan visibles durante la sesión colaborativa activa. |
+| **Diagrama** | `documentacion/uml_ciclo2/02_actividades_gestion_documental.puml` |
+
+---
+
+#### Especificación Detallada — CU21: Eliminar Documento (Soft Delete)
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | OFFICER |
+| **Precondición** | El actor tiene permiso FULL o ADMIN sobre el documento. El documento existe y `deleted = false` en MongoDB. |
+| **Flujo principal** | 1. Actor hace clic en el botón eliminar en la fila del documento. 2. Frontend muestra cuadro de confirmación. 3. Al confirmar, llama `DELETE /api/documents/{id}`. 4. Backend verifica que el actor tenga permiso FULL o ADMIN. 5. DocumentService llama a `S3Client.deleteObject()` para eliminar el objeto de S3. 6. Marca `deleted = true` en MongoDB (soft delete; no se elimina el documento de la base de datos). 7. Registra la acción `DELETED` en el `auditLog` con userId, userName y timestamp. 8. Frontend elimina visualmente el documento de la lista. |
+| **Flujo alternativo** | Si S3 lanza excepción al eliminar, el backend registra el error en logs pero continúa con el soft delete en MongoDB. El objeto puede quedar huérfano en S3, pero el documento queda inaccesible desde la UI. |
+| **Postcondición** | El documento está marcado como eliminado en MongoDB (`deleted = true`) y borrado de S3. El auditLog registra quién y cuándo lo eliminó. |
+| **Diagrama** | `documentacion/uml_ciclo2/02_actividades_gestion_documental.puml` |
+
+---
+
+#### Especificación Detallada — CU22: Llenar Formulario por Voz
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | OFFICER |
+| **Precondición** | El actor está autenticado y tiene una tarea con formulario asignado. El navegador soporta Web Speech API (Chrome / Edge). La variable `GROQ_API_KEY` está configurada en el ai-service. |
+| **Flujo principal** | 1. OFFICER accede al formulario de la tarea dentro del detalle del trámite. 2. Activa el botón de micrófono. 3. Web Speech API (idioma `es-ES`) captura y transcribe el audio en tiempo real. 4. Al detener, el texto transcripto se muestra en pantalla para confirmación. 5. Frontend llama `POST /nlp/fill-form` en ai-service con `{voiceText, formSchema}`. 6. ai-service construye un prompt detallado para Groq `llama-3.1-8b-instant` incluyendo los campos del esquema del formulario y el texto dictado. 7. Groq retorna un JSON con los valores mapeados a cada campo. 8. Frontend pre-rellena los campos del formulario con los valores recibidos. 9. El actor revisa y puede editar manualmente antes de enviar. |
+| **Flujo alternativo** | Si el navegador no soporta Web Speech API, se muestra aviso "Reconocimiento de voz no soportado — usa Chrome". Si Groq no responde o la API key es inválida, el ai-service retorna HTTP 503 y el formulario permanece vacío para llenado manual. |
+| **Postcondición** | Los campos del formulario están pre-rellenados con los valores extraídos del dictado. El actor puede corregirlos antes del envío definitivo. |
+| **Diagrama** | `documentacion/uml_ciclo2/03_actividades_agente_inteligente.puml` |
+
+---
+
+#### Especificación Detallada — CU23: Identificar Política con Agente IA
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | CLIENT |
+| **Precondición** | El actor está autenticado. Existen políticas activas en el sistema. |
+| **Flujo principal** | 1. Cliente navega a "Iniciar Trámite". 2. Describe su necesidad por voz o texto. 3. El sistema envía la descripción a `POST /api/agent/suggest-policy`. 4. El backend llama al ai-service con Groq llama-3.1-8b-instant. 5. El agente retorna políticas con confianza (%). 6. Si confianza > 70%, resalta la política recomendada. 7. Cliente sube documentos requeridos. 8. Confirma e inicia el trámite con `POST /api/cases`. |
+| **Flujo alternativo** | Si confianza ≤ 70%, se muestra lista para elección manual. Si el ai-service no responde, el sistema muestra la lista completa de políticas sin sugerencia. |
+| **Postcondición** | Se crea un nuevo trámite (Case) con status OPEN en MongoDB. |
+| **Diagrama** | `documentacion/uml_ciclo2/03_actividades_agente_inteligente.puml` |
+
+#### Especificación Detallada — CU24: Generar Reporte NLP de Trámites
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | OFFICER, ADMIN |
+| **Precondición** | El actor está autenticado con rol OFFICER o ADMIN. Existen trámites registrados en el sistema. La variable `GROQ_API_KEY` está configurada en el ai-service. |
+| **Flujo principal** | 1. Usuario escribe o dicta una consulta analítica (ej: "trámites completados en mayo por departamento"). 2. Frontend llama `POST /api/reports/generate` con `{query}`. 3. Backend recupera hasta 100 trámites recientes de MongoDB. 4. Construye un contexto JSON compacto con ID, estado, política, timestamps y departamento. 5. Llama al ai-service `POST /reports/analyze` enviando el contexto y la consulta del usuario. 6. ai-service construye el prompt para Groq `llama-3.1-8b-instant`. 7. Groq analiza el contexto y retorna JSON estructurado: `{title, summary, rows[], totalRows, generatedAt}`. 8. Frontend renderiza la tabla de resultados con KPIs de resumen. 9. El usuario puede exportar el reporte a CSV, Excel (XLSX) o PDF. |
+| **Flujo alternativo** | Si Groq no responde (timeout), el backend retorna el listado tabular de trámites sin análisis NLP (datos crudos). Si la consulta está vacía, se muestra aviso de validación antes de llamar al backend. |
+| **Postcondición** | El actor visualiza un reporte analítico con datos tabulares, resumen en lenguaje natural y KPIs. Puede exportarlo en los formatos disponibles. |
+| **Diagrama** | `documentacion/uml_ciclo2/05_actividades_motor_ml.puml` |
+
+---
+
+#### Especificación Detallada — CU25: Predicciones ML en Dashboard
+
+| Campo | Descripción |
+|-------|-------------|
+| **Actor** | ADMIN |
+| **Precondición** | El actor está autenticado con rol ADMIN. Existen casos activos en el sistema. |
+| **Flujo principal** | 1. Admin abre `/ml-dashboard`. 2. Frontend llama `GET /api/ml/dashboard`. 3. Backend consulta casos IN_PROGRESS/OPEN en MongoDB. 4. Construye feature vectors por caso. 5. Llama al ml-service (3 endpoints en paralelo). 6. ml-service carga los modelos `.keras` y ejecuta `predict()`. 7. Retorna predicciones JSON. 8. Frontend renderiza 3 paneles (riesgo, prioridad, anomalías). |
+| **Flujo alternativo** | Si ml-service no responde en 15 s, el backend aplica heurísticas locales en Java y muestra el badge "Heurísticas locales" en el dashboard. |
+| **Postcondición** | El administrador visualiza el estado predictivo de todos los trámites activos. |
+| **Diagrama** | `documentacion/uml_ciclo2/05_actividades_motor_ml.puml` |
+
+---
+
+### Diagramas de Secuencia — Ciclo 2
+
+#### Secuencia 1: Subida de Documento con AWS S3 (Mejora 1)
+
+```plantuml
+@startuml Secuencia_Subida_Documento
+!theme plain
+actor "Funcionario" as F
+participant "Angular\nFrontend" as FE
+participant "Spring Boot\n:8080" as BE
+participant "DocumentService" as DS
+participant "S3Client\n(AWS SDK v2)" as S3
+database "MongoDB" as DB
+
+F -> FE : Selecciona archivo + clic "Subir"
+FE -> BE : POST /api/documents/upload\n(multipart/form-data)
+BE -> DS : uploadDocument(file, caseId, userId)
+DS -> S3 : putObject(bucket="flowgov-documents",\nkey="cases/{id}/{uuid}/{name}")
+alt S3 disponible
+  S3 --> DS : 200 OK
+  DS -> DB : save(CaseDocument {s3Key, name, size, mimeType})
+  DB --> DS : CaseDocument guardado
+else S3 no disponible / excepción
+  S3 --> DS : Exception (S3Exception)
+  DS -> DB : save(CaseDocument {s3Key=null})\n[modo degradado]
+  DB --> DS : CaseDocument guardado
+end
+DS -> DB : addAuditLog(UPLOADED, userId, timestamp)
+DS --> BE : CaseDocumentDto
+BE --> FE : 200 OK + CaseDocumentDto
+FE --> F : Muestra archivo en lista ✅
+@enduml
+```
+
+#### Secuencia 2: Agente IA — Identificación de Política (Mejora 3)
+
+```plantuml
+@startuml Secuencia_Agente_IA
+!theme plain
+actor "Cliente" as C
+participant "Angular / Flutter" as FE
+participant "Spring Boot\n:8080" as BE
+participant "AgentController" as AC
+participant "ai-service\n(FastAPI :8000)" as AI
+participant "Groq API\nllama-3.1-8b" as GROQ
+database "MongoDB" as DB
+
+C -> FE : Describe necesidad (texto o voz)
+FE -> BE : POST /api/agent/suggest-policy\n{ "description": "..." }
+BE -> AC : suggestPolicy(description)
+AC -> AI : POST http://ai-service:8000/suggest-policy\n{ description, policies[] }
+AI -> GROQ : POST /chat/completions\n{ model, messages, context }
+GROQ --> AI : Lista ordenada por confianza
+AI --> AC : [{ policyId, name, confidence }]
+AC --> BE : SuggestionsDto
+BE --> FE : 200 OK + sugerencias
+alt confianza > 70%
+  FE --> C : Resalta política recomendada con badge
+else confianza ≤ 70%
+  FE --> C : Lista para elección manual
+end
+C -> FE : Confirma política
+FE -> BE : POST /api/cases\n{ policyId, clientId }
+BE -> DB : save(Case { status: OPEN, policyId })
+DB --> BE : Case { id: "xxxxx" }
+BE --> FE : 201 Created + { caseId }
+FE --> C : "🎉 Trámite iniciado ID: xxxxx"
+@enduml
+```
+
+#### Secuencia 3: Dashboard ML — Predicciones TensorFlow (Mejora 5)
+
+```plantuml
+@startuml Secuencia_Dashboard_ML
+!theme plain
+actor "Administrador" as A
+participant "Angular\nFrontend" as FE
+participant "Spring Boot\n:8080" as BE
+participant "MlController" as ML
+participant "ml-service\n(FastAPI :8001)" as MLS
+participant "TensorFlow\nModelos .keras" as TF
+database "MongoDB" as DB
+
+A -> FE : Abre Dashboard ML
+FE -> BE : GET /api/ml/dashboard
+BE -> DB : Consulta casos IN_PROGRESS / OPEN
+DB --> BE : Lista de casos activos
+BE -> ML : buildFeatures(cases)
+ML -> MLS : POST /predict/delay-risk [ features ]
+ML -> MLS : POST /predict/priority [ features ]
+ML -> MLS : POST /predict/anomaly [ features ]
+alt ml-service responde
+  MLS -> TF : delay_risk_model.predict()
+  MLS -> TF : priority_scorer.predict()
+  MLS -> TF : anomaly_detector.predict()
+  TF --> MLS : Predicciones [0.0–1.0]
+  MLS --> ML : { delayRisks, priorities, anomalies }
+  ML --> BE : badge "🤖 TensorFlow activo"
+else ml-service no disponible (timeout 15 s)
+  BE -> ML : Heurísticas Java\nrisk = hours/96*0.4 + pending*0.35 + sla*0.25
+  ML --> BE : badge "📐 Heurísticas locales"
+end
+BE --> FE : DashboardDto { risks, priorities, anomalies, badge }
+FE --> A : Renderiza 3 paneles:\n📊 Riesgo | 🎯 Prioridad | 🔍 Anomalías
+@enduml
+```
+
+---
+
+### Diagrama de Comunicación — Edición Colaborativa WebSocket (Mejora 1)
+
+El siguiente diagrama de comunicación modela la interacción entre objetos durante una sesión de edición colaborativa de documentos a través de WebSocket STOMP. Implementado en `DocumentSessionController.java` con `ConcurrentHashMap` para el estado en memoria.
+
+```plantuml
+@startuml Comunicacion_Colaborativa
+!theme plain
+
+participant "Angular\nUsuario A" as UA
+participant "Angular\nUsuario B" as UB
+participant "STOMP Broker\n(Spring Boot)" as STOMP
+participant "DocumentSession\nController" as DSC
+collections "ConcurrentHashMap\ndocContents" as MAP
+
+note over UA, UB : Ambos conectados vía\nws://54.233.18.87:4200/ws (STOMP)
+
+UA -> STOMP : 1: SEND /app/document/{id}/join\n{ userId, userName, color }
+STOMP -> DSC : 2: join(docId, payload)
+DSC -> MAP : 3: get(docId) → contenido actual
+DSC -> STOMP : 4: broadcast /topic/document/{id}/session\n{ participants: [A, B] }
+STOMP -> UA : 5: sesión actualizada ✅
+STOMP -> UB : 5: sesión actualizada ✅
+
+UA -> STOMP : 6: SEND /app/document/{id}/edit\n{ content: "texto...", userId, userName }
+STOMP -> DSC : 7: edit(docId, payload)
+DSC -> MAP : 8: put(docId, "texto...")
+DSC -> STOMP : 9: broadcast /topic/document/{id}/edit\n{ content, userId, userName, timestamp }
+STOMP -> UA : 10: confirma propia edición
+STOMP -> UB : 10: recibe cambio de A\n"✍ Usuario A editando..."
+
+UB -> STOMP : 11: SEND /app/document/{id}/note\n{ text: "comentario", userName }
+STOMP -> DSC : 12: addNote(docId, payload)
+DSC -> STOMP : 13: broadcast /topic/document/{id}/notes\n{ text, userName, timestamp }
+STOMP -> UA : 14: recibe comentario de B ✅
+STOMP -> UB : 14: confirma propio comentario ✅
+@enduml
+```
+
+---
+
+### Diagrama de Despliegue — Ciclo 2
+
+El diagrama de despliegue muestra la distribución física de todos los componentes del sistema FlowGov en la infraestructura AWS EC2 orquestada con Docker Compose.
+
+```plantuml
+@startuml Despliegue_Ciclo2
+!theme plain
+skinparam nodeBorderColor #555
+skinparam componentBorderColor #1677ff
+skinparam databaseBorderColor #d46b08
+skinparam storageBorderColor #389e0d
+
+node "Dispositivo del Cliente\n(PC / Smartphone Android)" as CLIENT {
+  [Navegador Web\nAngular 21 SPA\nWeb Speech API\nSTOMP/WebSocket] as BROWSER
+  [App Flutter 3.x\nAndroid/iOS\nspeech_to_text + http] as FLUTTER
+}
+
+node "AWS EC2 — t3.medium\nIP Pública: 54.233.18.87\nRegión: sa-east-1 (São Paulo)\nOS: Amazon Linux 2023\nOrquestación: Docker Compose" as EC2 {
+
+  node "Contenedor: frontend (Puerto 4200)" as CONT_FE {
+    [Nginx 1.27\nclient_max_body_size 55m\nproxy_pass → :8080] as NGINX
+  }
+
+  node "Contenedor: backend (Puerto 8080)" as CONT_BE {
+    [Spring Boot 3.3 / Java 22\nWorkflow Engine\nJWT + WebSocket STOMP\nAWS SDK v2] as SPRING
+  }
+
+  node "Contenedor: ai-service (Puerto 8000)" as CONT_AI {
+    [Python 3.11 / FastAPI\nGroq SDK\nllama-3.1-8b-instant\n/interpret-voice\n/suggest-policy\n/generate-report] as AI
+  }
+
+  node "Contenedor: ml-service (Puerto 8001)" as CONT_ML {
+    [Python 3.11 / FastAPI\nTensorFlow 2.17\ndelay_risk_model.keras\npriority_scorer.keras\nanomaly_detector.keras] as ML
+  }
+
+  node "Contenedor: mongodb (Puerto 27017)" as CONT_DB {
+    database "MongoDB 7\nVolumen Docker /data/db\ncases, tasks, policies\nusers, case_documents\nform_templates, auditLogs" as MONGO
+  }
+}
+
+cloud "AWS Cloud (sa-east-1)" as AWS {
+  storage "S3 Bucket\nflowgov-documents\nAcceso privado — IAM\nPresigned URLs 15 min" as S3
+}
+
+cloud "API Externa" as EXT {
+  [Groq API\ngsk_xxxx...\nllama-3.1-8b-instant\n/chat/completions] as GROQ
+}
+
+BROWSER --> NGINX : HTTP :4200\n/api/* + /ws/*
+FLUTTER --> NGINX : HTTP :4200\n/api/*
+NGINX --> SPRING : proxy_pass :8080
+SPRING --> AI : HTTP interno :8000
+SPRING --> ML : HTTP interno :8001
+SPRING --> MONGO : Spring Data MongoDB
+SPRING --> S3 : AWS SDK v2\nputObject / presignGetObject
+AI --> GROQ : HTTPS REST API\nAuthorization: Bearer gsk_...
+
+@enduml
+```
+
+> **Nota:** Los diagramas PlantUML anteriores y los 5 archivos `.puml` de actividades/componentes se encuentran en `documentacion/uml_ciclo2/`. Para renderizarlos ver `documentacion/uml_ciclo2/COMO_RENDERIZAR.md`.
+
+---
+
+## PARTE III — MECANISMOS DE SOPORTE AL USUARIO
+
+Esta sección describe los mecanismos implementados para lograr que los usuarios utilicen correctamente la aplicación FlowGov. Se implementaron los tres niveles propuestos: manual de usuario, tutoriales y asistente inteligente.
+
+---
+
+### Manual de Usuario
+
+El manual de usuario cubre los flujos principales de cada rol del sistema. El sistema está disponible en línea en `http://54.233.18.87:4200`.
+
+#### Roles y Credenciales de Acceso
+
+| Rol | Descripción | Credenciales de Demo |
+|-----|-------------|---------------------|
+| **ADMIN** | Administra usuarios, departamentos y visualiza el dashboard ML | `admin@demo.com` / `admin123` |
+| **DESIGNER** | Crea y edita políticas de negocio (diagramas de workflow) | `designer1@demo.com` / `designer123` |
+| **OFFICER** | Gestiona trámites asignados, completa tareas y sube documentos | `officer1@demo.com` / `officer123` |
+| **CLIENT** | Inicia trámites, consulta el estado y sube documentos requeridos | `client1@demo.com` / `client123` |
+
+#### Flujo 1 — Iniciar un Trámite (Rol: CLIENT)
+
+1. Acceder a `http://54.233.18.87:4200` e iniciar sesión con las credenciales de cliente.
+2. Ir a la sección **"Iniciar Trámite"** en el menú lateral.
+3. Describir la necesidad en el campo de texto **o** presionar el botón de micrófono 🎤 y hablar.
+4. El agente IA sugerirá la política más adecuada con un porcentaje de confianza.
+5. Confirmar la política y adjuntar los documentos requeridos (PDF, imágenes).
+6. Hacer clic en **"Confirmar e iniciar trámite"**.
+7. El trámite aparecerá en "Mis Trámites" con estado **EN PROCESO**.
+
+#### Flujo 2 — Gestionar Tareas (Rol: OFFICER)
+
+1. Iniciar sesión con rol OFFICER.
+2. En la **Bandeja de Tareas**, ver las tareas asignadas ordenadas por prioridad.
+3. Hacer clic en una tarea → completar el formulario (puede usar voz 🎤 para dictar los datos).
+4. En la sección **Documentos del Trámite**, subir archivos de respaldo.
+5. Para colaborar: hacer clic en **"✏ Colaborar"** en un documento → editar el texto en tiempo real con colegas.
+6. Marcar la tarea como completada → el workflow avanza automáticamente al siguiente nodo.
+
+#### Flujo 3 — Diseñar una Política (Rol: DESIGNER)
+
+1. Iniciar sesión con rol DESIGNER.
+2. Ir a **Políticas → Nueva Política**.
+3. En el editor visual, arrastrar nodos de tarea al lienzo y conectarlos.
+4. En cada nodo, configurar: departamento responsable, SLA (horas), formulario y documentos obligatorios.
+5. Usar el asistente IA (barra de texto) para crear nodos con comandos como *"añade un nodo de aprobación para el departamento Legal"*.
+6. Guardar y **Activar** la política para que esté disponible a los clientes.
+
+#### Flujo 4 — Dashboard ML (Rol: ADMIN)
+
+1. Iniciar sesión con rol ADMIN.
+2. Ir a **Dashboard ML** en el menú.
+3. Ver los 3 paneles:
+   - **📊 Riesgo de Demora:** casos con mayor probabilidad de retraso (TensorFlow).
+   - **🎯 Prioridad de Tareas:** tareas ordenadas por urgencia; badge rojo si el SLA fue superado.
+   - **🔍 Anomalías:** trámites con patrones inusuales detectados por el autoencoder.
+4. Si el badge dice "📐 Heurísticas locales", el servicio ML está temporalmente no disponible (el sistema funciona con cálculos locales).
+
+#### Flujo 5 — App Móvil (Android)
+
+1. Descargar e instalar el APK desde el enlace de Drive (ver Carátula).
+2. En la pantalla de login, ingresar las credenciales del rol deseado.
+3. En la **Bandeja**, ver y gestionar las tareas asignadas.
+4. Usar el **botón de micrófono** para dictar los campos del formulario.
+5. El sistema reconoce el habla, la procesa con Groq NLP y llena los campos automáticamente.
+
+---
+
+### Asistente Inteligente (Óptimo)
+
+FlowGov implementa el nivel óptimo de soporte: un **asistente inteligente en línea** basado en Groq (llama-3.1-8b-instant) que asiste al usuario en tres escenarios clave.
+
+#### A. Agente de Inicio de Trámites
+
+El asistente más importante del sistema. Cuando el cliente no sabe qué tipo de trámite iniciar, el agente IA:
+
+1. Escucha o lee la descripción del usuario en lenguaje natural.
+2. Analiza el texto con NLP (Groq llama-3.1-8b-instant) y compara con las políticas activas.
+3. Sugiere la política correcta con un nivel de confianza (%).
+4. Lista los documentos obligatorios que el cliente debe adjuntar.
+5. Guía al usuario paso a paso hasta confirmar el trámite.
+
+**Endpoint:** `POST /api/agent/suggest-policy`  
+**Ubicación en la UI:** Página "Iniciar Trámite" — botón 🎤 o campo de texto descriptivo.
+
+#### B. Asistente de Llenado de Formularios (Voz)
+
+Cuando un funcionario necesita completar un formulario extenso:
+
+1. El funcionario presiona el micrófono 🎤 en el formulario.
+2. Dicta los datos en lenguaje natural: *"el nombre es Juan Pérez, la dirección es Av. Principal 123, el teléfono es 0999888777"*.
+3. Web Speech API transcribe el audio a texto (en el navegador).
+4. El ai-service (Groq) mapea el texto a los campos del formulario (`field_name`, `field_address`, etc.).
+5. Los campos se llenan automáticamente; el funcionario solo verifica y envía.
+
+**Endpoint:** `POST /api/ai/interpret-voice`  
+**Ubicación en la UI:** Botón 🎤 dentro de cualquier formulario de tarea.
+
+#### C. Generador de Reportes NLP
+
+El asistente genera reportes ejecutivos en lenguaje natural para el administrador:
+
+1. Admin solicita el reporte desde el módulo Reportes.
+2. El backend recopila estadísticas de los trámites activos.
+3. Groq genera un resumen narrativo: tendencias, cuellos de botella, SLA promedio, recomendaciones.
+4. El reporte se presenta en texto legible, sin necesidad de interpretar gráficas.
+
+**Endpoint:** `POST /api/reports/generate`  
+**Ubicación en la UI:** Módulo "Reportes" → botón "Generar análisis IA".
+
+#### Arquitectura del Asistente Inteligente
+
+```
+Usuario (voz/texto)
+       │
+       ▼
+Web Speech API (browser) o Flutter speech_to_text
+       │ texto transcrito
+       ▼
+Spring Boot → POST http://ai-service:8000/{endpoint}
+       │
+       ▼
+Python FastAPI (ai-service)
+       │ prompt + contexto
+       ▼
+Groq API — llama-3.1-8b-instant (LLM en la nube)
+       │ respuesta JSON estructurada
+       ▼
+Spring Boot → mapea la respuesta al dominio
+       │
+       ▼
+Angular / Flutter → actualiza la UI
+```
+
+---
+
+### Tutoriales
+
+Para facilitar la adopción del sistema, se prepararon los siguientes recursos de soporte:
+
+#### Tutorial 1 — Cómo Iniciar un Trámite con Asistente IA (5 min)
+
+**Objetivo:** Mostrar cómo un cliente puede iniciar un trámite sin conocer el proceso, usando el agente IA.
+
+**Pasos a demostrar:**
+1. Login como CLIENT.
+2. Ir a "Iniciar Trámite".
+3. Activar el micrófono y decir: *"necesito una licencia de funcionamiento para mi negocio"*.
+4. El agente sugiere la política "Solicitud de Licencia de Funcionamiento" con 92% de confianza.
+5. Adjuntar los documentos requeridos.
+6. Confirmar e iniciar el trámite.
+
+#### Tutorial 2 — Gestión Documental Colaborativa (5 min)
+
+**Objetivo:** Mostrar la subida de documentos a S3 y la edición colaborativa en tiempo real.
+
+**Pasos a demostrar:**
+1. Login como OFFICER en dos navegadores distintos (o dos usuarios).
+2. Abrir el mismo trámite → sección Documentos.
+3. Subir un archivo PDF → aparece en ambas sesiones.
+4. Hacer clic en "✏ Colaborar" en el documento.
+5. Ambos usuarios escriben simultáneamente en el editor de texto → los cambios se sincronizan en tiempo real (WebSocket STOMP).
+6. Un usuario escribe un comentario → aparece instantáneamente en la otra sesión.
+
+#### Tutorial 3 — Dashboard ML con TensorFlow (3 min)
+
+**Objetivo:** Mostrar las predicciones de Machine Learning sobre los trámites activos.
+
+**Pasos a demostrar:**
+1. Login como ADMIN.
+2. Navegar a "Dashboard ML".
+3. Señalar los 3 paneles: Riesgo de Demora, Prioridad de Tareas y Anomalías.
+4. Explicar que los badges ALTO/MEDIO/BAJO son predicciones del modelo `delay_risk.keras` de TensorFlow.
+5. Mostrar una tarea con badge rojo "⏰ SLA EXCEDIDO".
+6. Señalar el badge "🤖 TensorFlow activo" o "📐 Heurísticas locales" según disponibilidad del ml-service.
+
+#### Tutorial 4 — App Móvil: Formulario por Voz (3 min)
+
+**Objetivo:** Mostrar el llenado de formularios por voz desde la app móvil Flutter.
+
+**Pasos a demostrar:**
+1. Abrir la app móvil (APK instalado en Android).
+2. Login como OFFICER.
+3. Seleccionar una tarea pendiente.
+4. Presionar el micrófono 🎤 en el formulario.
+5. Dictar: *"nombre del solicitante Juan García, número de expediente 2025-001, departamento Legal"*.
+6. Los campos se llenan automáticamente con Groq NLP.
+7. Verificar y enviar el formulario.
+
+> **Video de los tutoriales:** Ver enlace QR en la carátula.
 
 ---
 
