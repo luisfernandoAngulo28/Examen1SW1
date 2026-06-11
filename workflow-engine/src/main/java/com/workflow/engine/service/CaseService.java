@@ -147,9 +147,8 @@ public class CaseService {
             }
         });
 
-        EventLog log = new EventLog();
-        log.setType("TASK_ASSIGNED");
-        currentCase.getEventLogs().add(log);
+        addEvent(currentCase, "TASK_ASSIGNED", userId,
+                userRepository.findById(userId).map(u -> u.getName()).orElse(userId));
 
         Case saved = caseRepository.save(currentCase);
         eventPublisher.emitTaskAssigned(caseViewService.toDetail(saved));
@@ -187,6 +186,12 @@ public class CaseService {
 
         completedTask.setStatus(TaskStatus.DONE);
         completedTask.setFinishedAt(Instant.now());
+        addEvent(currentCase, "TASK_COMPLETED",
+                completedTask.getAssignedUserId(),
+                completedTask.getAssignedUserId() != null
+                        ? userRepository.findById(completedTask.getAssignedUserId())
+                                .map(u -> u.getName()).orElse("Sistema")
+                        : "Sistema");
 
         String currentNodeId = completedTask.getNodeId();
         List<PolicyEdge> outEdges = policy.getEdges().stream()
@@ -401,8 +406,14 @@ public class CaseService {
     }
 
     private void addEvent(Case currentCase, String type) {
+        addEvent(currentCase, type, null, null);
+    }
+
+    private void addEvent(Case currentCase, String type, String userId, String userName) {
         EventLog log = new EventLog();
         log.setType(type);
+        log.setUserId(userId);
+        log.setUserName(userName);
         currentCase.getEventLogs().add(log);
     }
 }

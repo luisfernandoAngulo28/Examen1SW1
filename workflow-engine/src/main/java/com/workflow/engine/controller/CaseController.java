@@ -3,6 +3,7 @@ package com.workflow.engine.controller;
 import com.workflow.engine.dto.CaseDetailDto;
 import com.workflow.engine.dto.MyTaskDto;
 import com.workflow.engine.model.Case;
+import com.workflow.engine.model.EventLog;
 import com.workflow.engine.model.Role;
 import com.workflow.engine.model.TaskStatus;
 import com.workflow.engine.model.User;
@@ -129,5 +130,12 @@ public class CaseController {
     public ResponseEntity<Void> deleteAllCases() {
         caseService.deleteAll();
         return ResponseEntity.noContent().build();
+    }
+
+    /** Audit trail — full event log for a case (CASE_STARTED, TASK_ASSIGNED, TASK_COMPLETED, CASE_COMPLETED, etc.) */
+    @GetMapping("/{id}/events")
+    public ResponseEntity<List<EventLog>> getCaseEvents(@PathVariable String id) {
+        Case c = caseService.findById(id);
+        return ResponseEntity.ok(c.getEventLogs());
     }
 }
