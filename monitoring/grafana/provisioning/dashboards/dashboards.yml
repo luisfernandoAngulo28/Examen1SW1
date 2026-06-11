@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: FlowGov
+    orgId: 1
+    folder: FlowGov
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

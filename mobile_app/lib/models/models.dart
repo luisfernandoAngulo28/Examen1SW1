@@ -160,4 +160,13 @@ class MyTaskDto {
       department: dept?['name'] as String? ?? j['department'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'caseId': caseId,
+        'policyName': policyName,
+        'taskId': taskId,
+        'taskTitle': taskTitle,
+        'status': status,
+        'department': department,
+      };
 }
