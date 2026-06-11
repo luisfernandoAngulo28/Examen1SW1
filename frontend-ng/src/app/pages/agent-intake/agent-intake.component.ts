@@ -194,6 +194,7 @@ export class AgentIntakeComponent implements OnInit {
   nextAction = 'AWAIT_INPUT';
   matchedPolicy: { id: string; name: string } | null = null;
   currentRequirement: any = null;
+  caseId = '';  // populated when case is started (DONE phase)
 
   readonly phases = [
     { key: 'GREETING',     num: '1', label: 'Descripción' },
@@ -209,7 +210,7 @@ export class AgentIntakeComponent implements OnInit {
   private recognition: any = null;
 
   ngOnInit() {
-    this.sessionId = crypto.randomUUID();
+    this.sessionId = this.newId();
     // Trigger greeting
     setTimeout(() => this.chat(''), 300);
   }
@@ -241,6 +242,7 @@ export class AgentIntakeComponent implements OnInit {
         this.nextAction = res.nextAction;
         if (res.matchedPolicy) this.matchedPolicy = res.matchedPolicy;
         if (res.extra?.requirement) this.currentRequirement = res.extra.requirement;
+        if (res.extra?.caseId) this.caseId = res.extra.caseId;
         this.scrollToBottom();
       }),
       error: () => this.zone.run(() => {
@@ -252,10 +254,30 @@ export class AgentIntakeComponent implements OnInit {
 
   onDocumentSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    this.messages.push({ role: 'user', content: `📎 Documento adjuntado: ${file.name}`, timestamp: new Date() });
-    // After "uploading" notify agent to advance
-    this.chat(`Adjunté el documento: ${file.name}`);
+    if (!file || !this.caseId) {
+      // No case started yet — just acknowledge and advance the requirement
+      const f = (event.target as HTMLInputElement).files?.[0];
+      if (f) {
+        this.messages.push({ role: 'user', content: `📎 Documento: ${f.name}`, timestamp: new Date() });
+        this.chat(`Adjunté el documento: ${f.name}`);
+      }
+      return;
+    }
+    this.messages.push({ role: 'user', content: `📎 Subiendo: ${file.name}...`, timestamp: new Date() });
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('caseId', this.caseId);
+    this.http.post<any>(`${API_BASE}/documents/upload`, fd).subscribe({
+      next: doc => {
+        this.messages.push({ role: 'user', content: `✅ Documento guardado: ${file.name}`, timestamp: new Date() });
+        this.chat(`Adjunté el documento: ${file.name} (id: ${doc.id})`);
+      },
+      error: () => {
+        // Upload failed but still advance the conversation
+        this.messages.push({ role: 'user', content: `📎 Documento adjuntado: ${file.name}`, timestamp: new Date() });
+        this.chat(`Adjunté el documento: ${file.name}`);
+      }
+    });
   }
 
   toggleVoice() {
@@ -277,7 +299,7 @@ export class AgentIntakeComponent implements OnInit {
   }
 
   resetSession() {
-    this.sessionId = crypto.randomUUID();
+    this.sessionId = this.newId();
     this.messages = [];
     this.phase = 'GREETING';
     this.nextAction = 'AWAIT_INPUT';
@@ -291,6 +313,16 @@ export class AgentIntakeComponent implements OnInit {
     return order.indexOf(this.phase) > order.indexOf(key);
   }
   isCurrentStep(key: string): boolean { return this.phase === key; }
+
+  private newId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
 
   private scrollToBottom() {
     setTimeout(() => {

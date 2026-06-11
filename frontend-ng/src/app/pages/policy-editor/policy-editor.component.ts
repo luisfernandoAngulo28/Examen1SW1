@@ -27,13 +27,14 @@ interface EditorUser { userId: string; userName: string; color: string; joinedAt
 const EDITOR_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#eb2f96','#13c2c2','#faad14'];
 
 function uuid(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0;
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-  });
+  const raw = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+    ? crypto.randomUUID()
+    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+  // Prefix with 'n' so the ID is always a valid CSS selector (IDs starting with a digit are invalid)
+  return raw[0] >= '0' && raw[0] <= '9' ? 'n' + raw : raw;
 }
 
 function nodeColor(type: string) {
@@ -620,7 +621,7 @@ export class PolicyEditorComponent implements OnInit, OnDestroy {
     this.selectedNodeId = node.id;
     this.selectedNodeTitle = node.label;
     const n = this.graphNodes.find(g => g.id === node.id);
-    if (n?.data?.['nodeId']) {
+    if (n) {
       this.http.get<any>(`${API_BASE}/forms/template/${n.id}`).subscribe({ next: t => { if (t?.schemaJson) this.parseFormSchema(t.schemaJson); }, error: () => {} });
     }
     // Load requirements for this node

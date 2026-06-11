@@ -38,10 +38,12 @@ public class CaseViewService {
             dto.setPolicy(new CaseDetailDto.PolicyRef(policy.getId(), policy.getName()));
         }
 
-        List<CaseDetailDto.TaskDetailDto> taskDtos = c.getTasks().stream().map(t -> {
+        List<CaseDetailDto.TaskDetailDto> taskDtos = c.getTasks() == null
+                ? List.of()
+                : c.getTasks().stream().map(t -> {
             CaseDetailDto.TaskDetailDto td = new CaseDetailDto.TaskDetailDto();
             td.setId(t.getId());
-            td.setStatus(t.getStatus().name());
+            td.setStatus(t.getStatus() != null ? t.getStatus().name() : "PENDING");
             td.setStartedAt(t.getStartedAt());
             td.setFinishedAt(t.getFinishedAt());
             td.setFormSubmission(t.getFormSubmission());
@@ -75,13 +77,14 @@ public class CaseViewService {
         dto.setTasks(taskDtos);
 
         // ── Progress percent ──────────────────────────────────────────────────
-        long total = c.getTasks().size();
-        long done  = c.getTasks().stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+        List<Task> safeTasks = c.getTasks() != null ? c.getTasks() : List.of();
+        long total = safeTasks.size();
+        long done  = safeTasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
         dto.setProgressPercent(total > 0 ? (int) (done * 100 / total) : 0);
 
         // ── Current department (from the first PENDING or IN_PROGRESS task) ──
         if (policy != null) {
-            c.getTasks().stream()
+            safeTasks.stream()
                     .filter(t -> t.getStatus() == TaskStatus.PENDING || t.getStatus() == TaskStatus.IN_PROGRESS)
                     .findFirst()
                     .ifPresent(t -> policy.getNodes().stream()
