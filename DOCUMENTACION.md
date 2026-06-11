@@ -2435,6 +2435,460 @@ AI --> GROQ : HTTPS REST API\nAuthorization: Bearer gsk_...
 
 ---
 
+## Flujo de Trabajo: Análisis — Ciclo 2
+
+### Análisis de Casos de Uso — Referencia
+
+Los casos de uso CU18–CU25 fueron especificados en la sección anterior con actores, precondiciones, flujos principales y alternativos. El diagrama UML completo se encuentra en `documentacion/uml_ciclo2/01_casos_uso_ciclo2.puml`.
+
+---
+
+### Análisis de Clases — Ciclo 2
+
+El análisis de clases del Ciclo 2 identifica las nuevas entidades de dominio y los controles/fronteras introducidos por las 5 mejoras. Se sigue el patrón BCE (Boundary–Control–Entity) del PUDS.
+
+#### Nuevas Entidades de Dominio (Entity)
+
+| Clase | Atributos clave | Responsabilidad |
+|-------|----------------|-----------------|
+| `CaseDocument` | id, caseId, nodeId, fileName, contentType, fileSize, s3Key, uploadedByName, uploadedAt, deleted, auditLogs, userPermissions | Representa un documento adjunto a un trámite, almacenado en AWS S3. |
+| `AuditEntry` | userId, userName, action (UPLOADED/DOWNLOADED/VIEWED/DELETED/MODIFIED), timestamp | Registro inmutable de una acción sobre un documento. |
+| `EventLog` *(extendido)* | type, userId, userName, payloadJson, createdAt | Registro de eventos del trámite con autoría (Ciclo 2 agrega userId/userName). |
+| `Policy` *(extendido)* | ..., version: int | Versionado incremental de la política; se incrementa en cada actualización. |
+| `PredictionResult` *(DTO ML)* | caseId, riskScore, riskLevel, recommendation | Resultado de predicción de demora producido por ml-service. |
+| `PriorityResult` *(DTO ML)* | taskId, taskTitle, department, priorityScore, priorityLabel, slaBreach | Resultado de scoring de prioridad de tarea. |
+| `AnomalyResult` *(DTO ML)* | caseId, policyName, isAnomaly, score, description | Resultado de detección de anomalías. |
+
+#### Nuevos Controles (Control)
+
+| Clase | Responsabilidad |
+|-------|----------------|
+| `DocumentService` | Orquesta subida/descarga S3, generación de presigned URLs, soft delete y registro en auditLog. |
+| `CollaborativeSessionController` | Gestiona las sesiones WebSocket STOMP para edición colaborativa y notas en tiempo real. |
+| `MlDashboardService` | Recopila features de casos activos, llama al ml-service (3 endpoints en paralelo) y aplica heurísticas si el servicio no responde. |
+| `NlpFormService` (ai-service) | Construye el prompt para Groq y mapea la respuesta a los campos del formulario. |
+| `PolicySuggestionService` (ai-service) | Llama a Groq para sugerir la política más apropiada dado el texto del cliente. |
+| `ReportAnalyzerService` (ai-service) | Envía el contexto de trámites a Groq y estructra el reporte analítico resultante. |
+
+#### Nuevas Fronteras (Boundary)
+
+| Clase | Responsabilidad |
+|-------|----------------|
+| `DocumentController` | Expone `POST /api/documents/upload`, `GET /api/documents/case/{id}`, `GET /api/documents/{id}/download-url`, `DELETE /api/documents/{id}`, `GET /api/documents/{id}/audit`. |
+| `DocumentManagerComponent` (Angular) | Interfaz de usuario para subida, descarga, vista previa, colaboración, historial y permisos de documentos. |
+| `MlDashboardComponent` (Angular) | Panel con tres tarjetas: riesgo de demora, prioridad de tareas, anomalías. |
+| `NuevoProcesComponent` (Angular) | Flujo de 5 pasos: grabación de voz → análisis Groq → sugerencia de política → confirmación → trámite creado. |
+
+#### Diagrama de Clases — Análisis Ciclo 2 (PlantUML)
+
+```plantuml
+@startuml Analisis_Clases_Ciclo2
+!theme plain
+skinparam classAttributeIconSize 0
+
+package "Gestión Documental (Mejora 1)" {
+  class CaseDocument <<Entity>> {
+    - id : String
+    - caseId : String
+    - nodeId : String
+    - fileName : String
+    - contentType : String
+    - fileSize : long
+    - s3Key : String
+    - deleted : boolean
+    - uploadedByName : String
+    - uploadedAt : Instant
+    - auditLogs : List<AuditEntry>
+    - userPermissions : Map<String,String>
+  }
+
+  class AuditEntry <<Entity>> {
+    - userId : String
+    - userName : String
+    - action : String
+    - timestamp : Instant
+  }
+
+  class DocumentService <<Control>> {
+    + uploadDocument(file, caseId, userId) : CaseDocument
+    + generatePresignedUrl(docId) : String
+    + softDelete(docId) : void
+    + getAuditLog(docId) : List<AuditEntry>
+  }
+
+  class DocumentController <<Boundary>> {
+    + upload() : CaseDocument
+    + downloadUrl() : UrlDto
+    + delete() : void
+    + audit() : List<AuditEntry>
+  }
+
+  CaseDocument "1" *-- "0..*" AuditEntry
+  DocumentController --> DocumentService
+  DocumentService --> CaseDocument
+}
+
+package "Motor Inteligente ML (Mejora 5)" {
+  class PredictionResult <<Entity>> {
+    - caseId : String
+    - riskScore : double
+    - riskLevel : String
+    - recommendation : String
+  }
+
+  class PriorityResult <<Entity>> {
+    - taskId : String
+    - priorityScore : double
+    - priorityLabel : String
+    - slaBreach : boolean
+  }
+
+  class AnomalyResult <<Entity>> {
+    - caseId : String
+    - isAnomaly : boolean
+    - score : double
+    - description : String
+  }
+
+  class MlDashboardService <<Control>> {
+    + getDashboard(cases) : MlDashboard
+    + applyHeuristics(cases) : MlDashboard
+  }
+
+  MlDashboardService --> PredictionResult
+  MlDashboardService --> PriorityResult
+  MlDashboardService --> AnomalyResult
+}
+
+package "Dominio extendido" {
+  class Policy <<Entity>> {
+    - id : String
+    - name : String
+    - version : int
+    - status : String
+  }
+
+  class EventLog <<Entity>> {
+    - type : String
+    - userId : String
+    - userName : String
+    - payloadJson : Object
+    - createdAt : Instant
+  }
+}
+
+@enduml
+```
+
+---
+
+### Diagramas de Comunicación — Ciclo 2
+
+Los diagramas de comunicación del Ciclo 2 modelan la interacción entre objetos para los flujos más representativos.
+
+#### Comunicación CU18: Subir Documento
+
+```plantuml
+@startuml Comunicacion_CU18
+!theme plain
+actor "CLIENT / OFFICER" as U
+participant ":DocumentManagerComponent" as UI
+participant ":DocumentController" as Ctrl
+participant ":DocumentService" as Svc
+participant ":S3Client" as S3
+database ":MongoDB" as DB
+
+U -> UI : 1. seleccionaArchivo(file)
+UI -> Ctrl : 2. POST /api/documents/upload
+Ctrl -> Svc : 3. uploadDocument(file, caseId, userId)
+Svc -> S3 : 4. putObject(key, content)
+S3 --> Svc : 5. OK / Exception
+Svc -> DB : 6. save(CaseDocument)
+DB --> Svc : 7. CaseDocument guardado
+Svc -> DB : 8. addAuditLog(UPLOADED)
+Svc --> Ctrl : 9. CaseDocumentDto
+Ctrl --> UI : 10. 200 OK + CaseDocumentDto
+UI --> U : 11. archivo visible en lista
+@enduml
+```
+
+#### Comunicación CU23: Identificar Política con Agente IA
+
+```plantuml
+@startuml Comunicacion_CU23
+!theme plain
+actor "CLIENT" as U
+participant ":NuevoProcesComponent" as UI
+participant ":AgentController" as Ctrl
+participant ":PolicySuggestionService" as Svc
+participant ":GroqAPI" as Groq
+database ":MongoDB" as DB
+
+U -> UI : 1. describeSituacion(texto/voz)
+UI -> Ctrl : 2. POST /api/agent/suggest-policy
+Ctrl -> DB : 3. findActivePolicies()
+DB --> Ctrl : 4. List<Policy>
+Ctrl -> Svc : 5. suggestPolicy(description, policies)
+Svc -> Groq : 6. chat.completions.create(prompt)
+Groq --> Svc : 7. JSON {policyId, confidence, explanation}
+Svc --> Ctrl : 8. PolicySuggestion
+Ctrl --> UI : 9. PolicySuggestion (confidence %)
+UI --> U : 10. muestra política sugerida
+@enduml
+```
+
+---
+
+## Flujo de Trabajo: Diseño — Ciclo 2
+
+### Diseño de Clases — Ciclo 2
+
+El diseño de clases refina el análisis con los tipos concretos de implementación en Spring Boot / Java 22.
+
+#### Clases de Diseño — Capa de Persistencia (MongoDB)
+
+| Colección MongoDB | Clase Java | Campos nuevos Ciclo 2 |
+|-------------------|-----------|----------------------|
+| `case_documents` | `CaseDocument.java` | `s3Key`, `deleted`, `auditLogs[]`, `userPermissions{}` |
+| `cases` | `Case.java` → `EventLog.java` | `eventLogs[].userId`, `eventLogs[].userName` |
+| `policies` | `Policy.java` | `version: int = 1` |
+
+#### Clases de Diseño — Capa de Servicio
+
+```plantuml
+@startuml Diseno_Clases_Ciclo2
+!theme plain
+skinparam classAttributeIconSize 0
+
+class DocumentService {
+  - s3Client : S3Client
+  - s3Presigner : S3Presigner
+  - documentRepository : DocumentRepository
+  - bucketName : String
+  --
+  + uploadDocument(MultipartFile, caseId, userId) : CaseDocumentDto
+  + generatePresignedUrl(docId, userId) : DownloadUrlDto
+  + softDelete(docId, userId) : void
+  + getAuditLog(docId) : List<AuditEntryDto>
+  + setUserPermission(docId, userId, level) : CaseDocumentDto
+  - buildS3Key(caseId, fileName) : String
+  - addAuditEntry(doc, action, userId, userName) : void
+}
+
+class MlProxyService {
+  - http : WebClient / HttpClient
+  - mlServiceUrl : String
+  - caseRepository : CaseRepository
+  --
+  + getDashboard() : MlDashboardDto
+  - buildFeatureVector(cases) : List<Map>
+  - applyHeuristics(cases) : MlDashboardDto
+}
+
+class PolicyService {
+  - policyRepository : PolicyRepository
+  --
+  + update(id, dto) : Policy
+  + updateGraph(id, dto) : Policy
+}
+
+note on link
+  update() y updateGraph()
+  incrementan version++
+end note
+
+class CaseService {
+  - userRepository : UserRepository
+  --
+  + processTaskCompletion(caseId, taskId, conditionLabel, userId) : CaseDto
+  - addEvent(case, type, userId, userName) : void
+}
+
+DocumentService --> CaseDocument
+MlProxyService --> MlDashboardDto
+PolicyService --> Policy
+CaseService --> EventLog
+
+@enduml
+```
+
+---
+
+### Diseño de Datos — Ciclo 2 (MongoDB)
+
+#### Colección `case_documents`
+
+```json
+{
+  "_id": "ObjectId",
+  "caseId": "String (ref cases)",
+  "nodeId": "String | null",
+  "fileName": "String",
+  "contentType": "String (MIME)",
+  "fileSize": "Long (bytes)",
+  "s3Key": "String | null",
+  "uploadedById": "String",
+  "uploadedByName": "String",
+  "uploadedAt": "ISODate",
+  "deleted": "Boolean (default: false)",
+  "userPermissions": { "userId": "VIEW|UPLOAD|EDIT|FULL|ADMIN" },
+  "auditLogs": [
+    {
+      "userId": "String",
+      "userName": "String",
+      "action": "UPLOADED|DOWNLOADED|VIEWED|DELETED|MODIFIED",
+      "timestamp": "ISODate"
+    }
+  ]
+}
+```
+
+#### Colección `cases` — Campo `eventLogs` extendido
+
+```json
+{
+  "eventLogs": [
+    {
+      "type": "TASK_COMPLETED | TASK_ASSIGNED | CASE_STARTED | ...",
+      "userId": "String (Ciclo 2 — nuevo)",
+      "userName": "String (Ciclo 2 — nuevo)",
+      "payloadJson": "Object | null",
+      "createdAt": "ISODate"
+    }
+  ]
+}
+```
+
+#### Colección `policies` — Campo `version` extendido
+
+```json
+{
+  "version": "Integer (inicia en 1, se incrementa con cada update/updateGraph)"
+}
+```
+
+---
+
+### Diseño de Arquitectura — Resumen Ciclo 2
+
+| Capa | Tecnología | Responsabilidad Ciclo 2 |
+|------|-----------|------------------------|
+| **Frontend** | Angular 18, TypeScript | DocumentManagerComponent, MlDashboardComponent, NuevoProcesComponent |
+| **API Gateway** | Spring Boot 3.5 / Java 22 | DocumentController, MlProxyController, CaseController extendido |
+| **AI Service** | Python 3.11 / FastAPI | Groq NLP: sugerencia de política, llenado de formularios, análisis de reportes |
+| **ML Service** | Python 3.11 / FastAPI / TensorFlow 2.17 | 3 modelos Keras: delay_risk, priority_scorer, anomaly_detector |
+| **Almacenamiento** | MongoDB 7 | Colecciones extendidas: case_documents, cases (eventLogs++), policies (version) |
+| **Nube** | AWS S3 `sa-east-1` | Bucket `flowgov-documents`: objetos con key `cases/{caseId}/{uuid}/{fileName}` |
+| **Monitoreo** | Prometheus + Grafana | Métricas de los 3 servicios: Spring Boot Actuator + prometheus-fastapi-instrumentator |
+| **Móvil** | Flutter 3 / Dart | Bandeja de tareas con caché offline (SharedPreferences), notificaciones FCM |
+
+---
+
+## Flujo de Trabajo: Pruebas — Ciclo 2
+
+Los siguientes casos de prueba funcional validan las 5 mejoras implementadas en el Ciclo 2. Se siguen el mismo formato que los casos PF-1 a PF-7 del Ciclo 1.
+
+---
+
+**PF-8: Subir y Descargar Documento en Trámite (CU18 / CU19)**
+- **Condición:**
+  - El actor está autenticado con rol CLIENT u OFFICER.
+  - Existe un trámite activo (`Case` con status IN_PROGRESS).
+  - El bucket S3 `flowgov-documents` está accesible.
+- **Proceso:**
+  - El actor abre el detalle del trámite y localiza la sección "Documentos".
+  - Hace clic en "Subir archivo" y selecciona un PDF de prueba.
+  - El sistema muestra la barra de progreso durante la subida.
+  - Al completar, el archivo aparece en la lista con nombre, tamaño y fecha.
+  - El actor hace clic en "Descargar"; el sistema genera una presigned URL y descarga el archivo.
+- **Resultado esperado:** El archivo se sube exitosamente a S3 (`s3Key` no nulo), aparece en la lista, y la descarga retorna el archivo original. El `auditLog` contiene entradas `UPLOADED` y `DOWNLOADED` con el userId correcto.
+
+---
+
+**PF-9: Colaborar en Documento en Tiempo Real (CU20)**
+- **Condición:**
+  - Dos actores (OFFICER_A y OFFICER_B) están autenticados en sesiones distintas.
+  - Existe un trámite activo con al menos un documento subido.
+- **Proceso:**
+  - OFFICER_A abre la sesión colaborativa del documento. Aparece como participante en línea.
+  - OFFICER_B abre la misma sesión colaborativa desde otro navegador.
+  - Ambos aparecen en el panel de participantes con colores distintos.
+  - OFFICER_A escribe texto en el editor colaborativo.
+  - El texto aparece en tiempo real en el editor de OFFICER_B sin necesidad de recargar.
+  - OFFICER_B envía un comentario; OFFICER_A lo recibe en el panel de comentarios.
+  - OFFICER_A cierra la sesión; OFFICER_B ve que el participante se desconectó.
+- **Resultado esperado:** La sincronización bidireccional ocurre en menos de 500 ms. La sesión WebSocket se reconecta automáticamente si se interrumpe.
+
+---
+
+**PF-10: Llenar Formulario por Voz con Groq NLP (CU22)**
+- **Condición:**
+  - El OFFICER tiene una tarea pendiente con formulario (campos: nombre, apellido, dirección, descripción).
+  - El navegador es Chrome con permisos de micrófono concedidos.
+  - El ai-service está activo y `GROQ_API_KEY` es válida.
+- **Proceso:**
+  - El OFFICER abre el formulario de la tarea y activa el botón de micrófono.
+  - Dicta: *"Mi nombre es Juan Pérez, vivo en Av. Cañoto 456, necesito instalar un medidor de luz"*.
+  - Web Speech API captura y transcribe el audio.
+  - El sistema envía la transcripción al ai-service.
+  - Groq llama-3.1-8b-instant mapea los campos y retorna JSON.
+  - Los campos del formulario se pre-rellenan automáticamente.
+- **Resultado esperado:** El campo "nombre" contiene "Juan", "apellido" contiene "Pérez", "dirección" contiene "Av. Cañoto 456", "descripción" contiene el texto dictado. El OFFICER puede editar antes de enviar.
+
+---
+
+**PF-11: Identificar Política con Agente IA (CU23)**
+- **Condición:**
+  - El usuario tiene rol CLIENT y está autenticado.
+  - Existen al menos 3 políticas activas en el sistema.
+  - El ai-service está activo y `GROQ_API_KEY` es válida.
+- **Proceso:**
+  - El CLIENT navega a "Iniciar Trámite".
+  - Activa el micrófono y dicta: *"Necesito solicitar la instalación de un medidor de agua en mi domicilio"*.
+  - El sistema transcribe el audio y llama al agente Groq.
+  - El agente retorna la política más apropiada con confianza del 82%.
+  - El sistema resalta la política sugerida y muestra el nivel de confianza en la barra de progreso.
+  - El CLIENT confirma la política e inicia el trámite.
+- **Resultado esperado:** Se crea un nuevo `Case` en MongoDB con status `OPEN` asociado a la política sugerida. La confianza mostrada es ≥ 70% para que el sistema resalte la sugerencia.
+
+---
+
+**PF-12: Generar Reporte NLP de Trámites (CU24)**
+- **Condición:**
+  - El usuario tiene rol ADMIN u OFFICER.
+  - Existen trámites completados e in-progress en el sistema.
+  - El ai-service está activo y `GROQ_API_KEY` es válida.
+- **Proceso:**
+  - El usuario navega a "Reportes IA".
+  - Escribe la consulta: *"¿Cuántos trámites se completaron en los últimos 30 días y cuáles tienen SLA excedido?"*.
+  - Hace clic en "Generar reporte".
+  - El sistema muestra el spinner de carga mientras Groq procesa.
+  - El reporte se renderiza con título, KPIs resumidos y tabla de filas.
+  - El usuario exporta el reporte a CSV.
+- **Resultado esperado:** El reporte incluye al menos una fila por trámite relevante. Los KPIs muestran conteos correctos. El archivo CSV descargado contiene las mismas columnas que la tabla visible.
+
+---
+
+**PF-13: Visualizar Predicciones ML en Dashboard (CU25)**
+- **Condición:**
+  - El usuario tiene rol ADMIN.
+  - Existen casos activos (status `IN_PROGRESS` u `OPEN`) en el sistema.
+  - El ml-service (TensorFlow) está corriendo y los 3 modelos Keras están entrenados.
+- **Proceso:**
+  - El ADMIN accede al Dashboard principal.
+  - El sistema llama a `GET /api/ml/dashboard` mientras muestra el estado de carga.
+  - El panel "Riesgo de Demora" muestra cada caso activo con su nivel (ALTO / MEDIO / BAJO) y puntuación.
+  - El panel "Prioridad de Tareas" muestra tareas ordenadas por score; las que exceden SLA tienen la etiqueta roja "SLA".
+  - El panel "Anomalías Detectadas" muestra los casos con comportamiento inusual o el mensaje "Sin anomalías detectadas".
+  - El badge superior indica "TensorFlow activo" con fondo verde.
+- **Resultado esperado:** Los 3 paneles se renderizan con datos reales. Si el ml-service no responde en 15 s, el badge cambia a "Heurísticas locales" y los paneles muestran estimaciones calculadas en el backend Java. El sistema no lanza ningún error al usuario.
+
+---
+
+> **Nota:** Los casos de prueba PF-1 a PF-7 (Ciclo 1) se encuentran en la sección **3.5 Flujo de Trabajo: Pruebas**.
+
+---
+
 ## PARTE III — MECANISMOS DE SOPORTE AL USUARIO
 
 Esta sección describe los mecanismos implementados para lograr que los usuarios utilicen correctamente la aplicación FlowGov. Se implementaron los tres niveles propuestos: manual de usuario, tutoriales y asistente inteligente.
