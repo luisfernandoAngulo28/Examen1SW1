@@ -18,6 +18,7 @@ public class Policy {
     private String name;
     private PolicyStatus status = PolicyStatus.ACTIVE;
     private String createdBy;
+    private int version = 1;
 
     private List<PolicyNode> nodes = new ArrayList<>();
     private List<PolicyEdge> edges = new ArrayList<>();

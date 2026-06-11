@@ -7,6 +7,7 @@ import com.workflow.engine.model.EventLog;
 import com.workflow.engine.model.Role;
 import com.workflow.engine.model.TaskStatus;
 import com.workflow.engine.model.User;
+import com.workflow.engine.repository.PolicyRepository;
 import com.workflow.engine.service.CaseService;
 import com.workflow.engine.service.CaseViewService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class CaseController {
 
     private final CaseService caseService;
     private final CaseViewService caseViewService;
+    private final PolicyRepository policyRepository;
 
     @GetMapping
     public ResponseEntity<List<CaseDetailDto>> findAll(@RequestParam(required = false) String policyId) {
@@ -130,6 +132,36 @@ public class CaseController {
     public ResponseEntity<Void> deleteAllCases() {
         caseService.deleteAll();
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Department task pool — returns pending/in-progress tasks whose policy node
+     * belongs to the authenticated user's department. Useful for officers to
+     * pick up unassigned work within their department.
+     */
+    @GetMapping("/dept-tasks")
+    public ResponseEntity<List<MyTaskDto>> getDeptTasks() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) auth.getPrincipal();
+        String deptId = currentUser.getDepartmentId();
+
+        if (deptId == null || deptId.isBlank()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<MyTaskDto> result = caseService.findAll().stream()
+                .flatMap(c -> {
+                    var policy = policyRepository.findById(c.getPolicyId()).orElse(null);
+                    if (policy == null) return java.util.stream.Stream.empty();
+                    return c.getTasks().stream()
+                            .filter(t -> t.getStatus() == TaskStatus.PENDING || t.getStatus() == TaskStatus.IN_PROGRESS)
+                            .filter(t -> policy.getNodes().stream()
+                                    .anyMatch(n -> n.getId().equals(t.getNodeId()) && deptId.equals(n.getDepartmentId())))
+                            .map(t -> caseViewService.toMyTask(c, t));
+                })
+                .toList();
+
+        return ResponseEntity.ok(result);
     }
 
     /** Audit trail — full event log for a case (CASE_STARTED, TASK_ASSIGNED, TASK_COMPLETED, CASE_COMPLETED, etc.) */

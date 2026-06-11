@@ -3,12 +3,15 @@ package com.workflow.engine.service;
 import com.workflow.engine.dto.CaseDetailDto;
 import com.workflow.engine.dto.MyTaskDto;
 import com.workflow.engine.model.*;
+import com.workflow.engine.model.TaskStatus;
 import com.workflow.engine.repository.DepartmentRepository;
 import com.workflow.engine.repository.PolicyRepository;
 import com.workflow.engine.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -70,6 +73,36 @@ public class CaseViewService {
         }).toList();
 
         dto.setTasks(taskDtos);
+
+        // ── Progress percent ──────────────────────────────────────────────────
+        long total = c.getTasks().size();
+        long done  = c.getTasks().stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+        dto.setProgressPercent(total > 0 ? (int) (done * 100 / total) : 0);
+
+        // ── Current department (from the first PENDING or IN_PROGRESS task) ──
+        if (policy != null) {
+            c.getTasks().stream()
+                    .filter(t -> t.getStatus() == TaskStatus.PENDING || t.getStatus() == TaskStatus.IN_PROGRESS)
+                    .findFirst()
+                    .ifPresent(t -> policy.getNodes().stream()
+                            .filter(n -> n.getId().equals(t.getNodeId()))
+                            .findFirst()
+                            .ifPresent(node -> {
+                                if (node.getDepartmentId() != null) {
+                                    departmentRepository.findById(node.getDepartmentId())
+                                            .ifPresent(dept -> dto.setCurrentDepartment(dept.getName()));
+                                }
+                                if (dto.getCurrentDepartment() == null) {
+                                    dto.setCurrentDepartment(node.getTitle());
+                                }
+                            }));
+        }
+
+        // ── Elapsed hours ─────────────────────────────────────────────────────
+        Instant from = c.getStartedAt() != null ? c.getStartedAt() : Instant.now();
+        Instant to   = c.getFinishedAt() != null ? c.getFinishedAt() : Instant.now();
+        dto.setElapsedHours(ChronoUnit.HOURS.between(from, to));
+
         return dto;
     }
 

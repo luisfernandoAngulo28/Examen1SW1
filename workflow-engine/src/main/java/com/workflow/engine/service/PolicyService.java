@@ -38,6 +38,7 @@ public class PolicyService {
         existing.setStatus(policy.getStatus());
         existing.setNodes(policy.getNodes());
         existing.setEdges(policy.getEdges());
+        existing.setVersion(existing.getVersion() + 1);
         return policyRepository.save(existing);
     }
 
@@ -60,6 +61,7 @@ public class PolicyService {
             existing.setEdges(edges);
         }
 
+        existing.setVersion(existing.getVersion() + 1);
         return policyRepository.save(existing);
     }
 

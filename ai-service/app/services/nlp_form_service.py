@@ -3,7 +3,7 @@ NLP Form Filler — extrae valores estructurados de formularios a partir de
 transcripciones de voz en español libre.
 
 Flujo:
-  1. Si OPENAI_API_KEY está configurado → delega a GPT-4o-mini (máxima precisión).
+  1. Si GROQ_API_KEY está configurado → delega a Groq llama-3.1-8b-instant (máxima precisión).
   2. Si no → motor de reglas local basado en:
        a) Anclaje por etiqueta del campo (label-anchor extraction)
        b) Sinónimos semánticos por tipo de campo

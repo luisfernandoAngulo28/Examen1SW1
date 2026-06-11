@@ -23,6 +23,13 @@ public class CaseDetailDto {
     private List<TaskDetailDto> tasks;
     private List<EventLog> eventLogs;
 
+    /** 0–100: percentage of DONE tasks out of total non-initial tasks */
+    private int progressPercent;
+    /** Name of the department handling the current active task */
+    private String currentDepartment;
+    /** Hours elapsed since the case was started */
+    private long elapsedHours;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
