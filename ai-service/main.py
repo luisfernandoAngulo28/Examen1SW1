@@ -8,6 +8,7 @@ Rol: Microservicio de Inteligencia Artificial que expone endpoints de NLP,
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.routers import prompt_router, nlp_router, tts_router, report_router
 
@@ -35,6 +36,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(prompt_router.router, tags=["Workflow AI — Prompts"])
 app.include_router(nlp_router.router, prefix="/nlp", tags=["NLP — Form Filler & Policy Assignment"])

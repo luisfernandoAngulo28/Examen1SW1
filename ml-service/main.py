@@ -12,6 +12,7 @@ Los modelos se entrenan con datos sintéticos al arrancar el servicio (segundos)
 import threading
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.routers import predictions
 
@@ -37,6 +38,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app)
 
 app.include_router(predictions.router, prefix="/predict", tags=["Predicciones ML"])
 
