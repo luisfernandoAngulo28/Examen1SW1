@@ -47,7 +47,10 @@ interface UserOption { id: string; name: string; email: string; }
           <app-traffic-light [status]="caseData.status" [size]="18" [showLabel]="true" />
           <span class="badge" [class]="wsConnected ? 'badge-green' : 'badge-red'" style="font-size:11px;padding:3px 8px">{{ wsConnected ? '● En vivo' : '○ Reconectando' }}</span>
           @if (caseData.status !== 'COMPLETED' && caseData.status !== 'CANCELLED') {
-            <button (click)="cancel()" class="btn btn-danger">✗ Cancelar trámite</button>
+            <button (click)="cancel()" class="btn btn-danger" style="display:inline-flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Cancelar trámite
+          </button>
           }
         </div>
       </div>
@@ -66,9 +69,9 @@ interface UserOption { id: string; name: string; email: string; }
                style="height:100%;border-radius:10px;transition:width .5s ease"></div>
         </div>
         <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--text-secondary)">
-          <span>🟢 {{ doneTasks }} completadas</span>
-          <span>🟡 {{ inProgressTasks }} en progreso</span>
-          <span>🔴 {{ pendingTasks }} pendientes</span>
+          <span style="display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#52c41a"></span>{{ doneTasks }} completadas</span>
+          <span style="display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#faad14"></span>{{ inProgressTasks }} en progreso</span>
+          <span style="display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4d4f"></span>{{ pendingTasks }} pendientes</span>
         </div>
       </div>
 
@@ -104,13 +107,19 @@ interface UserOption { id: string; name: string; email: string; }
 
                   @if ((decisionEdges[task.id] || []).length > 0) {
                     <div style="display:flex;align-items:center;gap:6px">
-                      <span style="font-size:13px;color:var(--text-secondary);font-weight:600">◇ Decidir:</span>
+                      <span style="font-size:13px;color:var(--text-secondary);font-weight:600;display:inline-flex;align-items:center;gap:4px">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        Decidir:
+                      </span>
                       @for (de of (decisionEdges[task.id] || []); track de.conditionLabel) {
                         <button (click)="complete(task.id, de.conditionLabel)" class="btn btn-warning btn-sm" style="color:#fff">{{ de.conditionLabel }}</button>
                       }
                     </div>
                   } @else {
-                    <button (click)="complete(task.id)" class="btn btn-success btn-sm">✓ Completar</button>
+                    <button (click)="complete(task.id)" class="btn btn-success btn-sm" style="display:inline-flex;align-items:center;gap:4px">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                      Completar
+                    </button>
                   }
                 }
 
@@ -126,7 +135,11 @@ interface UserOption { id: string; name: string; email: string; }
                 <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
                   <button type="button" class="btn btn-ghost btn-sm" (click)="toggleForm(task.id)" style="margin-bottom:8px">
                     {{ expandedForms.has(task.id) ? '▾' : '▸' }} Formulario
-                    @if (formSubmissions[task.id]) { <span class="badge badge-green" style="margin-left:8px">✓</span> }
+                    @if (formSubmissions[task.id]) {
+                      <span class="badge badge-green" style="margin-left:8px;display:inline-flex;align-items:center;gap:2px">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                    }
                   </button>
                   @if (expandedForms.has(task.id)) {
                     <app-dynamic-form
@@ -190,8 +203,9 @@ interface UserOption { id: string; name: string; email: string; }
           </div>
           <div #chatScroll style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f8f9fa">
             @if (chatMessages.length === 0) {
-              <div style="text-align:center;color:#999;font-size:12px;margin-top:40px">
-                💬 Sé el primero en escribir
+              <div style="text-align:center;color:#999;font-size:12px;margin-top:40px;display:flex;flex-direction:column;align-items:center;gap:6px">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Sé el primero en escribir
               </div>
             }
             @for (m of chatMessages; track $index) {
@@ -223,7 +237,9 @@ interface UserOption { id: string; name: string; email: string; }
     @if (riskWarning) {
       <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1500;display:flex;align-items:center;justify-content:center">
         <div style="background:#fff;border-radius:16px;padding:32px;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-          <div style="text-align:center;font-size:52px;margin-bottom:8px">⚠️</div>
+          <div style="display:flex;justify-content:center;margin-bottom:8px">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ff4d4f" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
           <h2 style="color:#ff4d4f;text-align:center;margin:0 0 8px">Riesgo Detectado por IA</h2>
           <p style="color:#666;text-align:center;font-size:14px;margin-bottom:20px">
             El <strong>Motor Inteligente de Enrutamiento</strong> (ML/TensorFlow) detectó probabilidad de demora en este trámite. Nivel: <strong style="color:#ff4d4f">{{ riskWarning.risk_level || 'MEDIO' }}</strong>

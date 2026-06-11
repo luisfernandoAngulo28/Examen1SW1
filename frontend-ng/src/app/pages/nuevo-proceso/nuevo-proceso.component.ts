@@ -37,7 +37,15 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
           <div [style.flex]="1" [style.background]="step===s.key?'#1677ff':stepDone(s.key)?'#52c41a':'#fafafa'"
                [style.color]="step===s.key||stepDone(s.key)?'#fff':'#aaa'"
                style="padding:10px 8px;text-align:center;font-size:12px;font-weight:600;transition:background .2s">
-            <div style="font-size:18px">{{ s.icon }}</div>
+            <div style="display:flex;justify-content:center;margin-bottom:2px">
+              @switch (s.key) {
+                @case ('record')     { <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> }
+                @case ('analyzing')  { <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg> }
+                @case ('suggestion') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> }
+                @case ('confirming') { <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> }
+                @case ('done')       { <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> }
+              }
+            </div>
             <div>{{ s.label }}</div>
           </div>
         }
@@ -46,7 +54,9 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
       <!-- Step 1: Grabar voz -->
       @if (step === 'record') {
         <div class="card" style="padding:32px;text-align:center">
-          <div style="font-size:48px;margin-bottom:16px">🎙️</div>
+          <div style="margin-bottom:16px;display:flex;justify-content:center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1677ff" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
           <h2 style="margin-bottom:8px">Describe tu situación</h2>
           <p style="color:var(--text-secondary);margin-bottom:24px;font-size:14px">
             Habla y describe qué trámite necesitas realizar. El sistema determinará
@@ -60,7 +70,11 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
             [style.background]="recording ? '#ff4d4f' : '#1677ff'"
             style="color:#fff;border:none;border-radius:50%;width:80px;height:80px;font-size:28px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);transition:all .2s;margin-bottom:20px"
             [title]="recording ? 'Detener grabación' : 'Iniciar grabación'">
-            {{ recording ? '⏹' : '🎤' }}
+            @if (recording) {
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            } @else {
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            }
           </button>
 
           @if (recording) {
@@ -110,7 +124,9 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
 
           <div style="background:linear-gradient(135deg,#e6f4ff,#f0f9ff);border:2px solid #91caff;border-radius:12px;padding:24px;margin-bottom:20px">
             <div style="display:flex;align-items:flex-start;gap:16px">
-              <div style="font-size:40px">📋</div>
+              <div style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#e6f4ff;border-radius:8px;flex-shrink:0">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1677ff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
               <div style="flex:1">
                 <div style="font-size:20px;font-weight:700;color:#1677ff;margin-bottom:6px">
                   {{ suggestion.policyName }}
@@ -135,7 +151,8 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
           </div>
 
           <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:12px;margin-bottom:24px;font-size:13px;color:#614700">
-            ⚠️ <strong>Tu descripción:</strong> <em>"{{ transcript }}"</em>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d48806" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <strong>Tu descripción:</strong> <em>"{{ transcript }}"</em>
           </div>
 
           <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -143,7 +160,7 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
               ← Volver a describir
             </button>
             <button (click)="confirmAndStart()" class="btn btn-success" style="flex:1">
-              ✓ Confirmar e iniciar trámite
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline;vertical-align:middle;margin-right:5px"><polyline points="20 6 9 17 4 12"/></svg>Confirmar e iniciar trámite
             </button>
           </div>
         </div>
@@ -160,7 +177,9 @@ type Step = 'record' | 'analyzing' | 'suggestion' | 'confirming' | 'done';
       <!-- Step 5: Listo -->
       @if (step === 'done' && createdCaseId) {
         <div class="card" style="padding:48px;text-align:center">
-          <div style="font-size:56px;margin-bottom:16px">✅</div>
+          <div style="margin-bottom:16px;display:flex;justify-content:center">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#52c41a" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <h2 style="color:#52c41a;margin-bottom:8px">¡Trámite iniciado!</h2>
           <p style="color:var(--text-secondary);margin-bottom:8px">
             Se creó tu trámite con la política <strong>{{ suggestion?.policyName }}</strong>.
@@ -191,11 +210,11 @@ export class NuevoProcesComponent implements OnInit {
   createdCaseId = '';
 
   readonly steps = [
-    { key: 'record',     icon: '🎙️', label: 'Describir' },
-    { key: 'analyzing',  icon: '🤖', label: 'Analizar' },
-    { key: 'suggestion', icon: '📋', label: 'Sugerencia' },
-    { key: 'confirming', icon: '⚡', label: 'Iniciar' },
-    { key: 'done',       icon: '✅', label: 'Listo' },
+    { key: 'record',     label: 'Describir' },
+    { key: 'analyzing',  label: 'Analizar' },
+    { key: 'suggestion', label: 'Sugerencia' },
+    { key: 'confirming', label: 'Iniciar' },
+    { key: 'done',       label: 'Listo' },
   ] as const;
 
   private recognition: any = null;

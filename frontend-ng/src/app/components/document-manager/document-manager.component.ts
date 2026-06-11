@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
@@ -91,7 +91,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
         @if (docs.length === 0 && !uploading) {
           <div (dragover)="$event.preventDefault()" (drop)="onDrop($event)"
                style="padding:40px;text-align:center;border:2px dashed #d9d9d9;margin:16px;border-radius:8px;color:#bbb;cursor:pointer">
-            <div style="font-size:32px;margin-bottom:8px">📂</div>
+            <div style="margin-bottom:8px"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
             <div style="font-size:13px">No hay documentos aún.</div>
             @if (canUpload) {
               <div style="font-size:12px;margin-top:4px">Arrastra archivos aquí o usa el botón "Subir archivo"</div>
@@ -106,7 +106,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
               <div style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);transition:background .15s"
                    (mouseenter)="$any($event.currentTarget).style.background='#fafafa'"
                    (mouseleave)="$any($event.currentTarget).style.background=''">
-                <span style="font-size:22px">{{ fileIcon(doc.contentType) }}</span>
+                <span [innerHTML]="safeIcon(doc.contentType)"></span>
                 <div style="flex:1;min-width:0">
                   <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ doc.fileName }}</div>
                   <div style="font-size:11px;color:#999">
@@ -118,34 +118,38 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
                 <div style="display:flex;gap:6px;flex-shrink:0">
                   <button (click)="download(doc)" class="btn btn-ghost btn-sm"
                     title="Descargar" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">
-                    ⬇ Descargar
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Descargar
                   </button>
                   @if (isViewable(doc.contentType)) {
                     <button (click)="openPreview(doc)" class="btn btn-ghost btn-sm"
                       title="Vista previa" style="display:inline-flex;align-items:center;gap:4px;font-size:12px">
-                      👁 Ver
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      Ver
                     </button>
                   }
                   @if (isCollaborativeEditable(doc.contentType)) {
                     <button (click)="openCollaborative(doc)" class="btn btn-ghost btn-sm"
-                      title="Editar colaborativamente" style="font-size:12px;color:#722ed1">
-                      ✏ Colaborar
+                      title="Editar colaborativamente" style="font-size:12px;color:#722ed1;display:inline-flex;align-items:center;gap:4px">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Colaborar
                     </button>
                   }
                   <button (click)="showAudit(doc)" class="btn btn-ghost btn-sm"
-                    title="Ver historial" style="font-size:12px">
-                    📋 Historial
+                    title="Ver historial" style="font-size:12px;display:inline-flex;align-items:center;gap:4px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Historial
                   </button>
                   @if (canManagePermissions) {
                     <button (click)="openPermissions(doc)" class="btn btn-ghost btn-sm"
-                      title="Gestionar permisos" style="font-size:12px;color:#722ed1">
-                      🔐
+                      title="Gestionar permisos" style="font-size:12px;color:#722ed1;display:inline-flex;align-items:center">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </button>
                   }
                   @if (canDelete) {
                     <button (click)="deleteDoc(doc)" class="btn btn-ghost btn-sm"
-                      title="Eliminar" style="font-size:12px;color:#ff4d4f">
-                      🗑
+                      title="Eliminar" style="font-size:12px;color:#ff4d4f;display:inline-flex;align-items:center">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                     </button>
                   }
                 </div>
@@ -172,7 +176,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
           <div style="overflow-y:auto;flex:1">
             @for (entry of auditEntries; track $index) {
               <div style="padding:12px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:12px">
-                <span style="font-size:18px">{{ actionIcon(entry.action) }}</span>
+                <span [innerHTML]="safeActionIcon(entry.action)"></span>
                 <div style="flex:1">
                   <div style="font-size:13px"><strong>{{ entry.userName }}</strong> — {{ actionLabel(entry.action) }}</div>
                   <div style="font-size:11px;color:#999">{{ entry.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</div>
@@ -207,7 +211,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
             <video [src]="previewUrl" controls style="max-width:100%;max-height:80vh"></video>
           } @else {
             <div style="padding:40px;text-align:center;color:#666">
-              <div style="font-size:40px;margin-bottom:12px">{{ fileIcon(previewDoc.contentType) }}</div>
+              <div style="margin-bottom:12px" [innerHTML]="safeIcon(previewDoc.contentType, 40)"></div>
               <div>Este formato no tiene vista previa disponible.</div>
               <a [href]="previewUrl" download style="color:#1677ff;margin-top:8px;display:inline-block">Descargar archivo</a>
             </div>
@@ -223,7 +227,10 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
         <div style="background:#fff;border-radius:12px;width:480px;overflow:hidden"
              (click)="$event.stopPropagation()">
           <div style="padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;background:#f6f0ff">
-            <div style="font-weight:700;color:#722ed1">🔐 Gestión de Permisos</div>
+            <div style="font-weight:700;color:#722ed1;display:flex;align-items:center;gap:6px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Gestión de Permisos
+            </div>
             <button (click)="permissionsDoc=null" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999">×</button>
           </div>
           <div style="padding:16px 20px">
@@ -265,7 +272,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
 
         <!-- Top bar -->
         <div style="background:#1a1a2e;padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:1px solid #333">
-          <span style="font-size:20px">{{ fileIcon(collabDoc.contentType) }}</span>
+          <span [innerHTML]="safeIcon(collabDoc.contentType, 20)"></span>
           <span style="color:#fff;font-weight:700;font-size:14px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ collabDoc.fileName }}</span>
           <div style="background:#722ed1;color:#fff;border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:.5px">SESIÓN COLABORATIVA EN VIVO</div>
 
@@ -309,11 +316,12 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
               <iframe [src]="safeCollabOfficeUrl" style="flex:1;border:none"></iframe>
             } @else {
               <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#888;gap:16px">
-                <div style="font-size:64px">{{ fileIcon(collabDoc.contentType) }}</div>
+                <div [innerHTML]="safeIcon(collabDoc.contentType, 64)"></div>
                 <div style="font-size:14px;color:#aaa">{{ collabDoc.fileName }}</div>
                 <a [href]="collabDocUrl" [attr.download]="collabDoc.fileName"
-                   style="background:#722ed1;color:#fff;border-radius:8px;padding:10px 24px;text-decoration:none;font-size:13px">
-                  ⬇ Descargar para editar localmente
+                   style="background:#722ed1;color:#fff;border-radius:8px;padding:10px 24px;text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Descargar para editar localmente
                 </a>
               </div>
             }
@@ -348,13 +356,13 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
                 [style.border-bottom]="collabTab==='editor' ? '2px solid #722ed1' : '2px solid transparent'"
                 [style.color]="collabTab==='editor' ? '#722ed1' : '#999'"
                 style="flex:1;padding:8px;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;margin-bottom:-2px">
-                ✏ Editor en vivo
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editor en vivo
               </button>
               <button (click)="collabTab='notes'"
                 [style.border-bottom]="collabTab==='notes' ? '2px solid #1677ff' : '2px solid transparent'"
                 [style.color]="collabTab==='notes' ? '#1677ff' : '#999'"
                 style="flex:1;padding:8px;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;margin-bottom:-2px">
-                💬 Comentarios
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comentarios
               </button>
             </div>
 
@@ -365,7 +373,7 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
                   <span style="width:8px;height:8px;background:#52c41a;border-radius:50%;display:inline-block"></span>
                   Edición sincronizada — todos ven los cambios al instante
                   @if (collabEditingUser && collabEditingUser !== myCollabUserId) {
-                    <span style="margin-left:auto;font-size:10px;color:#888">✍ {{ collabEditingUser }} editando...</span>
+                    <span style="margin-left:auto;font-size:10px;color:#888">{{ collabEditingUser }} editando...</span>
                   }
                 </div>
                 <textarea
@@ -412,7 +420,9 @@ const COLLAB_COLORS = ['#722ed1','#1677ff','#52c41a','#fa8c16','#f5222d','#13c2c
                        style="flex:1;font-size:13px"
                        (keyup.enter)="sendCollabNote()" />
                 <button (click)="sendCollabNote()" [disabled]="!collabNoteText.trim()"
-                        class="btn btn-primary" style="padding:0 14px;font-size:16px">➤</button>
+                        class="btn btn-primary" style="padding:0 14px;display:inline-flex;align-items:center;justify-content:center">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
               </div>
             }
           </div>
@@ -747,17 +757,27 @@ export class DocumentManagerComponent implements OnInit {
            ct?.startsWith('image/') || ct === 'application/pdf';
   }
 
-  fileIcon(ct: string): string {
-    if (!ct) return '📄';
-    if (ct.startsWith('image/')) return '🖼️';
-    if (ct === 'application/pdf') return '📕';
-    if (ct.includes('word') || ct.includes('document')) return '📝';
-    if (ct.includes('sheet') || ct.includes('excel')) return '📊';
-    if (ct.includes('presentation') || ct.includes('powerpoint')) return '📽️';
-    if (ct.startsWith('video/')) return '🎬';
-    if (ct.startsWith('audio/')) return '🎵';
-    if (ct.includes('zip') || ct.includes('rar')) return '🗜️';
-    return '📄';
+  safeIcon(ct: string, size = 22): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.fileIcon(ct, size));
+  }
+
+  safeActionIcon(action: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.actionIcon(action));
+  }
+
+  fileIcon(ct: string, size = 22): string {
+    const s = (path: string, color: string) =>
+      `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8">${path}</svg>`;
+    if (!ct) return s('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', '#888');
+    if (ct.startsWith('image/')) return s('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>', '#13c2c2');
+    if (ct === 'application/pdf') return s('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>', '#cf1322');
+    if (ct.includes('word') || ct.includes('document')) return s('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>', '#1677ff');
+    if (ct.includes('sheet') || ct.includes('excel')) return s('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>', '#52c41a');
+    if (ct.includes('presentation') || ct.includes('powerpoint')) return s('<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>', '#fa8c16');
+    if (ct.startsWith('video/')) return s('<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>', '#722ed1');
+    if (ct.startsWith('audio/')) return s('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>', '#eb2f96');
+    if (ct.includes('zip') || ct.includes('rar')) return s('<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>', '#8c8c8c');
+    return s('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', '#888');
   }
 
   formatSize(bytes: number): string {
@@ -767,7 +787,16 @@ export class DocumentManagerComponent implements OnInit {
   }
 
   actionIcon(action: string): string {
-    return { UPLOADED: '⬆️', DOWNLOADED: '⬇️', VIEWED: '👁', DELETED: '🗑️', MODIFIED: '✏️' }[action] ?? '📋';
+    const s = (path: string, color: string) =>
+      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">${path}</svg>`;
+    const map: Record<string, string> = {
+      UPLOADED:   s('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>', '#52c41a'),
+      DOWNLOADED: s('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', '#1677ff'),
+      VIEWED:     s('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>', '#722ed1'),
+      DELETED:    s('<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>', '#ff4d4f'),
+      MODIFIED:   s('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>', '#fa8c16'),
+    };
+    return map[action] ?? s('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', '#888');
   }
 
   actionLabel(action: string): string {

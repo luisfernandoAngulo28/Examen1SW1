@@ -111,7 +111,7 @@ const WS_BASE = API_BASE.replace('/api', '').replace('http://', 'ws://').replace
                 }
                 @for (n of notifications; track $index) {
                   <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;align-items:flex-start">
-                    <span style="font-size:16px">{{ n.icon }}</span>
+                    <span [innerHTML]="n.icon" style="display:flex;align-items:center;flex-shrink:0"></span>
                     <div>
                       <div style="color:#e2e8f0;font-size:12px">{{ n.text }}</div>
                       <div style="color:#8896ab;font-size:10px;margin-top:2px">{{ n.time }}</div>
@@ -159,7 +159,14 @@ export class LayoutComponent implements OnInit, OnDestroy {
       onConnect: () => {
         this.ws!.subscribe('/topic/events', (msg) => {
           const p = JSON.parse(msg.body);
-          const iconMap: Record<string, string> = { 'task:completed': '✅', 'task:assigned': '👤', 'case:completed': '🎉', 'case:cancelled': '❌', 'task:created': '🆕' };
+          const ic = (path: string, color: string) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2">${path}</svg>`;
+          const iconMap: Record<string, string> = {
+            'task:completed': ic('<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>', '#52c41a'),
+            'task:assigned':  ic('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', '#1677ff'),
+            'case:completed': ic('<polyline points="20 6 9 17 4 12"/>', '#52c41a'),
+            'case:cancelled': ic('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>', '#ff4d4f'),
+            'task:created':   ic('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>', '#722ed1'),
+          };
           const textMap: Record<string, string> = {
             'task:completed': 'Tarea completada',
             'task:assigned': 'Tarea asignada',

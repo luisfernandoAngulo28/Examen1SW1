@@ -63,11 +63,18 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                   [style.color]="ml.mlAvailable ? '#52c41a' : '#d48806'"
                   [style.border]="'1px solid ' + (ml.mlAvailable ? '#b7eb8f' : '#ffe58f')"
                   style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px">
-              {{ ml.mlAvailable ? '🤖 TensorFlow activo' : '📐 Heurísticas locales' }}
+              @if (ml.mlAvailable) {
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                TensorFlow activo
+              } @else {
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                Heurísticas locales
+              }
             </span>
             @if (mlError) {
-              <span style="font-size:11px;color:#cf1322;background:#fff2f0;border:1px solid #ffccc7;padding:2px 8px;border-radius:10px">
-                ⚠ Servicio ML no disponible — mostrando datos vacíos
+              <span style="font-size:11px;color:#cf1322;background:#fff2f0;border:1px solid #ffccc7;padding:2px 8px;border-radius:10px;display:inline-flex;align-items:center;gap:4px">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Servicio ML no disponible — mostrando datos vacíos
               </span>
             }
           </div>
@@ -77,7 +84,7 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
             <!-- Riesgo de demora -->
             <div class="card" style="padding:0;overflow:hidden">
               <div style="padding:12px 16px;background:linear-gradient(135deg,#fff2f0,#fff7e6);border-bottom:1px solid #ffd8bf;display:flex;align-items:center;gap:8px">
-                <span style="font-size:18px">⚠️</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4380d" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 <span style="font-weight:700;font-size:13px;color:#d4380d">Riesgo de Demora</span>
               </div>
               @if (ml.delayRisk.length === 0) {
@@ -104,7 +111,7 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
             <!-- Prioridad de tareas -->
             <div class="card" style="padding:0;overflow:hidden">
               <div style="padding:12px 16px;background:linear-gradient(135deg,#f0f5ff,#e6f7ff);border-bottom:1px solid #91caff;display:flex;align-items:center;gap:8px">
-                <span style="font-size:18px">🎯</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0958d9" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
                 <span style="font-weight:700;font-size:13px;color:#0958d9">Prioridad de Tareas</span>
               </div>
               @if (ml.priority.length === 0) {
@@ -117,14 +124,16 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                       <span [style.background]="p.priority_label==='CRITICAL'?'#fff1f0':p.priority_label==='HIGH'?'#fff7e6':p.priority_label==='NORMAL'?'#f0f5ff':'#f5f5f5'"
                             [style.color]="p.priority_label==='CRITICAL'?'#cf1322':p.priority_label==='HIGH'?'#d46b08':p.priority_label==='NORMAL'?'#1677ff':'#888'"
                             style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;flex-shrink:0">
-                        {{ p.priority_label === 'CRITICAL' ? '🔴' : p.priority_label === 'HIGH' ? '🟠' : p.priority_label === 'NORMAL' ? '🔵' : '⚪' }}
+                        <span [style.display]="'inline-block'" [style.width]="'8px'" [style.height]="'8px'" [style.border-radius]="'50%'"
+                              [style.background]="p.priority_label==='CRITICAL'?'#cf1322':p.priority_label==='HIGH'?'#d46b08':p.priority_label==='NORMAL'?'#1677ff':'#d9d9d9'"></span>
+                        {{ p.priority_label }}
                       </span>
                       <div style="flex:1;min-width:0">
                         <div style="display:flex;align-items:center;gap:4px">
                           <span style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.task_title }}</span>
                           @if (p.sla_breach) {
                             <span style="font-size:9px;font-weight:800;background:#ff4d4f;color:#fff;padding:1px 5px;border-radius:6px;flex-shrink:0;letter-spacing:.3px">
-                              ⏰ SLA EXCEDIDO
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>SLA
                             </span>
                           }
                         </div>
@@ -139,12 +148,13 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
             <!-- Anomalías -->
             <div class="card" style="padding:0;overflow:hidden">
               <div style="padding:12px 16px;background:linear-gradient(135deg,#f9f0ff,#f0f5ff);border-bottom:1px solid #d3adf7;display:flex;align-items:center;gap:8px">
-                <span style="font-size:18px">🔍</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#531dab" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <span style="font-weight:700;font-size:13px;color:#531dab">Anomalías Detectadas</span>
               </div>
               @if (ml.anomalies.length === 0) {
-                <div style="padding:20px;text-align:center;color:#52c41a;font-size:12px">
-                  ✓ Sin anomalías detectadas
+                <div style="padding:20px;text-align:center;color:#52c41a;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52c41a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Sin anomalías detectadas
                 </div>
               } @else {
                 <div style="max-height:200px;overflow-y:auto">
@@ -191,9 +201,15 @@ interface MlDashboard { delayRisk: RiskItem[]; priority: PrioItem[]; anomalies: 
                 <td>
                   <div style="display:flex;gap:8px">
                     @if (auth.user()?.role === 'ADMIN' || auth.user()?.role === 'DESIGNER') {
-                      <a [routerLink]="['/policies', p.id, 'editor']" class="btn btn-ghost btn-sm">✏ Editar</a>
+                      <a [routerLink]="['/policies', p.id, 'editor']" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:4px">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Editar
+                      </a>
                     }
-                    <a [routerLink]="['/policies', p.id, 'cases']" class="btn btn-warning btn-sm" style="color:#fff">📁 Trámites</a>
+                    <a [routerLink]="['/policies', p.id, 'cases']" class="btn btn-warning btn-sm" style="color:#fff;display:inline-flex;align-items:center;gap:4px">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                      Trámites
+                    </a>
                   </div>
                 </td>
               </tr>
